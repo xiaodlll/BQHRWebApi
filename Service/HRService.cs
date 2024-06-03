@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Data;
+using Dcms.HR.Services;
 
 namespace BQHRWebApi.Common
 {
@@ -26,5 +27,8 @@ namespace BQHRWebApi.Common
         {
             throw new NotImplementedException();
         }
+      
+        
+
     }
 }

@@ -33,6 +33,14 @@
             get; set;
         }
 
+        /// <summary>
+        /// 返回值
+        /// </summary>
+        public Object data
+        {
+            get; set;
+        }
+
         public static ApiResponse Fail(string error, string des = "调用失败!")
         {
             ApiResponse apiResponse = new ApiResponse();
@@ -42,12 +50,13 @@
             return apiResponse;
         }
 
-        public static ApiResponse Success(string des = "调用成功!")
+        public static ApiResponse Success(string des = "调用成功!", Object data=null)
         {
             ApiResponse apiResponse = new ApiResponse();
             apiResponse.result = 0;
             apiResponse.errorMsg = string.Empty;
             apiResponse.description = des;
+            apiResponse.data = data;
             return apiResponse;
         }
     }

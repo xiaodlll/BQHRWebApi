@@ -18,7 +18,7 @@ namespace BQHRWebApi.Controllers
             _logger = logger;
         }
 
-        [HttpPost(Name = "BatchAdd")]
+        [HttpPost("BatchAdd")]
         public ApiResponse AddAttendanceCollect(List<AttendanceCollect> input)
         {
             try
