@@ -2,6 +2,7 @@
 /bin/
 /obj/
 /.vs/
+/logs/
 
 # Visual Studio temporary files
 *.suo
