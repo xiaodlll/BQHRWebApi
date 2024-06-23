@@ -23,6 +23,16 @@ namespace BQHRWebApi.Controllers
         {
             try
             {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:"+ aEx.Message);
+            }
+
+
+            try
+            {
                 if (input != null && input.Count > 0)
                 {
                     AttendanceCollectService service = new AttendanceCollectService();
@@ -38,5 +48,7 @@ namespace BQHRWebApi.Controllers
             }
             return ApiResponse.Success();
         }
+
+
     }
 }

@@ -28,6 +28,15 @@ namespace BQHRWebApi.Controllers
         {
             try
             {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
 
                 if (input != null && input.Count > 0)
                 {
@@ -52,6 +61,15 @@ namespace BQHRWebApi.Controllers
         {
             try
             {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
                 if (!string.IsNullOrEmpty(id))
                 {
                     ResourceItemNoService service = new ResourceItemNoService();
@@ -72,6 +90,15 @@ namespace BQHRWebApi.Controllers
         [HttpGet("getiteminfobyitemid")]
         public ApiResponse GetItemInfoByItemId(string itemId)
         {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
             try
             {
                 ResourceItemNoService service = new ResourceItemNoService();

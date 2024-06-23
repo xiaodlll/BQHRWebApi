@@ -286,6 +286,32 @@ namespace Dcms.HR.Services {
         }
 
 
+
+        public static Dictionary<int, List<ExpandoObject>> ConvertToExpandoObjects(Dictionary<int, DataTable> dic)
+        {
+            var res = new Dictionary<int, List<ExpandoObject>>();
+            foreach (int i in dic.Keys)
+            {
+                var list = new List<ExpandoObject>();
+                DataTable dt = dic[i];
+                foreach (DataRow row in dt.Rows)
+                {
+                    dynamic expando = new ExpandoObject();
+                    var dict = (IDictionary<string, object>)expando;
+
+                    foreach (DataColumn column in dt.Columns)
+                    {
+                        dict[column.ColumnName] = row[column];
+                    }
+
+                    list.Add(expando);
+                }
+                res.Add(i, list);
+            }
+            return res;
+        }
+
+
         public static string GenerateSqlInsert<T>(T obj, string tableName)
         {
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -364,5 +390,17 @@ namespace Dcms.HR.Services {
             return dataTable;
         }
 
+    }
+
+
+    public enum CheckEntityType
+    {
+        AnnualLeave = 1,
+        Leave = 2,
+        OTResult = 3,
+        OTRest = 4,
+        Business = 5,
+        Apply = 6,
+        TWALReg = 7,
     }
 }

@@ -5,4 +5,12 @@
         public BusinessException(string error):base(error) { 
         }
     }
+
+    public class AuthorizationException : Exception
+    {
+        public AuthorizationException(string error) : base(error)
+        {
+        }
+    }
+    
 }

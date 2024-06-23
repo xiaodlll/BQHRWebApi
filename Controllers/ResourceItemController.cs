@@ -28,6 +28,15 @@ namespace BQHRWebApi.Controllers
         {
             try
             {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
 
                 if (input != null && input.Count > 0)
                 {
@@ -52,6 +61,15 @@ namespace BQHRWebApi.Controllers
         {
             try
             {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
                 if (!string.IsNullOrEmpty(id))
                 {
                     ResourceItemService service = new ResourceItemService();
@@ -73,6 +91,15 @@ namespace BQHRWebApi.Controllers
         public ApiResponse GetResourceGroup() {
             try
             {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
                 ResourceItemService service = new ResourceItemService();
                 DataTable table = service.GetResourceGroup();
                 List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(table);
@@ -88,6 +115,15 @@ namespace BQHRWebApi.Controllers
         [HttpGet("getisreturnid")]
         public ApiResponse GetIsReturnId()
         {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
             try
             {
                 ResourceItemService service = new ResourceItemService();
@@ -106,6 +142,15 @@ namespace BQHRWebApi.Controllers
         [HttpGet("getborrowperiod")]
         public ApiResponse GetBorrowPeriod()
         {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
             try
             {
                 ResourceItemService service = new ResourceItemService();

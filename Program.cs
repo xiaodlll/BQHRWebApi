@@ -2,7 +2,6 @@ using BQHRWebApi.Common;
 using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
 builder.Services.AddControllers(options =>
 {
