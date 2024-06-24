@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="HRServerForCase\**" />
+    <Compile Remove="logs\**" />
+    <Content Remove="HRServerForCase\**" />
+    <Content Remove="logs\**" />
+    <EmbeddedResource Remove="HRServerForCase\**" />
+    <EmbeddedResource Remove="logs\**" />
+    <None Remove="HRServerForCase\**" />
+    <None Remove="logs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Service\AttendanceOverTimeRestService.cs" />
   </ItemGroup>
 

@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D243797C-266A-4976-8D63-AED108FBCA74}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dcms.HR.Business.Implement.ExtendItem</RootNamespace>
+    <AssemblyName>Dcms.HR.Business.Implement.ExtendItem</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dcms.Common">
+      <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Dcms.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.Common.Business">
+      <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Dcms.Common.Business.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.Common.Business.Utils">
+      <HintPath>..\..\HRServer\Dcms.Common.Business.Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.Common.Report">
+      <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Dcms.Common.Report.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.Common.Torridity">
+      <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Dcms.Common.Torridity.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.Common">
+      <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Dcms.HR.Business.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.Implement.Common">
+      <HintPath>..\..\HRServer\Dcms.HR.Business.Implement.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.Report">
+      <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Dcms.HR.Business.Report.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IExtendItemAddin.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ExtendItemService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="Config\EntityTypeRegisterForCase.config" />
+    <None Include="Config\ServiceRegisterForCase.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dcms.HR.Business.ExtendItem\Dcms.HR.Business.ExtendItem.csproj">
+      <Project>{d2d1c6d1-5eac-48fa-ab9b-81740dd588a2}</Project>
+      <Name>Dcms.HR.Business.ExtendItem</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
