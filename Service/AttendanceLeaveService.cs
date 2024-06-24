@@ -1,8 +1,6 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using Dcms.HR.Services;
-using BQHRWebApi.Business;
-using BQHRWebApi.Common;
 using System.Data;
 using System.Data.SqlClient;
 using System.Dynamic;
@@ -81,11 +79,8 @@ namespace BQHRWebApi.Service
             string sql = "";
             if (enty != null)
             {
-
                 sql = HRHelper.GenerateSqlInsert(enty, "AttendanceLeave");
                 HRHelper.ExecuteNonQuery(sql);
-
-
             }
 
         }
@@ -99,7 +94,6 @@ namespace BQHRWebApi.Service
 
             AttendanceLeaveForAPI[] arrayEntity = new AttendanceLeaveForAPI[] { formEntity };
 
-            #region ESS表單上的檢查
             Dictionary<int, string> dicCheck = new Dictionary<int, string>();
             //檢查請假時間與出差申請時間是否重複
             dicCheck = this.CheckBusinessApplyTime(arrayEntity);
@@ -107,7 +101,6 @@ namespace BQHRWebApi.Service
             {
                 return dicCheck.Values.First();
             }
-            #endregion
 
 
             if (formEntity.AttendanceTypeId.Equals("406"))
@@ -152,10 +145,10 @@ namespace BQHRWebApi.Service
         public virtual void CheckForESS(AttendanceLeave pAttendanceLeave)
         {
             //检查数据，有ESS检查可以写在这里...
-           // IDocumentService<AttendanceType> service = Factory.GetService<IAttendanceTypeService>();
-        
+            // IDocumentService<AttendanceType> service = Factory.GetService<IAttendanceTypeService>();
+
             AttendanceTypeService typeService = new AttendanceTypeService();
-            AttendanceType type=typeService.GetAttendanceType(pAttendanceLeave.AttendanceTypeId);
+            AttendanceType type = typeService.GetAttendanceType(pAttendanceLeave.AttendanceTypeId);
             //DataTable dtType = HRHelper.ExecuteDataTable(string.Format("select * from AttendanceType where AttendanceTypeId='{0}'", pAttendanceLeave.AttendanceTypeId));
 
             //List<AttendanceType> myObjects = HRHelper.DataTableToList<AttendanceType>(dtType);
@@ -206,11 +199,11 @@ namespace BQHRWebApi.Service
                     }
                 }
 
-                 
-            }
-             
 
-           ExceptionCollection ec = this.SaveBeforeCheck(pAttendanceLeave,true);
+            }
+
+
+            ExceptionCollection ec = this.SaveBeforeCheck(pAttendanceLeave, true);
             //20141017 added by lidong 22436 S00-20140521007
             //20150316 modify by lidong 将是否是请假中的请规律假改为false A00-20150312007
             string errMsg = this.CheckAllTime(pAttendanceLeave.EmployeeId.GetString(), pAttendanceLeave.BeginDate, pAttendanceLeave.BeginTime, pAttendanceLeave.EndDate, pAttendanceLeave.EndTime, CheckEntityType.Leave, pAttendanceLeave.AttendanceLeaveId.GetString(), false);
@@ -220,8 +213,8 @@ namespace BQHRWebApi.Service
             //20180309 yingchun for A00-20180308001 : 請年假時需校驗該月公司考勤是否已關帳
             if (pAttendanceLeave.AttendanceTypeId.Equals("401"))
             {
-               // IATMonthService atMonthSer = Factory.GetService<IATMonthService>();
-               ATMonthService atMonthSer = new ATMonthService();
+                // IATMonthService atMonthSer = Factory.GetService<IATMonthService>();
+                ATMonthService atMonthSer = new ATMonthService();
                 errMsg = atMonthSer.CheckIsClose(new string[] { pAttendanceLeave.EmployeeId.GetString() }, pAttendanceLeave.BeginDate, pAttendanceLeave.EndDate);
                 if (!errMsg.CheckNullOrEmpty())
                     ec.Add(new Exception(errMsg));
@@ -251,12 +244,12 @@ namespace BQHRWebApi.Service
         public ExceptionCollection SaveBeforeCheck(AttendanceLeave pDataEntity, bool pIsEss)
         {
             ExceptionCollection ec = new ExceptionCollection();
-          
+
             bool isRuleLeave = false;
-          EmployeeService employeeService= new EmployeeService();
+            EmployeeService employeeService = new EmployeeService();
             string corpId = employeeService.GetEmpFiledById(pDataEntity.EmployeeId.GetString(), "CorporationId");
-            pDataEntity.CorporationId = corpId.GetGuid(); 
-           
+            pDataEntity.CorporationId = corpId.GetGuid();
+
             if (!pDataEntity.AttendanceTypeId.Equals("401"))
                 //20121219 added by songyj for 清除明细
                 pDataEntity.Infos.Clear();
@@ -268,9 +261,9 @@ namespace BQHRWebApi.Service
             { //折算
                 if (!pDataEntity.AttendanceTypeId.Equals("401"))
                 {
-                  
-                   pDataEntity = SetLeaveInfos(pDataEntity, ConvertDateTime(begin.ToShortDateString(), pDataEntity.BeginTime), ConvertDateTime(end.ToShortDateString(), pDataEntity.EndTime));
-                   
+
+                    pDataEntity = SetLeaveInfos(pDataEntity, ConvertDateTime(begin.ToShortDateString(), pDataEntity.BeginTime), ConvertDateTime(end.ToShortDateString(), pDataEntity.EndTime));
+
                 }
             }
             else
@@ -290,9 +283,9 @@ namespace BQHRWebApi.Service
                     {//循环的截至日期小于等于请假的结束日期
                         if (!pDataEntity.AttendanceTypeId.Equals("401"))
                         {
-                           
-                                pDataEntity = SetLeaveInfos(pDataEntity, ConvertDateTime(beginPoint.ToShortDateString(), pDataEntity.BeginTime), ConvertDateTime(endPoint.ToShortDateString(), pDataEntity.EndTime));
-                            
+
+                            pDataEntity = SetLeaveInfos(pDataEntity, ConvertDateTime(beginPoint.ToShortDateString(), pDataEntity.BeginTime), ConvertDateTime(endPoint.ToShortDateString(), pDataEntity.EndTime));
+
                         }
                     }
                 }
@@ -309,18 +302,18 @@ namespace BQHRWebApi.Service
                 }
                 throw new BusinessRuleException("输入时段内不存在需要请假的时间区间");
             }
-             
+
 
             ATMonthService atMonthSer = Factory.GetService<ATMonthService>();
             StringBuilder sbError = new StringBuilder();
             string errorMsg = string.Empty;
-         
+
             //20140808 modified for 上面的方法有问题 20801 & C01-20140806013 by renping
             foreach (AttendanceLeaveInfo info in pDataEntity.Infos)
             {
-              
-                    errorMsg = atMonthSer. CheckIsClose(new string[] { info.EmployeeId.GetString() }, info.Date, info.Date);
-                
+
+                errorMsg = atMonthSer.CheckIsClose(new string[] { info.EmployeeId.GetString() }, info.Date, info.Date);
+
 
                 if (!string.IsNullOrEmpty(errorMsg))
                 {
@@ -339,7 +332,7 @@ namespace BQHRWebApi.Service
                 pDataEntity.Infos.Clear();//add by LinBJ Bug 10390 多次保存时提示信息出现一次即可
                 ec.Add(new Exception(sbError.ToString()));
             }
-             
+
             return ec;
         }
         public virtual string CheckHasRankChangeData(string[] pEmpIds, DateTime pBeginDate, DateTime pEndDate)
@@ -359,7 +352,7 @@ namespace BQHRWebApi.Service
                                     AND AttendanceRankChange.EmployeeId in ({2})", pBeginDate.ToString("yyyy-MM-dd"), pEndDate.ToString("yyyy-MM-dd"), emps);
 
             DataTable dt = HRHelper.ExecuteDataTable(sql);
-          
+
 
             if (dt.Rows.Count > 0)
             {
@@ -369,7 +362,7 @@ namespace BQHRWebApi.Service
                 }
                 return errorMessage.TrimEnd(',') + "存在班次变更待审核数据";
             }
-    
+
             return "";
         }
 
@@ -382,7 +375,7 @@ namespace BQHRWebApi.Service
         /// <param name="pEnd">结束时间</param>
         public virtual AttendanceLeave SetLeaveInfos(AttendanceLeave pLeave, DateTime pBegin, DateTime pEnd)
         {
-          //  IAttendanceLeaveService leaveService = Factory.GetService<IAttendanceLeaveService>();
+            //  IAttendanceLeaveService leaveService = Factory.GetService<IAttendanceLeaveService>();
             AttendanceTypeService typeService = Factory.GetService<AttendanceTypeService>();
             List<AttendanceLeaveInfo> listLeaveInfo = GetLeaveInfos(pLeave.EmployeeId.ToString(), pLeave.AttendanceTypeId, pBegin, pEnd, pLeave.AttendanceLeaveId.GetString());
             foreach (AttendanceLeaveInfo leaveInfo in listLeaveInfo)
@@ -401,7 +394,7 @@ namespace BQHRWebApi.Service
             {
                 string[] tmpMsg = msg.Split(',');
                 //20140916 added by huangzj for 22233 A00-20140912004 假勤单位是天 需要报错报出天
-              
+
                 AttendanceType atType = typeService.GetAttendanceType(pLeave.AttendanceTypeId);
                 if (atType.AttendanceUnitId.Equals("AttendanceUnit_001"))
                 {
@@ -446,13 +439,13 @@ namespace BQHRWebApi.Service
             int digits = 0;  //小数位数
             Dictionary<string, List<RankRestinfo>> ranksInfo2 = new Dictionary<string, List<RankRestinfo>>();
             DataTable dtLeaveConfig = typeService.GetLeaveConfig(pAttendanceTypeId);
-             
+
 
             if (pBeginDateTime.CompareTo(pEndDateTime) == 0)
             { //相同时间
                 return listLeaveInfo;
             }
-             
+
 
             if (dtLeaveConfig != null && dtLeaveConfig.Rows.Count > 0)
             {
@@ -461,7 +454,7 @@ namespace BQHRWebApi.Service
                 isPassBreakDay = dtLeaveConfig.Rows[0]["PassBreakDay"].ToString().ToBool();
                 isDeductOhter = dtLeaveConfig.Rows[0]["DeductOhter"].ToString().ToBool();
                 isPassEmptyDay = dtLeaveConfig.Rows[0]["PassEmptyDay"].ToString().ToBool();
-                 
+
                 Decimal.TryParse(dtLeaveConfig.Rows[0][2].ToString(), out minLeaveHours);
                 Decimal.TryParse(dtLeaveConfig.Rows[0][3].ToString(), out minAuditHours);
                 calculateMode = dtLeaveConfig.Rows[0][5].ToString();
@@ -505,7 +498,7 @@ namespace BQHRWebApi.Service
                     {
                         continue;//跳過空班
                     }
-                     
+
 
                     // 处理班段相关
                     if (!ranksInfo2.ContainsKey(rankId))
@@ -546,11 +539,11 @@ namespace BQHRWebApi.Service
                         // 20081210 modified by zhonglei for 没有班次明细则抛出异常
                         else
                         {
-                          
+
                             throw new BusinessRuleException(string.Format("班次编码为 {0} 的班次明细不能为空", rankSer.GetRankCodeById(rankId)));
                         }
                     }
-                     
+
 
                     // 处理请假(班段请假改为整班次请假)
 
@@ -588,12 +581,12 @@ namespace BQHRWebApi.Service
                             }
                             AttendanceRank rank = dicRank[rankId];
                             PeriodDate period = null;
-                          
-                             
+
+
                             foreach (RankRestinfo item in ranksInfo2[rankId])
                             {
                                 //调整为判断是否扣除在岗时数
-                                if (isDeductOhter && (item.NotJobTime!=null && item.NotJobTime==true))
+                                if (isDeductOhter && (item.NotJobTime != null && item.NotJobTime == true))
                                     continue;
                                 // 20130819 added by jiangpeng for bug 13365 加班就餐段不参与计算
                                 if (item.AttendanceRankType.Equals("AttendanceRankType_004"))
@@ -655,13 +648,13 @@ namespace BQHRWebApi.Service
                                                         }
                                                     }
                                                 }
-                                                 
+
                                                 restBegin = newRestBegin;
                                                 restEnd = newRestEnd;
                                             }
                                         }
                                     }
-                                     
+
 
                                     if (result.IsEmpty || result.Left == result.Right)
                                     {//无需请假
@@ -692,7 +685,7 @@ namespace BQHRWebApi.Service
                                                 leaveHours += CalculateHours(leaveBegin2, leaveEnd2);
                                             }
                                         }
-                                         
+
                                     }
                                 }
                             }
@@ -717,12 +710,12 @@ namespace BQHRWebApi.Service
                                 // 折算算法（与特休相同）
                                 decimal hours = GetAmountHours(minLeaveHours, minAuditHours, leaveHours);
                                 info.Hours = Math.Round(hours, 4, MidpointRounding.AwayFromZero);
-                                 
+
                                 // 年假資訊
                                 if (pAttendanceTypeId == "401")
                                 {
-                                   EmployeeService employeeService = new EmployeeService();
-                                    string corporationId = employeeService.GetEmpFiledById(pEmpId,"CorporationId").ToString();
+                                    EmployeeService employeeService = new EmployeeService();
+                                    string corporationId = employeeService.GetEmpFiledById(pEmpId, "CorporationId").ToString();
                                     //IAnnualLeaveParameterService parameterServiceEx = Factory.GetService<IAnnualLeaveParameterService>();
                                     //AnnualLeaveParameter parameter = parameterServiceEx.GetParameterIdByCorporationId(corporationId);
                                     ALPlanService planService = new ALPlanService();
@@ -738,7 +731,7 @@ namespace BQHRWebApi.Service
                                 {
                                     info.Days = CalcuteHours(calculateMode, 2, info.Hours, workHours, true);//小时进位转换为天
                                 }
-                                 
+
 
                                 //对于弹性班段的请假处理，备注上要添加说明 
                                 //20141125 LinBJ Add by Q00-20141103010 24390 24391 
@@ -750,13 +743,13 @@ namespace BQHRWebApi.Service
 
                                 listLeaveInfo.Add(info);//加入明细
                             }
-                             
+
                         }
                     }
-                     
+
                 }
             }
-             
+
             return listLeaveInfo;
         }
 
@@ -973,7 +966,7 @@ namespace BQHRWebApi.Service
                                                               WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002') AND 
                                                               Leave.BeginDate BETWEEN '{2}' AND '{3}' AND Leave.Flag = 1",
                           pAttendanceLeave.EmployeeId.GetString(), sbTypeIds.ToString(), beginDate, endDate);
-                     
+
                     if (!pAttendanceLeave.AttendanceLeaveId.CheckNullOrEmpty())
                     {
                         strSQL += string.Format(" AND Leave.AttendanceLeaveId <> '{0}'", pAttendanceLeave.AttendanceLeaveId.GetString());
@@ -1043,7 +1036,7 @@ namespace BQHRWebApi.Service
                             decimal.TryParse(dt.Rows[0]["Days"].ToString(), out obj);
                             totalHours += obj;
                         }
-                         
+
                     }
                     else
                     {
@@ -1103,8 +1096,8 @@ namespace BQHRWebApi.Service
                             //分钟 
                             salaryHour = salaryHour / 60;
                         }
-                         
-            }
+
+                    }
 
                     if (totalHours > salaryHour)
                     {
@@ -1188,7 +1181,7 @@ namespace BQHRWebApi.Service
                                                               WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002') AND 
                                                               Leave.BeginDate BETWEEN '{2}' AND '{3}' AND Leave.Flag = 1",
                                   pAttendanceLeave.EmployeeId.GetString(), sbTypeIds.ToString(), beginDate, endDate);
-                             
+
                             if (!pAttendanceLeave.AttendanceLeaveId.CheckNullOrEmpty())
                             {
                                 strSQL += string.Format(" AND Leave.AttendanceLeaveId <> '{0}'", pAttendanceLeave.AttendanceLeaveId.GetString());
@@ -1219,7 +1212,7 @@ namespace BQHRWebApi.Service
                                     decimal.TryParse(dt.Rows[0]["Days"].ToString(), out obj);
                                     totalHours += obj;
                                 }
-                                 
+
                             }
                             else
                             {
@@ -1243,7 +1236,7 @@ namespace BQHRWebApi.Service
                                     //分钟 
                                     salaryHour = salaryHour / 60;
                                 }
-                                 
+
                             }
 
                             if (totalHours > salaryHour)
@@ -1255,7 +1248,7 @@ namespace BQHRWebApi.Service
                     }
                 }
             }
-             
+
             // 20201210 add by LinBJ for S00-20201112001 新增勾選項,以控管此假勤僅能當月單日請完
             if (msg.CheckNullOrEmpty() && salaryPeriodId == "SalaryPeriod_002" && isOnlyForOneDay)
             {
@@ -1303,7 +1296,7 @@ namespace BQHRWebApi.Service
                     throw new BusinessRuleException(sb.ToString());
                 }
             }
-             
+
             return msg;
 
         }
@@ -1377,13 +1370,13 @@ namespace BQHRWebApi.Service
             //统计区间
             List<PeriodDate> periodDateList = new List<PeriodDate>();
             //查找参数：先找所属公司，没有，则查找根公司
-           // IHRParaConfigService paraConfigService = Factory.GetService<IHRParaConfigService>();
-            DataTable dtParaConfig =HRHelper.ExecuteDataTable(string.Format("select * from HRParaConfig where HRParaConfigId='{0}'",Constants.Para_LeavePeriod + corporationId));
+            // IHRParaConfigService paraConfigService = Factory.GetService<IHRParaConfigService>();
+            DataTable dtParaConfig = HRHelper.ExecuteDataTable(string.Format("select * from HRParaConfig where HRParaConfigId='{0}'", Constants.Para_LeavePeriod + corporationId));
             if (dtParaConfig == null || dtParaConfig.Rows.Count == 0)
             {
                 if (!corporationId.GetGuid().Equals(Constants.SYSTEMGUID_CORPORATION_ROOT.GetGuid()))
                 {//不是根公司，才去找根公司
-                    dtParaConfig = HRHelper.ExecuteDataTable(string.Format("select * from HRParaConfig where HRParaConfigId='{0}'",Constants.Para_LeavePeriod + Constants.SYSTEMGUID_CORPORATION_ROOT));
+                    dtParaConfig = HRHelper.ExecuteDataTable(string.Format("select * from HRParaConfig where HRParaConfigId='{0}'", Constants.Para_LeavePeriod + Constants.SYSTEMGUID_CORPORATION_ROOT));
                 }
             }
             if (dtParaConfig != null && dtParaConfig.Rows.Count > 0)
@@ -1436,9 +1429,9 @@ namespace BQHRWebApi.Service
                             beginDate = DateTime.Parse(string.Format("{0}-{1}-1", info.Date.Year, info.Date.Month));
                             endDate = beginDate.AddMonths(1).AddDays(-1);
                         }
-                        PeriodDate pD= new PeriodDate();
+                        PeriodDate pD = new PeriodDate();
                         pD.BeginDate = beginDate;
-                        pD.EndDate=endDate;
+                        pD.EndDate = endDate;
                         periodDateList.Add(pD);
                     }
                 }
@@ -1500,7 +1493,7 @@ namespace BQHRWebApi.Service
         {
             Dictionary<int, string> dic = new Dictionary<int, string>();
             CheckEntityType entityType = new CheckEntityType();
-            bool isUltimate =true;
+            bool isUltimate = true;
 
             foreach (AttendanceLeaveForAPI apiEntity in formEntities)
             {
@@ -1528,7 +1521,7 @@ namespace BQHRWebApi.Service
                 //檢查請假時間與出差申請時間是否重複
                 dicCheck = this.CheckBusinessApplyTime(arrayEntity);
 
-                if (dicCheck == null && dicCheck.Count== 0)
+                if (dicCheck == null && dicCheck.Count == 0)
                 {
                     dic.Add(Array.IndexOf(formEntities, apiEntity), "提示訊息：請假時間與出差申請時間重疊，是否繼續提交表單？");
                 }
@@ -1552,9 +1545,9 @@ namespace BQHRWebApi.Service
         private List<AttendanceLeave> ChangeToLeaveEntity(AttendanceLeaveForAPI[] pFormEntities, bool pIsSaveOrCheck, string pFormType, string pFormNumber)
         {
             List<AttendanceLeave> list = new List<AttendanceLeave>();
-           // IAnnualLeaveRegisterService alRegisterServ = Factory.GetService<IAnnualLeaveRegisterService>();
-            EmployeeService empServ = new EmployeeService ();
-           AttendanceEmpRankService  empRankServ =new AttendanceEmpRankService ();
+            // IAnnualLeaveRegisterService alRegisterServ = Factory.GetService<IAnnualLeaveRegisterService>();
+            EmployeeService empServ = new EmployeeService();
+            AttendanceEmpRankService empRankServ = new AttendanceEmpRankService();
             bool isCir = false;// HRHelper.IsCirculationIndustry;
             bool isUltimate = true;
 
@@ -1568,12 +1561,12 @@ namespace BQHRWebApi.Service
                 {
                     entity.IsCheckAtType = true;
                     entity.StateId = "PlanState_00";
-                    entity.OwnerId = entity.EmployeeId.GetString();         
+                    entity.OwnerId = entity.EmployeeId.GetString();
                     if (!entity.EmployeeId.CheckNullOrEmpty())
                     {
                         string employeeId = entity.EmployeeId.GetString();
 
-                        string corporationId = empServ.GetEmpFiledById(employeeId,"CorporationId");
+                        string corporationId = empServ.GetEmpFiledById(employeeId, "CorporationId");
                         if (!corporationId.CheckNullOrEmpty())
                         {
                             entity.CorporationId = corporationId.GetGuid();
@@ -1589,7 +1582,7 @@ namespace BQHRWebApi.Service
                             }
                         }
                         string fiscalYearId = GetFisicalYearIdbyDate(employeeId, tempDate);
-                     
+
                         if (!fiscalYearId.CheckNullOrEmpty())
                         {
                             entity.FiscalYearId = fiscalYearId.GetGuid();
@@ -1661,7 +1654,7 @@ namespace BQHRWebApi.Service
             return list;
         }
 
-       
+
         public virtual DataTable GetLeaveInfoForGP(string pEmployeeId, DateTime pDate)
         {
             //返回DataTable包含列:TypeName(假勤类型),BeginDate(有效开始日期),
@@ -1673,7 +1666,7 @@ namespace BQHRWebApi.Service
             {
                 throw new ArgumentNullException("pDate");
             }
-             
+
             string unit = string.Empty;  //单位
 
             DataTable dt = new DataTable();
@@ -1709,16 +1702,16 @@ namespace BQHRWebApi.Service
             // 年假 
             //获取这个人所在的公司 eidt by shenzy for
             EmployeeService empService = new EmployeeService();
-       
-            string corporationId = empService.GetEmpFiledById(pEmployeeId,"CorporationId");
+
+            string corporationId = empService.GetEmpFiledById(pEmployeeId, "CorporationId");
             //通过日期取属于哪个财年,一般都是有值的
 
             DataTable dtFiscalYears = new DataTable();
             //using (IConnectionService conSer = Factory.GetService<IConnectionService>())
             //{
             //    IDbCommand cmd = conSer.CreateDbCommand();
-                string strSql = string.Empty;
-                strSql = string.Format(@"SELECT   Planemp.FiscalYearId
+            string strSql = string.Empty;
+            strSql = string.Format(@"SELECT   Planemp.FiscalYearId
                                             FROM     AnnualLeavePlanemPloyee AS Planemp
                                                      LEFT JOIN FiscalYear
                                                        ON Planemp.FiscalYearId = FiscalYear.FiscalYearId
@@ -1729,7 +1722,7 @@ namespace BQHRWebApi.Service
                                                      AND Planemp.CorporationId = '{3}'
                                             ORDER BY Planemp.EndDate ", pEmployeeId, yearEnd.ToDateFormatString(), yearBegin.ToDateFormatString(), corporationId);
             //  cmd.CommandText = strSql;
-            dtFiscalYears = HRHelper.ExecuteDataTable(strSql) ;
+            dtFiscalYears = HRHelper.ExecuteDataTable(strSql);
             //}
             ALPlanService aLPlanService = new ALPlanService();
 
@@ -1749,25 +1742,27 @@ namespace BQHRWebApi.Service
                     {
                         throw new BusinessRuleException("员工所在公司没有年假参数设置");
                     }
-                    if (dtParam.Rows.Count == 1) { 
-                       unit = dtParam.Rows[0]["AnnualLeaveUnitId"].ToString();//年假计算最小单位
+                    if (dtParam.Rows.Count == 1)
+                    {
+                        unit = dtParam.Rows[0]["AnnualLeaveUnitId"].ToString();//年假计算最小单位
                     }
                     else
                     {
-                        foreach(DataRow r in dtParam.Rows)
+                        foreach (DataRow r in dtParam.Rows)
                         {
-                            if (r["CorporationId"].ToString() == corporationId) {
+                            if (r["CorporationId"].ToString() == corporationId)
+                            {
                                 unit = r["AnnualLeaveUnitId"].ToString();//年假计算最小单位
                             }
                         }
 
                     }
-                  
-                    totalDays = aLPlanService.GetDays(pEmployeeId, fiscalYearId, pDate, pDate,corporationId);
-                  
 
-                   
-                    decimal leftDays = GetLeftDays(fiscalYearId, pEmployeeId,"");
+                    totalDays = aLPlanService.GetDays(pEmployeeId, fiscalYearId, pDate, pDate, corporationId);
+
+
+
+                    decimal leftDays = GetLeftDays(fiscalYearId, pEmployeeId, "");
 
                     if (leftDays < 0)
                         leftDays = 0;
@@ -1780,22 +1775,22 @@ namespace BQHRWebApi.Service
                     decimal planDays = 0;
                     decimal actualDays = 0;
                     decimal remaiderDays = 0;
-                  
-                      
-                        string tempSql = string.Format(@"SELECT BalanceDays,
+
+
+                    string tempSql = string.Format(@"SELECT BalanceDays,
                                                                PlanDays,
                                                                ActualDays,
                                                                RemainderDays,
                                                                BalanceVoidDays
                                                         FROM   AnnualLeaveBalance
                                                         WHERE  FiscalYearId = '{0}' AND EmployeeId = '{1}'", fiscalYearId, pEmployeeId);
-                        if (!corporationId.CheckNullOrEmpty())
-                        {
-                            tempSql += string.Format(@" and CorporationId='{0}'", corporationId);
-                        }
-                      
-                        dtBalance=HRHelper.ExecuteDataTable(tempSql);
-                  
+                    if (!corporationId.CheckNullOrEmpty())
+                    {
+                        tempSql += string.Format(@" and CorporationId='{0}'", corporationId);
+                    }
+
+                    dtBalance = HRHelper.ExecuteDataTable(tempSql);
+
                     if (dtBalance != null && dtBalance.Rows.Count > 0)
                     {
                         balanceDays = Convert.ToDecimal(dtBalance.Rows[0]["BalanceDays"].ToString());
@@ -1804,10 +1799,9 @@ namespace BQHRWebApi.Service
                         remaiderDays = Convert.ToDecimal(dtBalance.Rows[0]["RemainderDays"].ToString());
                         balanceVoidDays = Convert.ToDecimal(dtBalance.Rows[0]["BalanceVoidDays"].ToString());
                     }
-                    #endregion
 
 
-                    DataTable dtBeginEndInfo =aLPlanService. GetBeginEndDate(pEmployeeId, fiscalYearId, corporationId);
+                    DataTable dtBeginEndInfo = aLPlanService.GetBeginEndDate(pEmployeeId, fiscalYearId, corporationId);
                     if (dtBeginEndInfo != null && dtBeginEndInfo.Rows.Count > 0)
                     {
                         DateTime.TryParse(dtBeginEndInfo.Rows[0]["BeginDate"].ToString(), out begin);
@@ -1838,7 +1832,7 @@ namespace BQHRWebApi.Service
                     if (unit.Equals("AnnualLeaveUnit_001"))
                         unit = "AnnualLeaveUnit_002";
 
-                    DataTable dtUnit = HRHelper.ExecuteDataTable(string.Format("select * from codeinfo where codeinfoId='{0}'",unit));// codeInfoSer.GetCodeInfoNameById(unit);
+                    DataTable dtUnit = HRHelper.ExecuteDataTable(string.Format("select * from codeinfo where codeinfoId='{0}'", unit));// codeInfoSer.GetCodeInfoNameById(unit);
                     if (dtUnit != null && dtUnit.Rows.Count > 0)
                     {
                         newRow["Unit"] = dtUnit.Rows[0]["ScName"].ToString();
@@ -1854,33 +1848,31 @@ namespace BQHRWebApi.Service
                     dt.Rows.Add(newRow);
                 }
             }
-            #endregion
 
 
             // 特殊假
             DataTable dtAtSpecialHolidaySet = new DataTable();
-          
-                // 20100919 增加校验请假最后一天是否是跨天班
-                DataTable dtRank = new DataTable();
-                //判段请假的结束时间是不是跨天班，如果是的就把结束日期减一天
-                strSql = string.Format(@"SELECT IsOverZeroId
+
+            // 20100919 增加校验请假最后一天是否是跨天班
+            DataTable dtRank = new DataTable();
+            //判段请假的结束时间是不是跨天班，如果是的就把结束日期减一天
+            strSql = string.Format(@"SELECT IsOverZeroId
                                         FROM   AttendanceemPrank AS emPrank
                                                LEFT JOIN AttendanceRank AS Rank
                                                  ON emPrank.AttendanceRankId = Rank.AttendanceRankId
                                         WHERE  emPrank.EmployeeId = '{0}'
                                                AND emPrank.DATE = '{1}'", pEmployeeId, pDate.AddDays(-1).ToDateFormatString());
-             
+
             dtRank = HRHelper.ExecuteDataTable(strSql);
 
-                DateTime endDate = pDate;
-                if (dtRank != null && dtRank.Rows.Count > 0 && dtRank.Rows[0][0].ToString().Equals("TrueFalse_001"))
-                {
-                    endDate = pDate.AddDays(-1);
-                }
-                #endregion
+            DateTime endDate = pDate;
+            if (dtRank != null && dtRank.Rows.Count > 0 && dtRank.Rows[0][0].ToString().Equals("TrueFalse_001"))
+            {
+                endDate = pDate.AddDays(-1);
+            }
 
 
-                strSql = string.Format(@"SELECT   AtSpecialHolidaySet.AttendanceTypeId,
+            strSql = string.Format(@"SELECT   AtSpecialHolidaySet.AttendanceTypeId,
                                                  AttendanceType.[Name]                AS TypeName,
                                                  AtSpecialHolidaySet.BeginDate,
                                                  AtSpecialHolidaySet.EndDate,
@@ -1893,67 +1885,65 @@ namespace BQHRWebApi.Service
                                                  AND AtSpecialHolidaySet.BeginDate <= '{1}'
                                                  AND AtSpecialHolidaySet.EndDate >= '{2}'
                                         ORDER BY AtSpecialHolidaySet.EndDate", pEmployeeId, yearEnd.ToDateFormatString(), yearBegin.ToDateFormatString());
-              
-                dtAtSpecialHolidaySet=HRHelper.ExecuteDataTable(strSql);
-                if (dtAtSpecialHolidaySet != null && dtAtSpecialHolidaySet.Rows.Count > 0)
+
+            dtAtSpecialHolidaySet = HRHelper.ExecuteDataTable(strSql);
+            if (dtAtSpecialHolidaySet != null && dtAtSpecialHolidaySet.Rows.Count > 0)
+            {
+                DateTime specBegin = DateTime.MinValue;
+                DateTime specEnd = DateTime.MinValue;
+                DataTable dtLeave = new DataTable();
+                //decimal tempHours = 0;
+                DataTable dtLeaveUnit = null;
+                foreach (DataRow specRow in dtAtSpecialHolidaySet.Rows)
                 {
-                    DateTime specBegin = DateTime.MinValue;
-                    DateTime specEnd = DateTime.MinValue;
-                    DataTable dtLeave = new DataTable();
-                    //decimal tempHours = 0;
-                    DataTable dtLeaveUnit = null;
-                    foreach (DataRow specRow in dtAtSpecialHolidaySet.Rows)
-                    {
-                        DateTime.TryParse(specRow["BeginDate"].ToString(), out specBegin);
-                        DateTime.TryParse(specRow["EndDate"].ToString(), out specEnd);
+                    DateTime.TryParse(specRow["BeginDate"].ToString(), out specBegin);
+                    DateTime.TryParse(specRow["EndDate"].ToString(), out specEnd);
 
-                        newRow = dt.NewRow();
-                        newRow["TypeName"] = specRow["TypeName"].ToString();
+                    newRow = dt.NewRow();
+                    newRow["TypeName"] = specRow["TypeName"].ToString();
 
-                        newRow["BeginDate"] = specBegin.Date;
-                        newRow["EndDate"] = specEnd.Date;
-                        newRow["Hours"] = specRow["Amount"].ToString();
-                        //newRow["RemainHours"] = leavingDays.ToString();
-                        newRow["ActualHours"] = (Convert.ToDecimal(specRow["Amount"].ToString()) - Convert.ToDecimal(specRow["RemaiderDays"].ToString())).ToString();
-                        newRow["RemainHours"] = specRow["RemaiderDays"].ToString();
-                        newRow["BalanceVoidDays"] = "";
-                        unit = "AnnualLeaveUnit_003";
-                        //下sql取特殊假的单位
-                        dtLeaveUnit = new DataTable();
-                        strSql = string.Format(@"select AttendanceUnitId from AttendanceType
+                    newRow["BeginDate"] = specBegin.Date;
+                    newRow["EndDate"] = specEnd.Date;
+                    newRow["Hours"] = specRow["Amount"].ToString();
+                    //newRow["RemainHours"] = leavingDays.ToString();
+                    newRow["ActualHours"] = (Convert.ToDecimal(specRow["Amount"].ToString()) - Convert.ToDecimal(specRow["RemaiderDays"].ToString())).ToString();
+                    newRow["RemainHours"] = specRow["RemaiderDays"].ToString();
+                    newRow["BalanceVoidDays"] = "";
+                    unit = "AnnualLeaveUnit_003";
+                    //下sql取特殊假的单位
+                    dtLeaveUnit = new DataTable();
+                    strSql = string.Format(@"select AttendanceUnitId from AttendanceType
                                                  Where AttendanceTypeId='{0}'", specRow["AttendanceTypeId"].ToString());
-                     
-                        dtLeaveUnit=HRHelper.ExecuteDataTable(strSql);
-                        if (dtLeaveUnit != null && dtLeaveUnit.Rows.Count > 0)
-                        {
-                            unit = dtLeaveUnit.Rows[0][0].ToString();
-                        }
-                        DataTable dtUnit = HRHelper.ExecuteDataTable(string.Format("select * from codeinfo where codeinfoId='{0}'", unit)); 
-                        if (dtUnit != null && dtUnit.Rows.Count > 0)
-                        {
-                            newRow["Unit"] = dtUnit.Rows[0]["ScName"].ToString();
-                        }
-                        else
-                        {
-                            newRow["Unit"] = "";
-                        }
-                        newRow["ThisYearAmount"] = "";
-                        newRow["BalanceNextYear"] = "";
-                        //20141202 added for 24508 && Q00-20141201003 by renping
-                        newRow["UnitId"] = unit;
-                        dt.Rows.Add(newRow);
+
+                    dtLeaveUnit = HRHelper.ExecuteDataTable(strSql);
+                    if (dtLeaveUnit != null && dtLeaveUnit.Rows.Count > 0)
+                    {
+                        unit = dtLeaveUnit.Rows[0][0].ToString();
                     }
-                
+                    DataTable dtUnit = HRHelper.ExecuteDataTable(string.Format("select * from codeinfo where codeinfoId='{0}'", unit));
+                    if (dtUnit != null && dtUnit.Rows.Count > 0)
+                    {
+                        newRow["Unit"] = dtUnit.Rows[0]["ScName"].ToString();
+                    }
+                    else
+                    {
+                        newRow["Unit"] = "";
+                    }
+                    newRow["ThisYearAmount"] = "";
+                    newRow["BalanceNextYear"] = "";
+                    //20141202 added for 24508 && Q00-20141201003 by renping
+                    newRow["UnitId"] = unit;
+                    dt.Rows.Add(newRow);
+                }
+
             }
-            #endregion
 
 
-            //#region 20101106 added by jiangpeng for 台湾特休假
 
             //// 20101106 added by jiangpeng for 台湾特休假
 
             //DataTable dtPlan = new DataTable();
-           
+
             //    //此sql如果需要加字段请在后面加，以免打乱顺序，谢谢
             //    //20170302 added by yingchun for S00-20170207010_39232+39233+39234 : 增加結轉結算碼及(IsBalanceSettlement)特休結算碼(IsTWALSettlement)
             //    //20150609 added for 29326 && S00-20150522002 by renping
@@ -2079,12 +2069,11 @@ namespace BQHRWebApi.Service
             {
                 throw new ArgumentNullException("日期异常");
             }
-            #endregion
 
 
             DateTime begin = DateTime.MinValue;
             DateTime end = DateTime.MinValue;
-           //通过日期取属于哪个财年,一般都是有值的
+            //通过日期取属于哪个财年,一般都是有值的
             DataTable dtFiscalYear = HRHelper.ExecuteDataTable(string.Format(@"select FiscalYearId,BeginEndDate_BeginDate as beginDate,BeginEndDate_EndDate as EndDate from FiscalYear
 	 where BeginEndDate_BeginDate<='{0}'
 	 and BeginEndDate_EndDate>='{0}'", pDate.ToShortDateString()));
@@ -2104,20 +2093,21 @@ namespace BQHRWebApi.Service
             // 获取特修参数的计算方式
             DateTime begin_para = begin;
             DateTime end_para = end;
-           
+
             string strSql = string.Format(@"select calculateMode from TWALPara 
                         where twalParaId=(select top 1 twalParaId from TWALParaEmp 
                         where employeeid='{0}')
                         ", pEmployeeId);
             DataTable dt_calMode = HRHelper.ExecuteDataTable(strSql);
-        
-            if (dt_calMode.Rows.Count > 0) { 
+
+            if (dt_calMode.Rows.Count > 0)
+            {
                 if (dt_calMode.Rows[0][0].ToString().Equals("2"))
                 {
-                         strSql = string.Format(@"select top 1 beginDate,endDate from TWALPlanInfo 
+                    strSql = string.Format(@"select top 1 beginDate,endDate from TWALPlanInfo 
                                 where beginDate<='{1}' AND endDate>='{1}'
                                 and employeeId='{0}'", pEmployeeId, pDate.Date.ToString("yyyy-MM-dd"));
-                    DataTable dt_date =HRHelper.ExecuteDataTable(strSql);
+                    DataTable dt_date = HRHelper.ExecuteDataTable(strSql);
                     if (dt_date.Rows.Count > 0)
                     {
                         begin_para = DateTime.Parse(dt_date.Rows[0][0].ToString());
@@ -2125,10 +2115,9 @@ namespace BQHRWebApi.Service
                     }
                 }
             }
-            #endregion
 
 
-                strSql = string.Format(@"SELECT   TEMP.*, CodeInfo.ScName AS StateName
+            strSql = string.Format(@"SELECT   TEMP.*, CodeInfo.ScName AS StateName
 FROM     (
         SELECT tp.[Name] AS TypeName,
                 Info.BeginDate,
@@ -2212,9 +2201,9 @@ FROM     (
                  AND twalreg.BeginDate <= '{4}') AS TEMP
 LEFT JOIN CodeInfo ON TEMP.StateId = CodeInfo.CodeInfoId
 ORDER BY BeginDate DESC"
-                    , pEmployeeId, begin.ToDateFormatString(), end.ToDateFormatString(), begin_para.ToDateFormatString(), end_para.ToDateFormatString());
+                , pEmployeeId, begin.ToDateFormatString(), end.ToDateFormatString(), begin_para.ToDateFormatString(), end_para.ToDateFormatString());
 
-            DataTable dt=HRHelper.ExecuteDataTable(strSql);
+            DataTable dt = HRHelper.ExecuteDataTable(strSql);
             return dt;
         }
 
@@ -2244,36 +2233,36 @@ ORDER BY BeginDate DESC"
             string typeName = string.Empty;
             DataTable dtApply = new DataTable();
             DataTable dtBusiness = new DataTable();
-        
-                StringBuilder sb = new StringBuilder();
-                // 查询SQL
-                //年假：排除审核未同意（401：年假）
-                sb.AppendFormat(@"SELECT EmployeeId, BeginDate, BeginTime, EndDate, EndTime, ISNULL(AttendanceTypeId,'401') AS AttendanceTypeId 
+
+            StringBuilder sb = new StringBuilder();
+            // 查询SQL
+            //年假：排除审核未同意（401：年假）
+            sb.AppendFormat(@"SELECT EmployeeId, BeginDate, BeginTime, EndDate, EndTime, ISNULL(AttendanceTypeId,'401') AS AttendanceTypeId 
                                   FROM AnnualLeaveRegisterInfo
                                   WHERE IsRevoke = '0' AND AnnualLeaveRegisterId NOT IN (
 	                                  SELECT AnnualLeaveRegisterId 
 	                                  FROM AnnualLeaveRegister 
 	                                  WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002')
                                   AND EmployeeId = '{0}' AND BeginDate >= '{1}' AND BeginDate <= '{2}' ", pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
-                if (pEntityType == CheckEntityType.AnnualLeave && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND AnnualLeaveRegisterId <> '{0}' ", pGuid);
-                }
-                sb.AppendLine("UNION ALL ");
-                //请假：排除审核未同意
-                sb.AppendFormat(@"SELECT EmployeeId, BeginDate, BeginTime, EndDate, EndTime, AttendanceTypeId 
+            if (pEntityType == CheckEntityType.AnnualLeave && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND AnnualLeaveRegisterId <> '{0}' ", pGuid);
+            }
+            sb.AppendLine("UNION ALL ");
+            //请假：排除审核未同意
+            sb.AppendFormat(@"SELECT EmployeeId, BeginDate, BeginTime, EndDate, EndTime, AttendanceTypeId 
                                   FROM AttendanceLeaveInfo
                                   WHERE IsRevoke = '0' AND AttendanceLeaveId NOT IN (
                                       SELECT AttendanceLeaveId 
                                       FROM AttendanceLeave 
                                       WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002')
                                   AND EmployeeId = '{0}' AND BeginDate >= '{1}' AND BeginDate <= '{2}' ", pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
-                if (pEntityType == CheckEntityType.Leave && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND AttendanceLeaveId <> '{0}' ", pGuid);
-                }
-                sb.AppendLine("UNION ALL ");
-                sb.AppendFormat(@"SELECT info.EmployeeId, info.BeginDate, info.BeginTime, info.EndDate, info.EndTime, ISNULL(info.AttendanceTypeId,'406') AS AttendanceTypeId
+            if (pEntityType == CheckEntityType.Leave && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND AttendanceLeaveId <> '{0}' ", pGuid);
+            }
+            sb.AppendLine("UNION ALL ");
+            sb.AppendFormat(@"SELECT info.EmployeeId, info.BeginDate, info.BeginTime, info.EndDate, info.EndTime, ISNULL(info.AttendanceTypeId,'406') AS AttendanceTypeId
                                   FROM AttendanceOTRestDaily AS info
                                   LEFT OUTER JOIN AttendanceOTRest AS rest ON rest.AttendanceOverTimeRestId = info.AttendanceOverTimeRestId
                                   WHERE info.AttendanceOverTimeRestId NOT IN (
@@ -2281,26 +2270,26 @@ ORDER BY BeginDate DESC"
 	                                  FROM AttendanceOTRest 
 	                                  WHERE StateId IN ('PlanState_003','PlanState_004') AND ApproveResultId = 'OperatorResult_002')
                                   AND info.EmployeeId = '{0}' AND info.BeginDate >= '{1}' AND info.BeginDate <= '{2}' AND info.IsRevoke = '0' ", pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
-                if (pEntityType == CheckEntityType.OTRest && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND info.AttendanceOverTimeRestId <> '{0}' ", pGuid);
-                }
-                sb.AppendLine("UNION ALL ");
-                //特休假：排除审核未同意（408：特休假）
-                sb.AppendFormat(@"SELECT EmployeeId, BeginDate, BeginTime, EndDate, EndTime, ISNULL(AttendanceTypeId,'408') AS AttendanceTypeId 
+            if (pEntityType == CheckEntityType.OTRest && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND info.AttendanceOverTimeRestId <> '{0}' ", pGuid);
+            }
+            sb.AppendLine("UNION ALL ");
+            //特休假：排除审核未同意（408：特休假）
+            sb.AppendFormat(@"SELECT EmployeeId, BeginDate, BeginTime, EndDate, EndTime, ISNULL(AttendanceTypeId,'408') AS AttendanceTypeId 
                                   FROM TWALRegInfo
                                   WHERE IsRevoke='0' AND TWALRegId NOT IN (
                                       SELECT TWALRegId 
                                       FROM TWALReg 
                                       WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002')
                                   AND EmployeeId = '{0}' AND BeginDate >= '{1}' AND BeginDate <= '{2}' ", pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
-                if (pEntityType == CheckEntityType.TWALReg && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND TWALRegId <> '{0}' ", pGuid);
-                }
-                sb.AppendLine("UNION ALL ");
-                //出差登记
-                sb.AppendFormat(@"SELECT info.EmployeeId, info.BeginDate, info.BeginTime, info.EndDate, info.EndTime, ISNULL(reg.AttendanceTypeId,'701') AS AttendanceTypeId 
+            if (pEntityType == CheckEntityType.TWALReg && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND TWALRegId <> '{0}' ", pGuid);
+            }
+            sb.AppendLine("UNION ALL ");
+            //出差登记
+            sb.AppendFormat(@"SELECT info.EmployeeId, info.BeginDate, info.BeginTime, info.EndDate, info.EndTime, ISNULL(reg.AttendanceTypeId,'701') AS AttendanceTypeId 
                                   FROM BusinessRegisterInfo AS info
                                   LEFT OUTER JOIN BusinessRegister AS reg ON reg.BusinessRegisterId = info.BusinessRegisterId
                                   WHERE info.IsRevoke = '0' AND reg.BusinessRegisterId NOT IN (
@@ -2308,11 +2297,10 @@ ORDER BY BeginDate DESC"
 	                                  FROM BusinessRegister 
 	                                  WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002')
                                   AND reg.EmployeeId = '{0}' AND info.BeginDate >= '{1}' AND info.BeginDate <= '{2}' ", pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
-                if (pEntityType == CheckEntityType.Business && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND reg.BusinessRegisterId <> '{0}' ", pGuid);
-                }
-            #endregion
+            if (pEntityType == CheckEntityType.Business && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND reg.BusinessRegisterId <> '{0}' ", pGuid);
+            }
 
 
             dt = HRHelper.ExecuteDataTable(sb.ToString());
@@ -2320,7 +2308,7 @@ ORDER BY BeginDate DESC"
             // 判断重复
             begin = pBeginDate.AddTimeToDateTime(pBeginTime);
             end = pEndDate.AddTimeToDateTime(pEndTime);
-          //  IAttendanceTypeService typeSer = Factory.GetService<IAttendanceTypeService>();
+            //  IAttendanceTypeService typeSer = Factory.GetService<IAttendanceTypeService>();
             DateTime beginDate = DateTime.MinValue;
             DateTime endDate = DateTime.MinValue;
             string strBegin = string.Empty;
@@ -2334,7 +2322,7 @@ ORDER BY BeginDate DESC"
             DateTime leaveEnd = DateTime.MinValue;//假期结束日期
             EmployeeService empSer = new EmployeeService();
 
-            string empName=empSer.GetEmployeeNameById(pEmployeeId);
+            string empName = empSer.GetEmployeeNameById(pEmployeeId);
 
             DataTable typeTable = new DataTable();
             typeTable = HRHelper.ExecuteDataTable("select AttendanceTypeId,Code,Name from AttendanceType");
@@ -2359,7 +2347,8 @@ ORDER BY BeginDate DESC"
                         {
                             typeName = typerows[0]["Name"].ToString();
                         }
-                        else {
+                        else
+                        {
                             throw new Exception("假勤类型id错误");
                         }
                         if (DateTime.TryParse(strBegin, out beginDate) && DateTime.TryParse(strEnd, out endDate))
@@ -2395,7 +2384,7 @@ ORDER BY BeginDate DESC"
                                         }
                                         leaveBegin = leaveBegin.AddDays(1);
                                     }
-                                     
+
                                 }
                                 else
                                 {
@@ -2409,7 +2398,6 @@ ORDER BY BeginDate DESC"
                     }
                 }
             }
-            #endregion
 
 
 
@@ -2441,13 +2429,13 @@ ORDER BY BeginDate DESC"
             {
                 throw new ArgumentNullException("Employee is null");
             }
-             
+
             EmployeeService employeeService = new EmployeeService();
 
-            string corpId = employeeService.GetEmpFiledById(pEmployeeId,"CorporationId");
-            ALPlanService planService = new ALPlanService ();
+            string corpId = employeeService.GetEmpFiledById(pEmployeeId, "CorporationId");
+            ALPlanService planService = new ALPlanService();
             DataTable paraDt = planService.GetParameterWithNoPower(corpId);
-           // AnnualLeaveParameter para = Factory.GetService<IAnnualLeaveParameterService>().GetParameterByEmpIdWithNoPower(pEmployeeId);
+            // AnnualLeaveParameter para = Factory.GetService<IAnnualLeaveParameterService>().GetParameterByEmpIdWithNoPower(pEmployeeId);
             //先判断单位
             string daysName = "Days";
             if (paraDt != null && paraDt.Rows.Count > 0)
@@ -2457,10 +2445,14 @@ ORDER BY BeginDate DESC"
                 {
                     daysName = "Hours";
                 }
-                else if(paraDt.Rows.Count >1) {
-                    foreach (DataRow r in paraDt.Rows) {
-                        if (r["CorporationId"].ToString() == corpId) {
-                            if (r["AnnualLeaveUnitId"].ToString().Equals("AnnualLeaveUnit_003")){
+                else if (paraDt.Rows.Count > 1)
+                {
+                    foreach (DataRow r in paraDt.Rows)
+                    {
+                        if (r["CorporationId"].ToString() == corpId)
+                        {
+                            if (r["AnnualLeaveUnitId"].ToString().Equals("AnnualLeaveUnit_003"))
+                            {
                                 daysName = "Hours";
                             }
                         }
@@ -2472,41 +2464,41 @@ ORDER BY BeginDate DESC"
                                             inner join FiscalYear on Year(NewReportDate)=FiscalYear.Year
                                             where EmployeeId='{0}' and FiscalYearId='{1}'", pEmployeeId, pFiscalYearId);
             DataTable reDT = HRHelper.ExecuteDataTable(reSQL);
-         
+
             DataTable dt = new DataTable();
-         
-                string strSql = string.Empty;
-                strSql = string.Format(@"select {0} from AttendanceLeaveInfo
+
+            string strSql = string.Empty;
+            strSql = string.Format(@"select {0} from AttendanceLeaveInfo
                                             where AttendanceLeaveId not in
                                             (select AttendanceLeaveId From AttendanceLeave Where StateId='PlanState_003' and ApproveResultId='OperatorResult_002')
                                             and EmployeeId='{1}' and FiscalYearId='{2}' and IsRevoke='0' and AttendanceTypeId='401'", daysName, pEmployeeId, pFiscalYearId);
-                //20180302 added by yingchun for A00-20180227002 : 退回重辦後，時數尚未還，導致可休時數不足
-                if (!pAttendanceLeaveId.CheckNullOrEmpty())
-                {
-                    strSql += string.Format(" And AttendanceLeaveId <> '{0}' ", pAttendanceLeaveId);
-                }
+            //20180302 added by yingchun for A00-20180227002 : 退回重辦後，時數尚未還，導致可休時數不足
+            if (!pAttendanceLeaveId.CheckNullOrEmpty())
+            {
+                strSql += string.Format(" And AttendanceLeaveId <> '{0}' ", pAttendanceLeaveId);
+            }
 
-                //取回聘區間
-                if (reDT.Rows.Count > 0 && !corpId.CheckNullOrEmpty())
+            //取回聘區間
+            if (reDT.Rows.Count > 0 && !corpId.CheckNullOrEmpty())
+            {
+                if (reDT.Rows[0]["OldCorporationId"].ToString() != reDT.Rows[0]["NewCorporationId"].ToString())
                 {
-                    if (reDT.Rows[0]["OldCorporationId"].ToString() != reDT.Rows[0]["NewCorporationId"].ToString())
+                    if (reDT.Rows[0]["OldCorporationId"].ToString() == corpId)
                     {
-                        if (reDT.Rows[0]["OldCorporationId"].ToString() == corpId)
-                        {
-                            strSql += string.Format(@" and AttendanceLeaveInfo.Date between '{0}' and '{1}'",
-                               Convert.ToDateTime(reDT.Rows[0]["OldReportDate"].ToString()).ToDateFormatString(),
-                               Convert.ToDateTime(reDT.Rows[0]["LastDimissionDate"].ToString()).ToDateFormatString());
-                        }
-                        if (reDT.Rows[0]["NewCorporationId"].ToString() == corpId)
-                        {
-                            strSql += string.Format(@" and AttendanceLeaveInfo.Date >='{0}'",
-                                Convert.ToDateTime(reDT.Rows[0]["NewReportDate"].ToString()).ToDateFormatString());
-                        }
+                        strSql += string.Format(@" and AttendanceLeaveInfo.Date between '{0}' and '{1}'",
+                           Convert.ToDateTime(reDT.Rows[0]["OldReportDate"].ToString()).ToDateFormatString(),
+                           Convert.ToDateTime(reDT.Rows[0]["LastDimissionDate"].ToString()).ToDateFormatString());
+                    }
+                    if (reDT.Rows[0]["NewCorporationId"].ToString() == corpId)
+                    {
+                        strSql += string.Format(@" and AttendanceLeaveInfo.Date >='{0}'",
+                            Convert.ToDateTime(reDT.Rows[0]["NewReportDate"].ToString()).ToDateFormatString());
                     }
                 }
+            }
 
-               dt=HRHelper.ExecuteDataTable(strSql);
-            
+            dt = HRHelper.ExecuteDataTable(strSql);
+
             if (dt != null && dt.Rows.Count > 0)
             {
                 decimal leftDays = 0;
@@ -2543,7 +2535,6 @@ ORDER BY BeginDate DESC"
             {
                 throw new Exception(noRank);
             }
-            #endregion
 
 
             decimal totalHours = 0;  //总时数
@@ -2552,33 +2543,37 @@ ORDER BY BeginDate DESC"
             dtHoursAndUnit.Columns.Add("Hours");
             dtHoursAndUnit.Columns.Add("Unit");
 
-            ALPlanService planService = new ALPlanService();    
+            ALPlanService planService = new ALPlanService();
             EmployeeService empService = new EmployeeService();
             if (pAttendanceTypeId.Equals("401"))
             {
-                string ccorporationId = empService.GetEmpFiledById(pEmployeeId,"CorporationId");
-                DataTable paraDt=planService.GetParameterWithNoPower(ccorporationId);
+                string ccorporationId = empService.GetEmpFiledById(pEmployeeId, "CorporationId");
+                DataTable paraDt = planService.GetParameterWithNoPower(ccorporationId);
                 // AnnualLeaveParameter para = Factory.GetService<IAnnualLeaveParameterService>().GetParameterByEmpIdWithNoPower(pEmployeeId);
                 string alUnit = string.Empty
                    ;
-                if (paraDt != null) {
+                if (paraDt != null)
+                {
                     if (paraDt.Rows.Count == 1)
                     {
                         alUnit = paraDt.Rows[0]["AnnualLeaveUnitId"].ToString();//年假计算最小单位
                     }
-                    else {
-                        foreach (DataRow row in paraDt.Rows) {
-                            if (row["CorporationId"].ToString().Equals(ccorporationId)) {
+                    else
+                    {
+                        foreach (DataRow row in paraDt.Rows)
+                        {
+                            if (row["CorporationId"].ToString().Equals(ccorporationId))
+                            {
                                 alUnit = row["AnnualLeaveUnitId"].ToString();//年假计算最小单位
                             }
                         }
                     }
                 }
-                
-               //  alUnit = para.AnnualLeaveUnitId;//年假计算最小单位
+
+                //  alUnit = para.AnnualLeaveUnitId;//年假计算最小单位
                 unit = alUnit;
 
-               // IAnnualLeaveRegisterService tRegService = Factory.GetService<IAnnualLeaveRegisterService>();
+                // IAnnualLeaveRegisterService tRegService = Factory.GetService<IAnnualLeaveRegisterService>();
                 string tFiscalYearId = GetFisicalYearIdbyDate(pEmployeeId, pBeginDate);
                 AttendanceLeave attLeave = new AttendanceLeave();
                 attLeave.EmployeeId = pEmployeeId.GetGuid();
@@ -2590,7 +2585,7 @@ ORDER BY BeginDate DESC"
                 attLeave.FiscalYearId = tFiscalYearId.GetGuid();
                 attLeave.AttendanceLeaveId = !pAttendanceLeaveId.CheckNullOrEmpty() ? pAttendanceLeaveId.GetGuid() : SequentialGuid.NewGuid();
                 attLeave.IsEss = true;
-                this.SaveAlRegister(attLeave,true);
+                this.SaveAlRegister(attLeave, true);
 
                 decimal hours = 0M;
                 foreach (AttendanceLeaveInfo info in attLeave.Infos)
@@ -2608,7 +2603,7 @@ ORDER BY BeginDate DESC"
             }
             else if (pAttendanceTypeId.Equals("408"))
             {
-            
+
             }
             else
             {
@@ -2634,11 +2629,11 @@ ORDER BY BeginDate DESC"
                 newRow["Hours"] = string.Format("{0:0.0000}", tempHours);
             else
                 newRow["Hours"] = string.Format("{0:0.0000}", totalHours);
-           
+
             if (unit.Equals("AnnualLeaveUnit_001"))
                 unit = "AnnualLeaveUnit_002";
 
-            DataTable dtUnit = HRHelper.ExecuteDataTable(string.Format("select * from codeinfo where codeinfoId='{0}'",unit)) ;
+            DataTable dtUnit = HRHelper.ExecuteDataTable(string.Format("select * from codeinfo where codeinfoId='{0}'", unit));
             if (dtUnit != null && dtUnit.Rows.Count > 0)
             {
                 newRow["Unit"] = dtUnit.Rows[0]["ScName"].ToString();
@@ -2663,7 +2658,7 @@ ORDER BY BeginDate DESC"
                 foreach (DataRow dr in empRankDt.Rows)
                 {
                     DateTime tpBDate = new DateTime();
-                  
+
                     DateTime.TryParse(dr["Date"].ToString(), out tpBDate);
                     DateTime bDate = tpBDate.Date.AddTimeToDateTime(dr["WorkBeginTime"].ToString());
                     DateTime eDate = tpBDate.Date.AddTimeToDateTime(dr["WorkEndTime"].ToString());
@@ -2689,7 +2684,7 @@ ORDER BY BeginDate DESC"
 
                 if (tFiscalYearId.CheckNullOrEmpty())
                 {
-                    EmployeeService empSer=new EmployeeService();
+                    EmployeeService empSer = new EmployeeService();
                     string employeeName = empSer.GetEmployeeNameById(pDataEntity.EmployeeId.ToString());
                     throw new BusinessRuleException(string.Format("员工{0}没有年假计划！", employeeName));
                 }
@@ -2702,9 +2697,10 @@ ORDER BY BeginDate DESC"
 
             //检查员工当前财年当前日期年假计划 added by zhoug 20150116 for bug 25855 A00-20150108001
             //20180507 modified by Yangyaoming for Q00-20180428001 年假校驗日期錯誤
-         ALPlanService aLPlanService = new ALPlanService(); 
+            ALPlanService aLPlanService = new ALPlanService();
             string msg = aLPlanService.CheckAnnualLeavePlan(pDataEntity.EmployeeId.ToString(), pDataEntity.FiscalYearId.ToString(), pDataEntity.BeginDate);
-            if (!msg.CheckNullOrEmpty()) {
+            if (!msg.CheckNullOrEmpty())
+            {
                 throw new BusinessRuleException(msg);
             }
 
@@ -2713,12 +2709,12 @@ ORDER BY BeginDate DESC"
             DataTable tempDT = new DataTable();
             if (!pIsForCheck)
             {
-              
+
                 //    string strSql = string.Empty;
                 //    strSql = string.Format(@"select AttendanceLeaveId From AttendanceLeave where AttendanceLeaveId = '{0}'", pDataEntity.AttendanceLeaveId.ToString());
-                   
+
                 //tempDT = HRHelper.ExecuteDataTable(strSql);
-               
+
                 //if (tempDT != null && tempDT.Rows.Count > 0)
                 //{
                 //    IDocumentService<AttendanceLeave> tempDocSer = Factory.GetService<IAttendanceLeaveService>().GetServiceNoPower();
@@ -2730,10 +2726,10 @@ ORDER BY BeginDate DESC"
                 //    // ModifyALBalanceRepeal(tempReg);
                 //}
             }
-             
+
             string checkStr = null;
-           
-           // IATMonthService atMonthSer = Factory.GetService<IATMonthService>();
+
+            // IATMonthService atMonthSer = Factory.GetService<IATMonthService>();
             StringBuilder sbError = new StringBuilder();
             string errorMsg = string.Empty;
             //foreach (AttendanceLeaveInfo info in pDataEntity.Infos)
@@ -2749,17 +2745,12 @@ ORDER BY BeginDate DESC"
                 throw new BusinessRuleException(sbError.ToString());
             }
             //校验时间重复
-            checkStr =CheckAllTime(pDataEntity.EmployeeId.GetString(), pDataEntity.BeginDate,
+            checkStr = CheckAllTime(pDataEntity.EmployeeId.GetString(), pDataEntity.BeginDate,
                 pDataEntity.BeginTime, pDataEntity.EndDate, pDataEntity.EndTime, CheckEntityType.Leave, pDataEntity.AttendanceLeaveId.GetString(), pDataEntity.AttendanceLeaveId.CheckNullOrEmpty() ? true : false);
             if (!checkStr.CheckNullOrEmpty())
                 throw new BusinessRuleException(checkStr);
 
-            if (pDataEntity.Dirty)
-            {//对主操作
-                if (pDataEntity.IsRevoke)
-                {//销过假了
-                    throw new BusinessRuleException(Resources.Error_ModifyOnRevoked);
-                }
+        }
         /// <summary>
         /// 计算时数
         /// </summary>
@@ -2769,8 +2760,8 @@ ORDER BY BeginDate DESC"
         {
             decimal hours = 0M;
             if (pLeave.Infos.Count == 0)
-                {
-                    pLeave = this.SetLeaveInfos(pLeave, ConvertDateTime(pLeave.BeginDate.ToShortDateString(), pLeave.BeginTime), ConvertDateTime(pLeave.EndDate.ToShortDateString(), pLeave.EndTime));
+            {
+                pLeave = this.SetLeaveInfos(pLeave, ConvertDateTime(pLeave.BeginDate.ToShortDateString(), pLeave.BeginTime), ConvertDateTime(pLeave.EndDate.ToShortDateString(), pLeave.EndTime));
 
             }
             if (pLeave.Infos.Count == 0)
@@ -2784,7 +2775,7 @@ ORDER BY BeginDate DESC"
                     throw new BusinessRuleException("员工未排班");
                 }
                 throw new BusinessRuleException("输入时段内不存在需要请假的时间区间");//輸入時段內不存在需要請假的時間區間
-                //return hours;
+                                                                     //return hours;
 
             }
             foreach (AttendanceLeaveInfo info in pLeave.Infos)
@@ -2798,12 +2789,12 @@ ORDER BY BeginDate DESC"
         {
             EmployeeService employeeService = new EmployeeService();
             string employeeName = employeeService.GetEmployeeNameById(leave.EmployeeId.GetString());
-           // IDocumentService<AttendanceType> typeService = Factory.GetService<IAttendanceTypeService>().GetServiceNoPower();
-           AttendanceTypeService typeService = new AttendanceTypeService();   
+            // IDocumentService<AttendanceType> typeService = Factory.GetService<IAttendanceTypeService>().GetServiceNoPower();
+            AttendanceTypeService typeService = new AttendanceTypeService();
             AttendanceType attype = typeService.GetAttendanceType(leave.AttendanceTypeId);
             List<ATSpecialHolidaySet> listAtSpecial = new List<ATSpecialHolidaySet>();
             Dictionary<string, ATSpecialHolidaySet> dicAtSpecial = new Dictionary<string, ATSpecialHolidaySet>();
-            ATSpecialHolidaySetService atSpecialSer= new ATSpecialHolidaySetService();
+            ATSpecialHolidaySetService atSpecialSer = new ATSpecialHolidaySetService();
             //IATSpecialHolidaySetService atSpecialSer = Factory.GetService<IATSpecialHolidaySetService>();
             //IDocumentService<ATSpecialHolidaySet> docAtSpecial = atSpecialSer;
             DataTable specialDt = new DataTable();
@@ -2829,9 +2820,6 @@ ORDER BY BeginDate DESC"
                     totalHours += info.Hours;
                 }
 
-                    //根据公司获得参数
-                    AnnualLeaveParameter parameter = iAnnualLeaveParameterServer.GetParameterIdByCorporationId(corporationId);
-                    IAnnualLeaveBalanceService balanceSer = Factory.GetService<IAnnualLeaveBalanceService>();
 
                 foreach (AttendanceLeaveInfo info in leave.Infos)
                 {
@@ -2849,18 +2837,18 @@ ORDER BY BeginDate DESC"
                             atSet = dicAtSpecial[specialId];
                         }
                         else
-                    {
+                        {
                             atSet = atSpecialSer.GetATSpecialHolidaySet(specialId);
 
-                    }
+                        }
                         if (attype.AttendanceUnitId.Equals("AttendanceUnit_001"))
                         {
                             if (atSet.DaySTHours > 0)
-                    {
+                            {
                                 RemainHours = atSet.RemaiderDays * atSet.DaySTHours;
-                    }
-                    else
-                    {
+                            }
+                            else
+                            {
                                 RemainHours = atSet.RemaiderDays;
                                 infoHours = info.Days;
                             }
@@ -2872,7 +2860,7 @@ ORDER BY BeginDate DESC"
                         else if (attype.AttendanceUnitId.Equals("AttendanceUnit_003"))
                         {
                             RemainHours = atSet.RemaiderDays / 60;
-                    }
+                        }
                         specialHours += RemainHours;
                         if (!info.IsRevoke && atSet.RemaiderDays > 0)
                         {
@@ -2881,13 +2869,13 @@ ORDER BY BeginDate DESC"
                                 decimal oldActualDays = atSet.ActualDays;
                                 infoHours -= RemainHours;
                                 if (infoHours >= 0)
-                        {
+                                {
                                     sbIdAndHours.AppendFormat(string.Format("{0},{1};", atSet.ATSpecialHolidaySetId, atSet.RemaiderDays.ToString()));
                                     atSet.RemaiderDays = 0;
                                     atSet.ActualDays = atSet.Amount;
-                        }
-                        else
-                        {
+                                }
+                                else
+                                {
 
                                     if (atSet.IsOnceOver)
                                     {
@@ -2895,10 +2883,7 @@ ORDER BY BeginDate DESC"
                                         {
                                             listSpecIds.Add(atSet.ATSpecialHolidaySetId);
                                         }
-                        }
-                        // balanceDays = planService.GetBalanceDaysPreYears(pDataEntity.EmployeeId.GetString(), pDataEntity.FiscalYearId.GetString());//加上结余,不能从结余表里取,从本表取上一年的
-
-                        bEndDate = Factory.GetService<IAnnualLeaveBalanceService>().getBalanceEndDate(pDataEntity.FiscalYearId.GetString(), pDataEntity.EmployeeId.GetString(), corporationId);
+                                    }
 
                                     if (attype.AttendanceUnitId.Equals("AttendanceUnit_001"))
                                     {
@@ -2925,40 +2910,40 @@ ORDER BY BeginDate DESC"
                                     }
                                     atSet.ActualDays = atSet.Amount - atSet.RemaiderDays;
                                     //}
-                    }
+                                }
                                 // 20180711 add by LinBJ for Q00-20180709001 增加Log
                                 string msg = string.Empty;
                                 if (atSet.IsOnceOver)
-                    {
+                                {
                                     msg = string.Format("{0}员工新增{1} {2} ~ {3} {4} {5}数量为{6}，回写{7}，原已休数量{8}，更新后已休数量{9}，可休剩余数量{10}"
                                          , employeeName, info.BeginDate.ToDateFormatString(), info.BeginTime, info.EndDate.ToDateFormatString(), info.EndTime
                                          , attype.Name, atSet.Amount, atSet.ATSpecialHolidaySetId.ToString(), 0, atSet.Amount, 0);
-                    }
+                                }
                                 else
-                    {
+                                {
                                     msg = string.Format("{0}员工新增{1} {2} ~ {3} {4} {5}数量为{6}，回写{7}，原已休数量{8}，更新后已休数量{9}，可休剩余数量{10}"
                                     , employeeName, info.BeginDate.ToDateFormatString(), info.BeginTime, info.EndDate.ToDateFormatString(), info.EndTime
                                     , attype.Name, atSet.ActualDays - oldActualDays, atSet.ATSpecialHolidaySetId.ToString(), oldActualDays, atSet.ActualDays, atSet.RemaiderDays);
                                 }
                                 bool hasStr = false;
                                 if (atSet.ExtendedProperties.Count > 0)
-                        {
-                                    foreach (ExterFields f in atSet.ExtendedProperties)
-                            {
-                                        if (f.Name == "InfoStrList")
                                 {
+                                    foreach (ExterFields f in atSet.ExtendedProperties)
+                                    {
+                                        if (f.Name == "InfoStrList")
+                                        {
                                             f.Value += msg;
                                             hasStr = true;
                                         }
-                                }
+                                    }
                                     if (!hasStr)
                                     {
                                         ExterFields fNew = new ExterFields();
                                         fNew.Name = "InfoStrList";
                                         fNew.Value = "msg";
                                         atSet.ExtendedProperties.Add(fNew);
-                            }
-                        }
+                                    }
+                                }
                                 //if (atSet.ExtendedProperties.ContainsKey("InfoStrList"))
                                 //{
                                 //    List<string> infoStrList = atSet.ExtendedProperties["InfoStrList"] as List<string>;
@@ -2971,26 +2956,26 @@ ORDER BY BeginDate DESC"
                                 //    atSet.ExtendedProperties.Add("InfoStrList", infoStrList);
                                 //}
                                 if (!atSet.LeaveInfoIds.CheckNullOrEmpty())
-                        {
+                                {
                                     string[] infoArray = atSet.LeaveInfoIds.Split(',');
                                     if (infoArray.Length > 0)
-                            {
+                                    {
                                         List<string> infoIdList = infoArray.ToList();
                                         if (!infoIdList.Contains(info.AttendanceLeaveInfoId.ToString()))
-                                {
+                                        {
                                             infoIdList.Add(info.AttendanceLeaveInfoId.ToString());
                                             atSet.LeaveInfoIds = string.Join(",", infoIdList.ToArray());
                                         }
-                                }
+                                    }
                                     else
                                     {
                                         atSet.LeaveInfoIds = string.Join(",", new string[] { info.AttendanceLeaveInfoId.ToString() });
-                            }
-                        }
+                                    }
+                                }
                                 else
                                 {
                                     atSet.LeaveInfoIds = string.Join(",", new string[] { info.AttendanceLeaveInfoId.ToString() });
-                    }
+                                }
 
                                 dicAtSpecial[specialId] = atSet;
                             }
@@ -3015,7 +3000,7 @@ ORDER BY BeginDate DESC"
                     {
                         dicInfoIdAndHours.Add(info.AttendanceLeaveInfoId.GetString(), sbIdAndHours.ToString());
                     }
-                    }
+                }
 
                 //20180223 added by yingchun for Q00-20180222002 : 退回重辦後時數沒有還回去，導致時數不足                
                 if (leave.IsEss && pIsCheckInly && !leave.AttendanceLeaveId.CheckNullOrEmpty())
@@ -3028,39 +3013,39 @@ ORDER BY BeginDate DESC"
                     {
                         hasHours += Decimal.Parse(dt.Rows[0]["TotalHours"].ToString());
                     }
-                    }
+                }
 
                 //mark20121220
                 if (hasHours < totalHours)
-                        {
+                {
                     bool IsEmployeeDimission = false;
                     if (atSet.ExtendedProperties.Count > 0)
-                            {
+                    {
                         foreach (ExterFields f in atSet.ExtendedProperties)
-                                {
+                        {
                             if (f.Name.Equals("IsEmployeeDimission"))
-                                    {
+                            {
                                 IsEmployeeDimission = true;
-                                    }
-                                }
                             }
+                        }
+                    }
                     //如果是離職存檔不提示 added by zhoug 20150303 for bug 26798&26797&26799 Q00-20150302002
                     //  if (!leave.ExtendedProperties.Contains("IsEmployeeDimission"))
                     if (IsEmployeeDimission)
-                            {
+                    {
                         //时数不足
                         throw new BusinessRuleException(string.Format("员工 {0} 特殊假 {1} 的可休时数为 {2}，本次请假 {3}，剩余可休时数不足", employeeName, attype.Name, hasHours.ToString(), totalHours.ToString()));
                     }
                 }
-                 
+
 
                 if (!pIsCheckInly)
-                                {
+                {
                     //更新请假明细
                     foreach (KeyValuePair<string, string> keyValue in dicInfoIdAndHours)
-                                    {
+                    {
                         UpdateLeaveInfoSpecial(keyValue.Key, keyValue.Value);
-                                    }
+                    }
                     //更新特殊假数据
                     List<ATSpecialHolidaySet> listTemp = new List<ATSpecialHolidaySet>();
                     foreach (string str in dicAtSpecial.Keys)
@@ -3070,20 +3055,18 @@ ORDER BY BeginDate DESC"
                         {
                             dicAtSpecial[str].ActualDays = dicAtSpecial[str].Amount;
                             dicAtSpecial[str].RemaiderDays = 0;
-                                }
-                       // dicAtSpecial[str].ExtendedProperties.Add("ForLeave", "ForLeave");
+                        }
+                        // dicAtSpecial[str].ExtendedProperties.Add("ForLeave", "ForLeave");
                         listTemp.Add(dicAtSpecial[str]);
-                            }
+                    }
                     //  docAtSpecial.Save(listTemp.ToArray());
 
                     string sql = HRHelper.GenerateSqlInsertMulti(listTemp, "ATSpecialHolidaySet");
                     HRHelper.ExecuteNonQuery(sql);
-                    }
-
-                    }
-                    if (pDataEntity.AttendanceTypeId.CheckNullOrEmpty())
-                        pDataEntity.AttendanceTypeId = "401";
                 }
+
+            }
+        }
 
         /// <summary>
         /// 获取特殊假设置
@@ -3091,47 +3074,47 @@ ORDER BY BeginDate DESC"
         /// <param name="pLeave"></param>
         /// <returns></returns>
         public virtual DataTable GetSpecialLeave(AttendanceLeave pLeave)
-                {
+        {
             DataTable dtRank = new DataTable();
             DataTable dt = new DataTable();
-            
-                StringBuilder sb = new StringBuilder();
-                //判段请假的结束时间是不是跨天班，如果是的就把结束日期减一天
-                string strSql = string.Format(@"SELECT IsOverZeroId
+
+            StringBuilder sb = new StringBuilder();
+            //判段请假的结束时间是不是跨天班，如果是的就把结束日期减一天
+            string strSql = string.Format(@"SELECT IsOverZeroId
                                                     FROM   AttendanceemPrank AS emPrank
                                                            LEFT JOIN AttendanceRank AS Rank
                                                              ON emPrank.AttendanceRankId = Rank.AttendanceRankId
                                                     WHERE  emPrank.EmployeeId = '{0}'
                                                            AND emPrank.DATE = '{1}'", pLeave.EmployeeId.GetString(), pLeave.EndDate.AddDays(-1).ToDateFormatString());
-                
-                dtRank=HRHelper.ExecuteDataTable(strSql);
 
-                sb.AppendFormat(@"SELECT EmployeeId,Amount,DaySTHours,IsOnceOver,ATSpecialHolidaySetId,
+            dtRank = HRHelper.ExecuteDataTable(strSql);
+
+            sb.AppendFormat(@"SELECT EmployeeId,Amount,DaySTHours,IsOnceOver,ATSpecialHolidaySetId,
                                     ActualDays,RemaiderDays,LeaveInfoIds
                                     FROM ATSpecialHolidaySet  
                                     WHERE EmployeeId = '{0}' AND AttendanceTypeId = '{1}' ", pLeave.EmployeeId.GetString(), pLeave.AttendanceTypeId);
 
-                // 20090907 marked by jiangpeng 修正繁体机上DateTime转换错误
-                sb.AppendFormat("AND BeginDate <= '{0}' ", pLeave.BeginDate.ToString("yyy-MM-dd HH:mm:ss"));
-                DateTime endDate = pLeave.EndDate;
-                if (dtRank != null && dtRank.Rows.Count > 0 && dtRank.Rows[0][0].ToString().Equals("TrueFalse_001"))
+            // 20090907 marked by jiangpeng 修正繁体机上DateTime转换错误
+            sb.AppendFormat("AND BeginDate <= '{0}' ", pLeave.BeginDate.ToString("yyy-MM-dd HH:mm:ss"));
+            DateTime endDate = pLeave.EndDate;
+            if (dtRank != null && dtRank.Rows.Count > 0 && dtRank.Rows[0][0].ToString().Equals("TrueFalse_001"))
+            {
+                if (pLeave.EndDate > pLeave.BeginDate)
                 {
-                    if (pLeave.EndDate > pLeave.BeginDate)
-                {
-                        endDate = pLeave.EndDate.AddDays(-1);
+                    endDate = pLeave.EndDate.AddDays(-1);
                 }
             }
-                sb.AppendFormat("AND EndDate >= '{0}' ", endDate.ToString("yyy-MM-dd HH:mm:ss"));
-                sb.Append("AND RemaiderDays >0 ");
-                sb.Append("ORDER BY BeginDate");
+            sb.AppendFormat("AND EndDate >= '{0}' ", endDate.ToString("yyy-MM-dd HH:mm:ss"));
+            sb.Append("AND RemaiderDays >0 ");
+            sb.Append("ORDER BY BeginDate");
 
-                dt=HRHelper.ExecuteDataTable(sb.ToString());
+            dt = HRHelper.ExecuteDataTable(sb.ToString());
             return dt;
         }
 
         public void UpdateLeaveInfoSpecial(string pLeaveInfoId, string pIdAndHours)
         {
-                HRHelper.ExecuteNonQuery( string.Format("UPDATE AttendanceLeaveInfo SET SpecialSetIdAndHours = '{0}' Where AttendanceLeaveInfoId='{1}'", pIdAndHours, pLeaveInfoId));
+            HRHelper.ExecuteNonQuery(string.Format("UPDATE AttendanceLeaveInfo SET SpecialSetIdAndHours = '{0}' Where AttendanceLeaveInfoId='{1}'", pIdAndHours, pLeaveInfoId));
         }
 
         /// <summary>
@@ -3140,13 +3123,14 @@ ORDER BY BeginDate DESC"
         /// <param name="typeId"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public string GetAttendanceTypeNameById(string typeId) {
-          
+        public string GetAttendanceTypeNameById(string typeId)
+        {
+
             if (typeId.CheckNullOrEmpty())
             {
                 throw new ArgumentNullException("typeId Error");
             }
-             
+
 
             DataTable dt = HRHelper.ExecuteDataTable(string.Format("select name from AttendanceType where AttendanceTypeId='{0}'", typeId));
 
@@ -3168,8 +3152,8 @@ ORDER BY BeginDate DESC"
         public virtual string GetFisicalYearIdbyDate(string pEmployeeId, DateTime pDate)
         {
             DataTable dt = new DataTable();
-          
-             string  strSql = string.Format(@"SELECT   Planemp.FiscalYearId
+
+            string strSql = string.Format(@"SELECT   Planemp.FiscalYearId
                                             FROM     AnnualLeavePlanemPloyee AS Planemp
                                                      LEFT JOIN FiscalYear
                                                        ON Planemp.FiscalYearId = FiscalYear.FiscalYearId
@@ -3178,7 +3162,7 @@ ORDER BY BeginDate DESC"
                                                      AND Planemp.EndDate >= '{1}'
                                                      AND Planemp.Flag = '1'
                                             ORDER BY FiscalYear.[Year] DESC", pEmployeeId, pDate.ToDateFormatString());
-             dt=HRHelper.ExecuteDataTable(strSql); ;
+            dt = HRHelper.ExecuteDataTable(strSql); ;
             if (dt != null && dt.Rows.Count > 0)
             {
                 return dt.Rows[0][0].ToString();

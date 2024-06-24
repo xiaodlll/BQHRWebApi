@@ -21,11 +21,13 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Dcms.HR.Services {
+namespace Dcms.HR.Services
+{
     /// <summary>
     /// HR通用辅助类
     /// </summary>
-    public partial class HRHelper {
+    public partial class HRHelper
+    {
 
 
         private static string _dbConnectionString;
@@ -52,9 +54,11 @@ namespace Dcms.HR.Services {
         /// </summary>
         /// <param name="pSql">SQL</param>
         /// <remarks>无权限检查，默认ConnectionString</remarks>
-        public static void ExecuteNonQuery(string pSql) {
+        public static void ExecuteNonQuery(string pSql)
+        {
             #region 参数检查
-            if (string.IsNullOrEmpty(pSql)) {
+            if (string.IsNullOrEmpty(pSql))
+            {
                 return;
             }
             #endregion
@@ -70,7 +74,7 @@ namespace Dcms.HR.Services {
         public static void ExecuteNonQueryWithTrans(List<string> pSqlList)
         {
             #region 参数检查
-            if (pSqlList.Count==0)
+            if (pSqlList.Count == 0)
             {
                 return;
             }
@@ -100,7 +104,7 @@ namespace Dcms.HR.Services {
                     throw;
                 }
             }
-           // SqlHelper.ExecuteNonQuery(DBConnectionString, CommandType.Text, pSql);
+            // SqlHelper.ExecuteNonQuery(DBConnectionString, CommandType.Text, pSql);
         }
 
         /// <summary>
@@ -108,7 +112,8 @@ namespace Dcms.HR.Services {
         /// </summary>
         /// <param name="pSql">SQL</param>
         /// <remarks>无权限检查，默认ConnectionString</remarks>
-        public static void ExecuteNonQuery(string pSql, SqlParameter[] pParas) {
+        public static void ExecuteNonQuery(string pSql, SqlParameter[] pParas)
+        {
             #region 参数检查
             if (string.IsNullOrEmpty(pSql))
             {
@@ -141,7 +146,8 @@ namespace Dcms.HR.Services {
         /// </summary>
         /// <param name="pSql">SQL</param>
         /// <returns>数据表</returns>
-        public static DataTable ExecuteDataTable(string pSql) {
+        public static DataTable ExecuteDataTable(string pSql)
+        {
             #region 参数检查
             if (string.IsNullOrEmpty(pSql))
             {
@@ -157,7 +163,8 @@ namespace Dcms.HR.Services {
         /// </summary>
         /// <param name="pSql">SQL</param>
         /// <returns>数据表</returns>
-        public static DataTable ExecuteDataTable(string pSql, SqlParameter[] pParas) {
+        public static DataTable ExecuteDataTable(string pSql, SqlParameter[] pParas)
+        {
             #region 参数检查
             if (string.IsNullOrEmpty(pSql))
             {
@@ -173,7 +180,8 @@ namespace Dcms.HR.Services {
         /// </summary>
         /// <param name="pSql">SQL</param>
         /// <returns>数据</returns>
-        public static object ExecuteScalar(string pSql) {
+        public static object ExecuteScalar(string pSql)
+        {
             #region 参数检查
             if (string.IsNullOrEmpty(pSql))
             {
@@ -189,7 +197,8 @@ namespace Dcms.HR.Services {
         /// </summary>
         /// <param name="pSql">SQL</param>
         /// <returns>数据</returns>
-        public static object ExecuteScalar(string pSql, SqlParameter[] pParas) {
+        public static object ExecuteScalar(string pSql, SqlParameter[] pParas)
+        {
             #region 参数检查
             if (string.IsNullOrEmpty(pSql))
             {
@@ -206,11 +215,12 @@ namespace Dcms.HR.Services {
         /// <param name="pTable"></param>
         public static void BulkCopyInsert(DataTable pTable)
         {
-            using (SqlBulkCopy sqlBulkCopy = new SqlBulkCopy(DBConnectionString)) {
+            using (SqlBulkCopy sqlBulkCopy = new SqlBulkCopy(DBConnectionString))
+            {
                 sqlBulkCopy.BulkCopyTimeout = 3600;
                 sqlBulkCopy.DestinationTableName = string.Format(@"[{0}]", pTable.TableName);
                 sqlBulkCopy.WriteToServer(pTable);
-                 
+
             }
         }
 
@@ -245,19 +255,24 @@ namespace Dcms.HR.Services {
         /// <typeparam name="T">list中的類型</typeparam>
         /// <param name="dt">要轉換的DataTable</param>
         /// <returns></returns>
-        public static List<T> DataTableToList<T>(DataTable dt) where T : class, new() {
+        public static List<T> DataTableToList<T>(DataTable dt) where T : class, new()
+        {
             List<T> list = new List<T>();
             T t = new T();
             PropertyInfo[] prop = t.GetType().GetProperties();
             //遍歷所有DataTable的行
-            foreach (DataRow dr in dt.Rows) {
+            foreach (DataRow dr in dt.Rows)
+            {
                 t = new T();
                 //通過反射獲取T類型的所有成員
-                foreach (PropertyInfo pi in prop) {
+                foreach (PropertyInfo pi in prop)
+                {
                     //DataTable列名=屬性名(不分大小寫)
-                    if (dt.Columns.IndexOf(pi.Name)>=0) {
+                    if (dt.Columns.IndexOf(pi.Name) >= 0)
+                    {
                         //屬性值不為空
-                        if (dr[pi.Name] != DBNull.Value) {
+                        if (dr[pi.Name] != DBNull.Value)
+                        {
                             object value = Convert.ChangeType(dr[pi.Name], pi.PropertyType);
                             //給T類型字段賦值
                             pi.SetValue(t, value, null);
@@ -326,32 +341,6 @@ namespace Dcms.HR.Services {
             return sb.ToString();
         }
 
-
-        public static Dictionary<int, List<ExpandoObject>> ConvertToExpandoObjects(Dictionary<int, DataTable> dic)
-        {
-            var res = new Dictionary<int, List<ExpandoObject>>();
-            foreach (int i in dic.Keys)
-            {
-                var list = new List<ExpandoObject>();
-                DataTable dt = dic[i];
-                foreach (DataRow row in dt.Rows)
-                {
-                    dynamic expando = new ExpandoObject();
-                    var dict = (IDictionary<string, object>)expando;
-
-                    foreach (DataColumn column in dt.Columns)
-                    {
-                        dict[column.ColumnName] = row[column];
-                    }
-
-                    list.Add(expando);
-                }
-                res.Add(i, list);
-            }
-            return res;
-        }
-
-
         public static string GenerateSqlInsert<T>(T obj, string tableName)
         {
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -369,7 +358,7 @@ namespace Dcms.HR.Services {
                     {
                         values.AppendFormat("'{0}',", propertyValue.ToString().Replace("'", "''"));
                     }
-                    else if (propertyValue is DateTime )
+                    else if (propertyValue is DateTime)
                     {
                         DateTime dt1 = (DateTime)propertyValue;
                         values.AppendFormat("'{0}',", dt1.ToString("yyyy-MM-dd"));
@@ -482,9 +471,7 @@ namespace Dcms.HR.Services {
             return dataTable;
         }
 
-    }
 
- 
         public static List<T> WebAPIEntitysToDataEntitys<T>(object[] pWebDatas) where T : class, new()
         {
             if (pWebDatas == null)
@@ -518,80 +505,10 @@ namespace Dcms.HR.Services {
 
             return resultList;
         }
-    
-    //public static List<T> WebAPIEntitysToDataEntitys<T>(object[] pWebDatas) where T : class,  new()
-    //{
-    //    List<T> list = new List<T>();
-    //    foreach (object webData in pWebDatas)
-    //    {
-    //        T t = new T();
-    //        PropertyInfo[] propertiesNew = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-    //        //PropertyInfo[] propertiesOld = typeof(webData).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-    //        PropertyInfo[] propertiesOld = webData.GetType().GetProperties();
-    //        string proName = "";
 
-    //        var proType = "";
-    //        string proNameNew = "";
-    //        var proTypeNew = "";
-    //        foreach (PropertyInfo webPi in propertiesOld)
-    //        {
-    //             proName=webPi.Name;
-    //            foreach (PropertyInfo newEnty in propertiesNew) {
-    //                proNameNew = newEnty.Name;
-    //                if (proName == proNameNew ) {
-    //                   t.proper row[prop.Name] = prop.GetValue(entity, null) ?? DBNull.Value;
-    //                }
-    //            }
-    //        }
-    //        #region PrimaryKey
-    //        if (entityType.PrimaryKey.DbType == GeneralDbType.Guid)
-    //        {
-    //            entityType.PrimaryKey.SetValue((IDataEntityBase)entity, SequentialGuid.NewGuid());
-    //        }
-    //        #endregion
-    //        #region flagObj
-    //        IFlagObject flagObj = entity as IFlagObject;
-    //        if (flagObj != null)
-    //        {
-    //            flagObj.Flag = true;
-    //        }
-    //        #endregion
-    //        #region auditObj
-    //        IAuditObject auditObj = entity as IAuditObject;
-    //        if (auditObj != null)
-    //        {
-    //            auditObj.StateId = Constants.PS02;
-    //        }
-    //        #endregion
-    //        #region DataModifyObj
-    //        Dcms.Common.DataEntities.IDataModifyObject DataModifyObj = entity as Dcms.Common.DataEntities.IDataModifyObject;
-    //        if (DataModifyObj != null)
-    //        {
-    //            DataModifyObj.CreateDate = DateTime.Now;
-    //            DataModifyObj.CreateBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
-    //            DataModifyObj.LastModifiedDate = DateTime.Now;
-    //            DataModifyObj.LastModifiedBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
-    //        }
-    //        #endregion
-    //        #region EssObject
-    //        IEssObject essObj = entity as IEssObject;
-    //        if (essObj != null)
-    //        {
-    //            essObj.IsEss = true;
-    //            essObj.IsFromEss = true;
-    //            essObj.EssType = pFormType;
-    //            essObj.EssNo = pFormNumber;
-    //        }
-    //        #endregion
+     
 
-    //        t.ExtendedProperties.Add("api", "api");
-    //        list.Add(t);
-    //    }
-    //    return list;
-    //}
-
-
-}
+    }
 
 
     public enum CheckEntityType
