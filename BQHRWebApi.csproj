@@ -1,10 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Service\AttendanceOverTimeRestService.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -15,6 +19,24 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Dcms.Common">
+      <HintPath>..\..\..\SourceCenter\Product\V5.1 10\Export\Dcms.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.Common">
+      <HintPath>..\..\BQHRWebApi\lib\Dcms.HR.Business.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Neway.License.Service">
+      <HintPath>lib\Neway.License.Service.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="License.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

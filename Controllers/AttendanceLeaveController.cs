@@ -8,22 +8,21 @@ using System.Dynamic;
 
 namespace BQHRWebApi.Controllers
 {
-    
 
     [ApiController]
     [Route("[controller]")]
-    public class ResourceKindController : ControllerBase
+    public class AttendanceLeaveController : ControllerBase
     {
 
-        private readonly ILogger<ResourceKindController> _logger;
+        private readonly ILogger<AttendanceLeaveController> _logger;
 
-        public ResourceKindController(ILogger<ResourceKindController> logger)
+        public AttendanceLeaveController(ILogger<AttendanceLeaveController> logger)
         {
             _logger = logger;
         }
 
-        [HttpPost("batchadd")]
-        public ApiResponse AddResourceKind(List<ResourceKind> input)
+        [HttpPost("BatchAdd")]
+        public ApiResponse AddAttendanceLeave(List<AttendanceLeaveForAPI> input)
         {
             try
             {
@@ -36,10 +35,9 @@ namespace BQHRWebApi.Controllers
 
             try
             {
-
                 if (input != null && input.Count > 0)
                 {
-                    ResourceKindService service = new ResourceKindService();
+                    AttendanceLeaveService service = new AttendanceLeaveService();
                     service.Save(input.ToArray());
                 }
                 else
@@ -54,8 +52,9 @@ namespace BQHRWebApi.Controllers
             return ApiResponse.Success();
         }
 
-        [HttpDelete("delete")]
-        public ApiResponse DeleteResourceKind(string id)
+
+        [HttpGet("getleaverecordsforapi")]
+        public ApiResponse GetLeaveRecordsForAPI(string[] empCodes, DateTime date)
         {
             try
             {
@@ -68,51 +67,16 @@ namespace BQHRWebApi.Controllers
 
             try
             {
-                if (!string.IsNullOrEmpty(id))
-                {
-                    ResourceKindService service = new ResourceKindService();
-                    service.DeleteResourceKind(id);
-                }
-                else
-                {
-                    return ApiResponse.Fail("id不能为空!");
-                }
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
-            }
-            return ApiResponse.Success();
-        }
-
-        [HttpGet("getresourcekind")]
-        public ApiResponse GetAllResourceKind()
-        {
-            try
-            {
-                Authorization.CheckAuthorization();
-            }
-            catch (AuthorizationException aEx)
-            {
-                return ApiResponse.Fail("授权:" + aEx.Message);
-            }
-
-            try
-            {
-                ResourceKindService service = new ResourceKindService();
-                DataTable table = service.GetAllResourceKind();
-                List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(table);
+                AttendanceLeaveService service = new AttendanceLeaveService();
+                Dictionary<int, DataTable> result = service.GetLeaveRecordsForAPI(empCodes,date);
+                Dictionary<int, List<ExpandoObject>> dynamicObjects = new Dictionary<int, List<ExpandoObject>>();
+                //List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(result);
                 return ApiResponse.Success("Success", dynamicObjects);
             }
             catch (Exception ex)
             {
                 return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
             }
-
         }
-
-
-      
-
     }
 }

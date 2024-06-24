@@ -24,6 +24,15 @@ namespace BQHRWebApi.Controllers
         {
             try
             {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
                 if (input != null && input.Count > 0)
                 {
                     ResourceDetailService service = new ResourceDetailService();

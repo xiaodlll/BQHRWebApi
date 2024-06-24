@@ -2,9 +2,9 @@
 {
     public class ResourceItemNo : DataEntity
     {
-        public string ResourceItemNoId { get; set; }
+        public string? ResourceItemNoId { get; set; }
 
-        public string ResourceItemId { get; set; }
+        public string? ResourceItemId { get; set; }
 
         public int SerialNo { get; set; }
 

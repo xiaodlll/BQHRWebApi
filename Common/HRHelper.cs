@@ -7,7 +7,10 @@
 //<description>Global</description>
 //---------------------------------------------------------------- 
 
+using BQHRWebApi.Business;
 using BQHRWebApi.Common;
+using Dcms.Common;
+using Dcms.HR.DataEntities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -286,6 +289,43 @@ namespace Dcms.HR.Services {
         }
 
 
+
+        public static Dictionary<int, List<ExpandoObject>> ConvertToExpandoObjects(Dictionary<int, DataTable> dic)
+        {
+            var res = new Dictionary<int, List<ExpandoObject>>();
+            foreach (int i in dic.Keys)
+            {
+                var list = new List<ExpandoObject>();
+                DataTable dt = dic[i];
+                foreach (DataRow row in dt.Rows)
+                {
+                    dynamic expando = new ExpandoObject();
+                    var dict = (IDictionary<string, object>)expando;
+
+                    foreach (DataColumn column in dt.Columns)
+                    {
+                        dict[column.ColumnName] = row[column];
+                    }
+
+                    list.Add(expando);
+                }
+                res.Add(i, list);
+            }
+            return res;
+        }
+
+        public static string GetArrayToStrBySQL(IEnumerable pArray)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var str in pArray)
+            {
+                sb.AppendFormat(",'{0}'", str.ToString());
+            }
+            if (sb.Length > 0)
+                sb.Remove(0, 1);
+            return sb.ToString();
+        }
+
         public static string GenerateSqlInsert<T>(T obj, string tableName)
         {
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -333,6 +373,58 @@ namespace Dcms.HR.Services {
             return string.Format("INSERT INTO [{0}] ({1},Flag,CreateBy,CreateDate,LastModifiedBy,LastModifiedDate,OwnerId) VALUES ({2},1,'98385A19-5BA6-43E5-BD0A-6A727F2E9C35',GETDATE(),'98385A19-5BA6-43E5-BD0A-6A727F2E9C35',GETDATE(),'Bad');", tableName, columns, values);
         }
 
+
+        public static string GenerateSqlInsertMulti<T>(List<T> entities, string tableName)
+        {
+            var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var columns = new StringBuilder();
+            var values = new StringBuilder();
+            StringBuilder sbSqls = new StringBuilder();
+            foreach (var obj in entities)
+            {
+                foreach (var property in properties)
+                {
+                    var propertyValue = property.GetValue(obj);
+
+                    if (propertyValue != null)
+                    {
+                        columns.AppendFormat("[{0}],", property.Name);
+                        if (propertyValue is string || propertyValue is char)
+                        {
+                            values.AppendFormat("'{0}',", propertyValue.ToString().Replace("'", "''"));
+                        }
+                        else if (propertyValue is DateTime)
+                        {
+                            DateTime dt1 = (DateTime)propertyValue;
+                            values.AppendFormat("'{0}',", dt1.ToString("yyyy-MM-dd"));
+                        }
+                        else if (propertyValue is Boolean)
+                        {
+                            bool tf = false;
+                            Boolean.TryParse(propertyValue.ToString(), out tf);
+                            values.AppendFormat("'{0}',", tf == true ? 1 : 0);
+                        }
+                        else
+                        {
+                            values.AppendFormat("{0},", propertyValue);
+                        }
+                    }
+                }
+
+                if (columns.Length > 0)
+                {
+                    columns.Length--; // 移除最后一个逗号
+                }
+                if (values.Length > 0)
+                {
+                    values.Length--; // 移除最后一个逗号
+                }
+                sbSqls.Append(string.Format("INSERT INTO [{0}] ({1},Flag,CreateBy,CreateDate,LastModifiedBy,LastModifiedDate,OwnerId) VALUES ({2},1,'98385A19-5BA6-43E5-BD0A-6A727F2E9C35',GETDATE(),'98385A19-5BA6-43E5-BD0A-6A727F2E9C35',GETDATE(),'Bad');", tableName, columns, values));
+            }
+            return sbSqls.ToString();
+        }
+
+
         public static DataTable ConvertToDataTable<T>(List<T> entities)
         {
             // 创建一个新的DataTable
@@ -364,5 +456,126 @@ namespace Dcms.HR.Services {
             return dataTable;
         }
 
+ 
+        public static List<T> WebAPIEntitysToDataEntitys<T>(object[] pWebDatas) where T : class, new()
+        {
+            if (pWebDatas == null)
+                throw new ArgumentNullException(nameof(pWebDatas));
+
+            var resultList = new List<T>();
+
+            foreach (var webData in pWebDatas)
+            {
+                T dataEntity = Activator.CreateInstance<T>();
+
+                // 获取T类型的公共属性
+                PropertyInfo[] targetProperties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+                // 遍历webData的属性，查找与T类型中同名且类型匹配的属性并赋值
+                PropertyInfo[] sourceProperties = webData.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var sourceProp in sourceProperties)
+                {
+                    PropertyInfo targetProp = targetProperties.FirstOrDefault(p => p.Name == sourceProp.Name && p.PropertyType == sourceProp.PropertyType);
+                    if (targetProp != null)
+                    {
+                        // 如果T中有与webData同名且类型匹配的属性，则复制值
+                        object value = sourceProp.GetValue(webData);
+                        targetProp.SetValue(dataEntity, value);
+                    }
+                    // 否则，根据需要可以添加日志或处理逻辑，此处已省略
+                }
+
+                resultList.Add(dataEntity);
+            }
+
+            return resultList;
+        }
+    
+    //public static List<T> WebAPIEntitysToDataEntitys<T>(object[] pWebDatas) where T : class,  new()
+    //{
+    //    List<T> list = new List<T>();
+    //    foreach (object webData in pWebDatas)
+    //    {
+    //        T t = new T();
+    //        PropertyInfo[] propertiesNew = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+    //        //PropertyInfo[] propertiesOld = typeof(webData).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+    //        PropertyInfo[] propertiesOld = webData.GetType().GetProperties();
+    //        string proName = "";
+
+    //        var proType = "";
+    //        string proNameNew = "";
+    //        var proTypeNew = "";
+    //        foreach (PropertyInfo webPi in propertiesOld)
+    //        {
+    //             proName=webPi.Name;
+    //            foreach (PropertyInfo newEnty in propertiesNew) {
+    //                proNameNew = newEnty.Name;
+    //                if (proName == proNameNew ) {
+    //                   t.proper row[prop.Name] = prop.GetValue(entity, null) ?? DBNull.Value;
+    //                }
+    //            }
+    //        }
+    //        #region PrimaryKey
+    //        if (entityType.PrimaryKey.DbType == GeneralDbType.Guid)
+    //        {
+    //            entityType.PrimaryKey.SetValue((IDataEntityBase)entity, SequentialGuid.NewGuid());
+    //        }
+    //        #endregion
+    //        #region flagObj
+    //        IFlagObject flagObj = entity as IFlagObject;
+    //        if (flagObj != null)
+    //        {
+    //            flagObj.Flag = true;
+    //        }
+    //        #endregion
+    //        #region auditObj
+    //        IAuditObject auditObj = entity as IAuditObject;
+    //        if (auditObj != null)
+    //        {
+    //            auditObj.StateId = Constants.PS02;
+    //        }
+    //        #endregion
+    //        #region DataModifyObj
+    //        Dcms.Common.DataEntities.IDataModifyObject DataModifyObj = entity as Dcms.Common.DataEntities.IDataModifyObject;
+    //        if (DataModifyObj != null)
+    //        {
+    //            DataModifyObj.CreateDate = DateTime.Now;
+    //            DataModifyObj.CreateBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
+    //            DataModifyObj.LastModifiedDate = DateTime.Now;
+    //            DataModifyObj.LastModifiedBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
+    //        }
+    //        #endregion
+    //        #region EssObject
+    //        IEssObject essObj = entity as IEssObject;
+    //        if (essObj != null)
+    //        {
+    //            essObj.IsEss = true;
+    //            essObj.IsFromEss = true;
+    //            essObj.EssType = pFormType;
+    //            essObj.EssNo = pFormNumber;
+    //        }
+    //        #endregion
+
+    //        t.ExtendedProperties.Add("api", "api");
+    //        list.Add(t);
+    //    }
+    //    return list;
+    //}
+
+
+}
+
+
+    public enum CheckEntityType
+    {
+        AnnualLeave = 1,
+        Leave = 2,
+        OTResult = 3,
+        OTRest = 4,
+        Business = 5,
+        Apply = 6,
+        TWALReg = 7,
     }
+
+
 }
