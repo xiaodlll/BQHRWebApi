@@ -1,6 +1,8 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using Dcms.HR.Services;
+using BQHRWebApi.Business;
+using BQHRWebApi.Common;
 using System.Data;
 using System.Data.SqlClient;
 using System.Dynamic;

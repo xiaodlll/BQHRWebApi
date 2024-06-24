@@ -1,6 +1,8 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using Dcms.HR.Services;
+using BQHRWebApi.Business;
+using BQHRWebApi.Common;
 using System.Data;
 using System.Data.SqlClient;
 using System.Dynamic;
@@ -79,8 +81,11 @@ namespace BQHRWebApi.Service
             string sql = "";
             if (enty != null)
             {
+
                 sql = HRHelper.GenerateSqlInsert(enty, "AttendanceLeave");
                 HRHelper.ExecuteNonQuery(sql);
+
+
             }
 
         }
@@ -94,6 +99,7 @@ namespace BQHRWebApi.Service
 
             AttendanceLeaveForAPI[] arrayEntity = new AttendanceLeaveForAPI[] { formEntity };
 
+            #region ESS表單上的檢查
             Dictionary<int, string> dicCheck = new Dictionary<int, string>();
             //檢查請假時間與出差申請時間是否重複
             dicCheck = this.CheckBusinessApplyTime(arrayEntity);
@@ -101,7 +107,8 @@ namespace BQHRWebApi.Service
             {
                 return dicCheck.Values.First();
             }
-             
+            #endregion
+
 
             if (formEntity.AttendanceTypeId.Equals("406"))
             {
@@ -1097,7 +1104,7 @@ namespace BQHRWebApi.Service
                             salaryHour = salaryHour / 60;
                         }
                          
-                    }
+            }
 
                     if (totalHours > salaryHour)
                     {
@@ -1797,7 +1804,8 @@ namespace BQHRWebApi.Service
                         remaiderDays = Convert.ToDecimal(dtBalance.Rows[0]["RemainderDays"].ToString());
                         balanceVoidDays = Convert.ToDecimal(dtBalance.Rows[0]["BalanceVoidDays"].ToString());
                     }
-                     
+                    #endregion
+
 
                     DataTable dtBeginEndInfo =aLPlanService. GetBeginEndDate(pEmployeeId, fiscalYearId, corporationId);
                     if (dtBeginEndInfo != null && dtBeginEndInfo.Rows.Count > 0)
@@ -1846,7 +1854,8 @@ namespace BQHRWebApi.Service
                     dt.Rows.Add(newRow);
                 }
             }
-             
+            #endregion
+
 
             // 特殊假
             DataTable dtAtSpecialHolidaySet = new DataTable();
@@ -1868,7 +1877,8 @@ namespace BQHRWebApi.Service
                 {
                     endDate = pDate.AddDays(-1);
                 }
-                 
+                #endregion
+
 
                 strSql = string.Format(@"SELECT   AtSpecialHolidaySet.AttendanceTypeId,
                                                  AttendanceType.[Name]                AS TypeName,
@@ -1935,8 +1945,10 @@ namespace BQHRWebApi.Service
                     }
                 
             }
-             
+            #endregion
 
+
+            //#region 20101106 added by jiangpeng for 台湾特休假
 
             //// 20101106 added by jiangpeng for 台湾特休假
 
@@ -2067,7 +2079,8 @@ namespace BQHRWebApi.Service
             {
                 throw new ArgumentNullException("日期异常");
             }
-             
+            #endregion
+
 
             DateTime begin = DateTime.MinValue;
             DateTime end = DateTime.MinValue;
@@ -2112,7 +2125,8 @@ namespace BQHRWebApi.Service
                     }
                 }
             }
-             
+            #endregion
+
 
                 strSql = string.Format(@"SELECT   TEMP.*, CodeInfo.ScName AS StateName
 FROM     (
@@ -2298,7 +2312,8 @@ ORDER BY BeginDate DESC"
                 {
                     sb.AppendFormat(" AND reg.BusinessRegisterId <> '{0}' ", pGuid);
                 }
-             
+            #endregion
+
 
             dt = HRHelper.ExecuteDataTable(sb.ToString());
 
@@ -2394,7 +2409,8 @@ ORDER BY BeginDate DESC"
                     }
                 }
             }
-             
+            #endregion
+
 
 
             return errorMsg;
@@ -2527,7 +2543,8 @@ ORDER BY BeginDate DESC"
             {
                 throw new Exception(noRank);
             }
-             
+            #endregion
+
 
             decimal totalHours = 0;  //总时数
             string unit = string.Empty;  //单位
@@ -2737,7 +2754,12 @@ ORDER BY BeginDate DESC"
             if (!checkStr.CheckNullOrEmpty())
                 throw new BusinessRuleException(checkStr);
 
-        }
+            if (pDataEntity.Dirty)
+            {//对主操作
+                if (pDataEntity.IsRevoke)
+                {//销过假了
+                    throw new BusinessRuleException(Resources.Error_ModifyOnRevoked);
+                }
         /// <summary>
         /// 计算时数
         /// </summary>
@@ -2747,9 +2769,9 @@ ORDER BY BeginDate DESC"
         {
             decimal hours = 0M;
             if (pLeave.Infos.Count == 0)
-            {
+                {
                     pLeave = this.SetLeaveInfos(pLeave, ConvertDateTime(pLeave.BeginDate.ToShortDateString(), pLeave.BeginTime), ConvertDateTime(pLeave.EndDate.ToShortDateString(), pLeave.EndTime));
-                
+
             }
             if (pLeave.Infos.Count == 0)
             {
@@ -2763,7 +2785,7 @@ ORDER BY BeginDate DESC"
                 }
                 throw new BusinessRuleException("输入时段内不存在需要请假的时间区间");//輸入時段內不存在需要請假的時間區間
                 //return hours;
-                 
+
             }
             foreach (AttendanceLeaveInfo info in pLeave.Infos)
             {
@@ -2807,6 +2829,9 @@ ORDER BY BeginDate DESC"
                     totalHours += info.Hours;
                 }
 
+                    //根据公司获得参数
+                    AnnualLeaveParameter parameter = iAnnualLeaveParameterServer.GetParameterIdByCorporationId(corporationId);
+                    IAnnualLeaveBalanceService balanceSer = Factory.GetService<IAnnualLeaveBalanceService>();
 
                 foreach (AttendanceLeaveInfo info in leave.Infos)
                 {
@@ -2824,18 +2849,18 @@ ORDER BY BeginDate DESC"
                             atSet = dicAtSpecial[specialId];
                         }
                         else
-                        {
+                    {
                             atSet = atSpecialSer.GetATSpecialHolidaySet(specialId);
 
-                        }
+                    }
                         if (attype.AttendanceUnitId.Equals("AttendanceUnit_001"))
                         {
                             if (atSet.DaySTHours > 0)
-                            {
+                    {
                                 RemainHours = atSet.RemaiderDays * atSet.DaySTHours;
-                            }
-                            else
-                            {
+                    }
+                    else
+                    {
                                 RemainHours = atSet.RemaiderDays;
                                 infoHours = info.Days;
                             }
@@ -2847,7 +2872,7 @@ ORDER BY BeginDate DESC"
                         else if (attype.AttendanceUnitId.Equals("AttendanceUnit_003"))
                         {
                             RemainHours = atSet.RemaiderDays / 60;
-                        }
+                    }
                         specialHours += RemainHours;
                         if (!info.IsRevoke && atSet.RemaiderDays > 0)
                         {
@@ -2856,13 +2881,13 @@ ORDER BY BeginDate DESC"
                                 decimal oldActualDays = atSet.ActualDays;
                                 infoHours -= RemainHours;
                                 if (infoHours >= 0)
-                                {
+                        {
                                     sbIdAndHours.AppendFormat(string.Format("{0},{1};", atSet.ATSpecialHolidaySetId, atSet.RemaiderDays.ToString()));
                                     atSet.RemaiderDays = 0;
                                     atSet.ActualDays = atSet.Amount;
-                                }
-                                else
-                                {
+                        }
+                        else
+                        {
 
                                     if (atSet.IsOnceOver)
                                     {
@@ -2870,7 +2895,10 @@ ORDER BY BeginDate DESC"
                                         {
                                             listSpecIds.Add(atSet.ATSpecialHolidaySetId);
                                         }
-                                    }
+                        }
+                        // balanceDays = planService.GetBalanceDaysPreYears(pDataEntity.EmployeeId.GetString(), pDataEntity.FiscalYearId.GetString());//加上结余,不能从结余表里取,从本表取上一年的
+
+                        bEndDate = Factory.GetService<IAnnualLeaveBalanceService>().getBalanceEndDate(pDataEntity.FiscalYearId.GetString(), pDataEntity.EmployeeId.GetString(), corporationId);
 
                                     if (attype.AttendanceUnitId.Equals("AttendanceUnit_001"))
                                     {
@@ -2897,40 +2925,40 @@ ORDER BY BeginDate DESC"
                                     }
                                     atSet.ActualDays = atSet.Amount - atSet.RemaiderDays;
                                     //}
-                                }
+                    }
                                 // 20180711 add by LinBJ for Q00-20180709001 增加Log
                                 string msg = string.Empty;
                                 if (atSet.IsOnceOver)
-                                {
+                    {
                                     msg = string.Format("{0}员工新增{1} {2} ~ {3} {4} {5}数量为{6}，回写{7}，原已休数量{8}，更新后已休数量{9}，可休剩余数量{10}"
                                          , employeeName, info.BeginDate.ToDateFormatString(), info.BeginTime, info.EndDate.ToDateFormatString(), info.EndTime
                                          , attype.Name, atSet.Amount, atSet.ATSpecialHolidaySetId.ToString(), 0, atSet.Amount, 0);
-                                }
+                    }
                                 else
-                                {
+                    {
                                     msg = string.Format("{0}员工新增{1} {2} ~ {3} {4} {5}数量为{6}，回写{7}，原已休数量{8}，更新后已休数量{9}，可休剩余数量{10}"
                                     , employeeName, info.BeginDate.ToDateFormatString(), info.BeginTime, info.EndDate.ToDateFormatString(), info.EndTime
                                     , attype.Name, atSet.ActualDays - oldActualDays, atSet.ATSpecialHolidaySetId.ToString(), oldActualDays, atSet.ActualDays, atSet.RemaiderDays);
                                 }
                                 bool hasStr = false;
                                 if (atSet.ExtendedProperties.Count > 0)
-                                {
+                        {
                                     foreach (ExterFields f in atSet.ExtendedProperties)
-                                    {
+                            {
                                         if (f.Name == "InfoStrList")
-                                        {
+                                {
                                             f.Value += msg;
                                             hasStr = true;
                                         }
-                                    }
+                                }
                                     if (!hasStr)
                                     {
                                         ExterFields fNew = new ExterFields();
                                         fNew.Name = "InfoStrList";
                                         fNew.Value = "msg";
                                         atSet.ExtendedProperties.Add(fNew);
-                                    }
-                                }
+                            }
+                        }
                                 //if (atSet.ExtendedProperties.ContainsKey("InfoStrList"))
                                 //{
                                 //    List<string> infoStrList = atSet.ExtendedProperties["InfoStrList"] as List<string>;
@@ -2943,26 +2971,26 @@ ORDER BY BeginDate DESC"
                                 //    atSet.ExtendedProperties.Add("InfoStrList", infoStrList);
                                 //}
                                 if (!atSet.LeaveInfoIds.CheckNullOrEmpty())
-                                {
+                        {
                                     string[] infoArray = atSet.LeaveInfoIds.Split(',');
                                     if (infoArray.Length > 0)
-                                    {
+                            {
                                         List<string> infoIdList = infoArray.ToList();
                                         if (!infoIdList.Contains(info.AttendanceLeaveInfoId.ToString()))
-                                        {
+                                {
                                             infoIdList.Add(info.AttendanceLeaveInfoId.ToString());
                                             atSet.LeaveInfoIds = string.Join(",", infoIdList.ToArray());
                                         }
-                                    }
+                                }
                                     else
                                     {
                                         atSet.LeaveInfoIds = string.Join(",", new string[] { info.AttendanceLeaveInfoId.ToString() });
-                                    }
-                                }
+                            }
+                        }
                                 else
                                 {
                                     atSet.LeaveInfoIds = string.Join(",", new string[] { info.AttendanceLeaveInfoId.ToString() });
-                                }
+                    }
 
                                 dicAtSpecial[specialId] = atSet;
                             }
@@ -2987,7 +3015,7 @@ ORDER BY BeginDate DESC"
                     {
                         dicInfoIdAndHours.Add(info.AttendanceLeaveInfoId.GetString(), sbIdAndHours.ToString());
                     }
-                }
+                    }
 
                 //20180223 added by yingchun for Q00-20180222002 : 退回重辦後時數沒有還回去，導致時數不足                
                 if (leave.IsEss && pIsCheckInly && !leave.AttendanceLeaveId.CheckNullOrEmpty())
@@ -3000,26 +3028,26 @@ ORDER BY BeginDate DESC"
                     {
                         hasHours += Decimal.Parse(dt.Rows[0]["TotalHours"].ToString());
                     }
-                }
+                    }
 
                 //mark20121220
                 if (hasHours < totalHours)
-                {
+                        {
                     bool IsEmployeeDimission = false;
                     if (atSet.ExtendedProperties.Count > 0)
-                    {
-                        foreach (ExterFields f in atSet.ExtendedProperties)
-                        {
-                            if (f.Name.Equals("IsEmployeeDimission"))
                             {
+                        foreach (ExterFields f in atSet.ExtendedProperties)
+                                {
+                            if (f.Name.Equals("IsEmployeeDimission"))
+                                    {
                                 IsEmployeeDimission = true;
+                                    }
+                                }
                             }
-                        }
-                    }
                     //如果是離職存檔不提示 added by zhoug 20150303 for bug 26798&26797&26799 Q00-20150302002
                     //  if (!leave.ExtendedProperties.Contains("IsEmployeeDimission"))
                     if (IsEmployeeDimission)
-                    {
+                            {
                         //时数不足
                         throw new BusinessRuleException(string.Format("员工 {0} 特殊假 {1} 的可休时数为 {2}，本次请假 {3}，剩余可休时数不足", employeeName, attype.Name, hasHours.ToString(), totalHours.ToString()));
                     }
@@ -3027,12 +3055,12 @@ ORDER BY BeginDate DESC"
                  
 
                 if (!pIsCheckInly)
-                {
+                                {
                     //更新请假明细
                     foreach (KeyValuePair<string, string> keyValue in dicInfoIdAndHours)
-                    {
+                                    {
                         UpdateLeaveInfoSpecial(keyValue.Key, keyValue.Value);
-                    }
+                                    }
                     //更新特殊假数据
                     List<ATSpecialHolidaySet> listTemp = new List<ATSpecialHolidaySet>();
                     foreach (string str in dicAtSpecial.Keys)
@@ -3042,18 +3070,20 @@ ORDER BY BeginDate DESC"
                         {
                             dicAtSpecial[str].ActualDays = dicAtSpecial[str].Amount;
                             dicAtSpecial[str].RemaiderDays = 0;
-                        }
+                                }
                        // dicAtSpecial[str].ExtendedProperties.Add("ForLeave", "ForLeave");
                         listTemp.Add(dicAtSpecial[str]);
-                    }
+                            }
                     //  docAtSpecial.Save(listTemp.ToArray());
 
                     string sql = HRHelper.GenerateSqlInsertMulti(listTemp, "ATSpecialHolidaySet");
                     HRHelper.ExecuteNonQuery(sql);
-                }
+                    }
 
-            }
-        }
+                    }
+                    if (pDataEntity.AttendanceTypeId.CheckNullOrEmpty())
+                        pDataEntity.AttendanceTypeId = "401";
+                }
 
         /// <summary>
         /// 获取特殊假设置
@@ -3061,7 +3091,7 @@ ORDER BY BeginDate DESC"
         /// <param name="pLeave"></param>
         /// <returns></returns>
         public virtual DataTable GetSpecialLeave(AttendanceLeave pLeave)
-        {
+                {
             DataTable dtRank = new DataTable();
             DataTable dt = new DataTable();
             
@@ -3087,14 +3117,14 @@ ORDER BY BeginDate DESC"
                 if (dtRank != null && dtRank.Rows.Count > 0 && dtRank.Rows[0][0].ToString().Equals("TrueFalse_001"))
                 {
                     if (pLeave.EndDate > pLeave.BeginDate)
-                    {
+                {
                         endDate = pLeave.EndDate.AddDays(-1);
-                    }
                 }
+            }
                 sb.AppendFormat("AND EndDate >= '{0}' ", endDate.ToString("yyy-MM-dd HH:mm:ss"));
                 sb.Append("AND RemaiderDays >0 ");
                 sb.Append("ORDER BY BeginDate");
-             
+
                 dt=HRHelper.ExecuteDataTable(sb.ToString());
             return dt;
         }
