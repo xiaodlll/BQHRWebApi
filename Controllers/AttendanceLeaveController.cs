@@ -1,10 +1,12 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using BQHRWebApi.Service;
+using Dcms.Common;
 using Dcms.HR.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.Dynamic;
+using System.Reflection.Emit;
 
 namespace BQHRWebApi.Controllers
 {
@@ -71,6 +73,57 @@ namespace BQHRWebApi.Controllers
                 Dictionary<int, DataTable> result = service.GetLeaveRecordsForAPI(empCodes,date);
                 Dictionary<int, List<ExpandoObject>> dynamicObjects = new Dictionary<int, List<ExpandoObject>>();
                 //List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(result);
+                return ApiResponse.Success("Success", dynamicObjects);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+        }
+
+        [HttpPost("checkforapi")]
+        public ApiResponse CheckForAPI(List<AttendanceLeaveForAPI> input) {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                AttendanceLeaveService service = new AttendanceLeaveService();
+                string result = service.CheckForAPI(input);
+               // Dictionary<int, List<ExpandoObject>> dynamicObjects = new Dictionary<int, List<ExpandoObject>>();
+                //List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(result);
+                if(result.CheckNullOrEmpty())
+                  return ApiResponse.Success("Success");
+                else return ApiResponse.Fail(result);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+        }
+
+        [HttpPost("getleavehoursforapi")]
+        public ApiResponse GetLeaveHoursForAPI(AttendanceLeaveForAPI formEntity) {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                AttendanceLeaveService service = new AttendanceLeaveService();
+                DataTable table = service.GetLeaveHoursForAPI(formEntity);
+                List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(table);
                 return ApiResponse.Success("Success", dynamicObjects);
             }
             catch (Exception ex)
