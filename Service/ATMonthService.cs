@@ -190,8 +190,8 @@ FROM   [atmonth] AS [ATMonth]
        LEFT JOIN [corporation] AS [ATMonth_Corporation_CorporationId]
               ON [atmonth].[corporationid] =
                  [ATMonth_Corporation_CorporationId].[corporationid]
-WHERE  ( {0} BETWEEN [atmonth].[begindate] AND [atmonth].[enddate]
-          OR {1} BETWEEN [atmonth].[begindate] AND [atmonth].[enddate] ) ", pBeginDate.Date, pEndDate.Date);
+WHERE  ( '{0}' BETWEEN [atmonth].[begindate] AND [atmonth].[enddate]
+          OR '{1}' BETWEEN [atmonth].[begindate] AND [atmonth].[enddate] ) ", pBeginDate.Date, pEndDate.Date);
              
              dt=HRHelper.ExecuteDataTable(sql);
             return dt;

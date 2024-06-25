@@ -86,51 +86,62 @@ namespace BQHRWebApi.Service
         }
 
 
-        public virtual string CheckForAPI(AttendanceLeaveForAPI formEntity)
+        public  string CheckForAPI(List<AttendanceLeaveForAPI> formEntity)
         {
-            this.CheckValue(formEntity);
-
+            StringBuilder sbError = new StringBuilder();
             string msg = string.Empty;
-
-            AttendanceLeaveForAPI[] arrayEntity = new AttendanceLeaveForAPI[] { formEntity };
-
-            Dictionary<int, string> dicCheck = new Dictionary<int, string>();
-            //檢查請假時間與出差申請時間是否重複
-            dicCheck = this.CheckBusinessApplyTime(arrayEntity);
-            if (dicCheck != null && dicCheck.Count > 0)
+            foreach (AttendanceLeaveForAPI enty in formEntity)
             {
-                return dicCheck.Values.First();
-            }
-
-
-            if (formEntity.AttendanceTypeId.Equals("406"))
-            {
-                //List<AttendanceOverTimeRest> list = this.ChangeToOTRestEntity(arrayEntity);
-                //AttendanceOverTimeRestService restSer=new AttendanceOverTimeRestService ();
-                //msg = restSer.CheckForAPI(list.First());
-            }
-            //else if (formEntity.AttendanceTypeId.Equals("408"))
-            //{
-            //    List<TWALReg> list = this.ChangeToTWALRegEntity(arrayEntity);
-            //    msg = Factory.GetService<ITWALRegService>().CheckForAPI(list.First());
-            //}
-            else
-            {
-                AttendanceLeave leave = ChangeToLeaveEntity(arrayEntity, true, string.Empty, string.Empty).First();
-                try
-                {
-                    string[] tmpMsg = null;
-                    string msgInfo = this.GetSalaryTimes(leave);
-                    if (msgInfo.IndexOf("false") > -1)
-                    {
-                        tmpMsg = msgInfo.Split(',');
-                        throw new BusinessRuleException(string.Format("工号为 {0} 的员工当前请假总时数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1]));
-                    }
-                    this.CheckForESS(leave);
+                EmployeeService employeeService = new EmployeeService();// Factory.GetService<EmployeeService>();
+               
+                string empId = employeeService.GetEmpIdByCode(enty.EmpCode);
+                if (empId.CheckNullOrEmpty()) {
+                    throw new BusinessRuleException("EmpCode 找不到对应的员工");
                 }
-                catch (Exception ex)
+                enty.EmployeeId = empId.GetGuid();
+                enty.AttendanceLeaveId=Guid.NewGuid();
+                enty.IsEss = true;
+                this.CheckValue(enty);
+
+                AttendanceLeaveForAPI[] arrayEntity = new AttendanceLeaveForAPI[] { enty };
+                Dictionary<int, string> dicCheck = new Dictionary<int, string>();
+                //檢查請假時間與出差申請時間是否重複
+                dicCheck = this.CheckBusinessApplyTime(arrayEntity);
+                if (dicCheck != null && dicCheck.Count > 0)
                 {
-                    msg = ex.Message;
+                    return dicCheck.Values.First();
+                }
+
+
+                if (enty.AttendanceTypeId.Equals("406"))
+                {
+                    //List<AttendanceOverTimeRest> list = this.ChangeToOTRestEntity(arrayEntity);
+                    //AttendanceOverTimeRestService restSer=new AttendanceOverTimeRestService ();
+                    //msg = restSer.CheckForAPI(list.First());
+                }
+                //else if (formEntity.AttendanceTypeId.Equals("408"))
+                //{
+                //    List<TWALReg> list = this.ChangeToTWALRegEntity(arrayEntity);
+                //    msg = Factory.GetService<ITWALRegService>().CheckForAPI(list.First());
+                //}
+                else
+                {
+                    AttendanceLeave leave = ChangeToLeaveEntity(arrayEntity, true, string.Empty, string.Empty).First();
+                    try
+                    {
+                        string[] tmpMsg = null;
+                        string msgInfo = this.GetSalaryTimes(leave);
+                        if (msgInfo.IndexOf("false") > -1)
+                        {
+                            tmpMsg = msgInfo.Split(',');
+                            throw new BusinessRuleException(string.Format("工号为 {0} 的员工当前请假总时数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1]));
+                        }
+                        this.CheckForESS(leave);
+                    }
+                    catch (Exception ex)
+                    {
+                        msg = ex.Message;
+                    }
                 }
             }
             return msg;
@@ -138,21 +149,76 @@ namespace BQHRWebApi.Service
 
 
         /// <summary>
+        /// 檢查參數值
+        /// </summary>
+        /// <param name="pFormEntity">實體</param>
+        private void CheckValue(AttendanceLeaveForAPI pFormEntity)
+        {
+            ExceptionCollection ec = new ExceptionCollection();
+            if (pFormEntity.EmployeeId.CheckNullOrEmpty())
+            {
+                ec.Add(new ArgumentNullException("EmployeeId"));
+            }
+            if (pFormEntity.AttendanceTypeId.CheckNullOrEmpty())
+            {
+                ec.Add(new ArgumentNullException("AttendanceTypeId"));
+            }
+            else {
+                AttendanceTypeService typeSer = new AttendanceTypeService();
+               string s= typeSer.GetNameById(pFormEntity.AttendanceTypeId);
+                if (s.CheckNullOrEmpty()) {
+                    ec.Add(new ArgumentException("AttendanceTypeId Error"));
+                }
+            }
+            if (pFormEntity.BeginDate.CheckNullOrEmpty())
+            {
+                ec.Add(new ArgumentNullException("BeginDate"));
+            }
+            if (pFormEntity.BeginTime.CheckNullOrEmpty())
+            {
+                ec.Add(new ArgumentNullException("BeginTime"));
+            }
+            if (pFormEntity.EndDate.CheckNullOrEmpty())
+            {
+                ec.Add(new ArgumentNullException("EndDate"));
+            }
+            if (pFormEntity.EndTime.CheckNullOrEmpty())
+            {
+                ec.Add(new ArgumentNullException("EndTime"));
+            }
+
+            string errorMsg = string.Empty;
+            if (ec.Count > 0)
+            {
+                foreach (Exception ex in ec)
+                {
+                    errorMsg += ex.Message.Replace("\r\n", "").Replace("\n", "") + "\r\n";
+                }
+                throw new BusinessRuleException(errorMsg);
+            }
+            else {
+                DateTime tmpTime = DateTime.Now;
+                if (!DateTime.TryParse(string.Format("{0} {1}", pFormEntity.BeginDate.ToShortDateString(), pFormEntity.BeginTime), out tmpTime))
+                {
+                    throw new Exception("开始日期和开始时间不是正确的日期时间格式");
+                }
+                if (!DateTime.TryParse(string.Format("{0} {1}", pFormEntity.EndDate.ToShortDateString(), pFormEntity.EndTime), out tmpTime))
+                {
+                    throw new Exception("结束日期和结束时间不是正确的日期时间格式");
+                }
+            }
+        }
+
+        /// <summary>
         /// 请假资料数据校验
         /// </summary>
         /// <param name="pAttendanceLeave">要校验的请假对象</param>
         /// <returns>错误</returns>
-        public virtual void CheckForESS(AttendanceLeave pAttendanceLeave)
+        public void CheckForESS(AttendanceLeave pAttendanceLeave)
         {
-            //检查数据，有ESS检查可以写在这里...
-            // IDocumentService<AttendanceType> service = Factory.GetService<IAttendanceTypeService>();
-
             AttendanceTypeService typeService = new AttendanceTypeService();
             AttendanceType type = typeService.GetAttendanceType(pAttendanceLeave.AttendanceTypeId);
-            //DataTable dtType = HRHelper.ExecuteDataTable(string.Format("select * from AttendanceType where AttendanceTypeId='{0}'", pAttendanceLeave.AttendanceTypeId));
-
-            //List<AttendanceType> myObjects = HRHelper.DataTableToList<AttendanceType>(dtType);
-            //type=myObjects[0];
+          
             if (type != null)
             {//判断
                 if (string.Equals(type.IsSalaryId, Constants.TRUE_ID))
@@ -187,8 +253,8 @@ namespace BQHRWebApi.Service
                 if (!type.SexType.CheckNullOrEmpty() && !type.SexType.Equals("SexType_001"))
                 {
                     EmployeeService employeeService = new EmployeeService();
-                    string sexType = employeeService.GetEmpFiledById(pAttendanceLeave.EmployeeId.GetString(), "genderId");
-                    string empName = employeeService.GetEmployeeNameById(pAttendanceLeave.EmployeeId.GetString());
+                    string sexType = employeeService.GetEmpFiledById(pAttendanceLeave.EmployeeId.ToString(), "genderId");
+                    string empName = employeeService.GetEmployeeNameById(pAttendanceLeave.EmployeeId.ToString());
                     if (!sexType.CheckNullOrEmpty())
                     {
                         //（假勤适用性别为男，员工性别为女）或（假勤适用性别为女，员工性别为男）时，抛异常
@@ -206,7 +272,7 @@ namespace BQHRWebApi.Service
             ExceptionCollection ec = this.SaveBeforeCheck(pAttendanceLeave, true);
             //20141017 added by lidong 22436 S00-20140521007
             //20150316 modify by lidong 将是否是请假中的请规律假改为false A00-20150312007
-            string errMsg = this.CheckAllTime(pAttendanceLeave.EmployeeId.GetString(), pAttendanceLeave.BeginDate, pAttendanceLeave.BeginTime, pAttendanceLeave.EndDate, pAttendanceLeave.EndTime, CheckEntityType.Leave, pAttendanceLeave.AttendanceLeaveId.GetString(), false);
+            string errMsg = this.CheckAllTime(pAttendanceLeave.EmployeeId.ToString(), pAttendanceLeave.BeginDate, pAttendanceLeave.BeginTime, pAttendanceLeave.EndDate, pAttendanceLeave.EndTime, CheckEntityType.Leave, pAttendanceLeave.AttendanceLeaveId.GetString(), false);
             if (!errMsg.CheckNullOrEmpty())
                 ec.Add(new Exception(errMsg));
 
@@ -215,7 +281,7 @@ namespace BQHRWebApi.Service
             {
                 // IATMonthService atMonthSer = Factory.GetService<IATMonthService>();
                 ATMonthService atMonthSer = new ATMonthService();
-                errMsg = atMonthSer.CheckIsClose(new string[] { pAttendanceLeave.EmployeeId.GetString() }, pAttendanceLeave.BeginDate, pAttendanceLeave.EndDate);
+                errMsg = atMonthSer.CheckIsClose(new string[] { pAttendanceLeave.EmployeeId.ToString() }, pAttendanceLeave.BeginDate, pAttendanceLeave.EndDate);
                 if (!errMsg.CheckNullOrEmpty())
                     ec.Add(new Exception(errMsg));
             }
@@ -247,7 +313,7 @@ namespace BQHRWebApi.Service
 
             bool isRuleLeave = false;
             EmployeeService employeeService = new EmployeeService();
-            string corpId = employeeService.GetEmpFiledById(pDataEntity.EmployeeId.GetString(), "CorporationId");
+            string corpId = employeeService.GetEmpFiledById(pDataEntity.EmployeeId.ToString(), "CorporationId");
             pDataEntity.CorporationId = corpId.GetGuid();
 
             if (!pDataEntity.AttendanceTypeId.Equals("401"))
@@ -283,9 +349,7 @@ namespace BQHRWebApi.Service
                     {//循环的截至日期小于等于请假的结束日期
                         if (!pDataEntity.AttendanceTypeId.Equals("401"))
                         {
-
                             pDataEntity = SetLeaveInfos(pDataEntity, ConvertDateTime(beginPoint.ToShortDateString(), pDataEntity.BeginTime), ConvertDateTime(endPoint.ToShortDateString(), pDataEntity.EndTime));
-
                         }
                     }
                 }
@@ -294,8 +358,8 @@ namespace BQHRWebApi.Service
             if (!pDataEntity.AttendanceTypeId.Equals("401") && pDataEntity.Infos.Count == 0)
             {
                 //如果没排班，则报异常员工未排班
-                AttendanceEmpRankService empRankService = Factory.GetService<AttendanceEmpRankService>();
-                DataTable dtEmpRank = empRankService.GetEmpRanks(new string[] { pDataEntity.EmployeeId.GetString() }, pDataEntity.BeginDate, pDataEntity.EndDate);
+                AttendanceEmpRankService empRankService =new  AttendanceEmpRankService();
+                DataTable dtEmpRank = empRankService.GetEmpRanks(new string[] { pDataEntity.EmployeeId.ToString() }, pDataEntity.BeginDate, pDataEntity.EndDate);
                 if (dtEmpRank == null || dtEmpRank.Rows.Count == 0)
                 {
                     throw new BusinessRuleException("员工未排班");
@@ -304,7 +368,7 @@ namespace BQHRWebApi.Service
             }
 
 
-            ATMonthService atMonthSer = Factory.GetService<ATMonthService>();
+            ATMonthService atMonthSer = new ATMonthService ();
             StringBuilder sbError = new StringBuilder();
             string errorMsg = string.Empty;
 
@@ -375,8 +439,7 @@ namespace BQHRWebApi.Service
         /// <param name="pEnd">结束时间</param>
         public virtual AttendanceLeave SetLeaveInfos(AttendanceLeave pLeave, DateTime pBegin, DateTime pEnd)
         {
-            //  IAttendanceLeaveService leaveService = Factory.GetService<IAttendanceLeaveService>();
-            AttendanceTypeService typeService = Factory.GetService<AttendanceTypeService>();
+            AttendanceTypeService typeService = new AttendanceTypeService ();
             List<AttendanceLeaveInfo> listLeaveInfo = GetLeaveInfos(pLeave.EmployeeId.ToString(), pLeave.AttendanceTypeId, pBegin, pEnd, pLeave.AttendanceLeaveId.GetString());
             foreach (AttendanceLeaveInfo leaveInfo in listLeaveInfo)
             {
@@ -418,9 +481,9 @@ namespace BQHRWebApi.Service
             List<AttendanceLeaveInfo> listLeaveInfo = new List<AttendanceLeaveInfo>();
             // 获取日期段中日期的假日类型
             //IAttendanceLeaveService leaveService = Factory.GetService<IAttendanceLeaveService>();
-            AttendanceTypeService typeService = Factory.GetService<AttendanceTypeService>();
+            AttendanceTypeService typeService = new AttendanceTypeService ();
             AttendanceLeaveInfo info = new AttendanceLeaveInfo();
-            AttendanceEmpRankService empRankSer = Factory.GetService<AttendanceEmpRankService>();
+            AttendanceEmpRankService empRankSer = new AttendanceEmpRankService ();
             //IDocumentService<AttendanceEmployeeRank> empRankService = Factory.GetService<IAttendanceEmployeeRankService>();
             //IDocumentService<AttendanceRank> docRankSer = Factory.GetService<IAttendanceRankService>().GetServiceNoPower();
             DataTable empRankDt = empRankSer.GetEmpRanks(new string[] { pEmpId }, pBeginDateTime.AddDays(-1), pEndDateTime);
@@ -450,10 +513,10 @@ namespace BQHRWebApi.Service
             if (dtLeaveConfig != null && dtLeaveConfig.Rows.Count > 0)
             {
                 isPassRest = dtLeaveConfig.Rows[0]["PassRest"].ToString().ToBool();
-                isPassHoliday = dtLeaveConfig.Rows[0]["PassHoliday"].ToString().ToBool();
-                isPassBreakDay = dtLeaveConfig.Rows[0]["PassBreakDay"].ToString().ToBool();
+                //isPassHoliday = dtLeaveConfig.Rows[0]["PassHoliday"].ToString().ToBool();
+                //isPassBreakDay = dtLeaveConfig.Rows[0]["PassBreakDay"].ToString().ToBool();
                 isDeductOhter = dtLeaveConfig.Rows[0]["DeductOhter"].ToString().ToBool();
-                isPassEmptyDay = dtLeaveConfig.Rows[0]["PassEmptyDay"].ToString().ToBool();
+               // isPassEmptyDay = dtLeaveConfig.Rows[0]["PassEmptyDay"].ToString().ToBool();
 
                 Decimal.TryParse(dtLeaveConfig.Rows[0][2].ToString(), out minLeaveHours);
                 Decimal.TryParse(dtLeaveConfig.Rows[0][3].ToString(), out minAuditHours);
@@ -503,7 +566,7 @@ namespace BQHRWebApi.Service
                     // 处理班段相关
                     if (!ranksInfo2.ContainsKey(rankId))
                     {
-                        AttendanceRankService rankSer = Factory.GetService<AttendanceRankService>();
+                        AttendanceRankService rankSer = new AttendanceRankService ();
                         DataTable rankRestDt = rankSer.GetRankRestInfo(rankId);
                         if (rankRestDt.Rows.Count > 0)
                         {
@@ -965,7 +1028,7 @@ namespace BQHRWebApi.Service
                                                               FROM AttendanceLeave 
                                                               WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002') AND 
                                                               Leave.BeginDate BETWEEN '{2}' AND '{3}' AND Leave.Flag = 1",
-                          pAttendanceLeave.EmployeeId.GetString(), sbTypeIds.ToString(), beginDate, endDate);
+                          pAttendanceLeave.EmployeeId.ToString(), sbTypeIds.ToString(), beginDate, endDate);
 
                     if (!pAttendanceLeave.AttendanceLeaveId.CheckNullOrEmpty())
                     {
@@ -992,7 +1055,7 @@ namespace BQHRWebApi.Service
 
                             if (!pAttendanceLeave.Infos[i].IsRevoke)
                             {
-                                var dtEmpRank = srvEmpRank.GetEmpRanks(new string[] { pAttendanceLeave.EmployeeId.GetString() }, pAttendanceLeave.Infos[i].Date, pAttendanceLeave.Infos[i].Date);
+                                var dtEmpRank = srvEmpRank.GetEmpRanks(new string[] { pAttendanceLeave.EmployeeId.ToString() }, pAttendanceLeave.Infos[i].Date, pAttendanceLeave.Infos[i].Date);
                                 //判断是否跳过假日或休息日
                                 if (passRest)
                                 {
@@ -1046,7 +1109,7 @@ namespace BQHRWebApi.Service
                         {
                             if (!pAttendanceLeave.Infos[i].IsRevoke)
                             {
-                                var dtEmpRank = srvEmpRank.GetEmpRanks(new string[] { pAttendanceLeave.EmployeeId.GetString() }, pAttendanceLeave.Infos[i].Date, pAttendanceLeave.Infos[i].Date);
+                                var dtEmpRank = srvEmpRank.GetEmpRanks(new string[] { pAttendanceLeave.EmployeeId.ToString() }, pAttendanceLeave.Infos[i].Date, pAttendanceLeave.Infos[i].Date);
                                 //判断是否跳过假日或休息日
                                 if (passRest)
                                 {
@@ -1101,7 +1164,7 @@ namespace BQHRWebApi.Service
 
                     if (totalHours > salaryHour)
                     {
-                        string employeeCode = employeeService.GetEmpFiledById(pAttendanceLeave.EmployeeId.GetString(), "EmployeeCode");
+                        string employeeCode = employeeService.GetEmpFiledById(pAttendanceLeave.EmployeeId.ToString(), "EmployeeCode");
 
                         msg = string.Format("{0},{1},{2},false", employeeCode, salaryHour.ToString("#.##"), totalHours.ToString("#.##"));
                     }
@@ -1180,7 +1243,7 @@ namespace BQHRWebApi.Service
                                                               FROM AttendanceLeave 
                                                               WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002') AND 
                                                               Leave.BeginDate BETWEEN '{2}' AND '{3}' AND Leave.Flag = 1",
-                                  pAttendanceLeave.EmployeeId.GetString(), sbTypeIds.ToString(), beginDate, endDate);
+                                  pAttendanceLeave.EmployeeId.ToString(), sbTypeIds.ToString(), beginDate, endDate);
 
                             if (!pAttendanceLeave.AttendanceLeaveId.CheckNullOrEmpty())
                             {
@@ -1241,7 +1304,7 @@ namespace BQHRWebApi.Service
 
                             if (totalHours > salaryHour)
                             {
-                                string employeeCode = employeeService.GetEmpFiledById(pAttendanceLeave.EmployeeId.GetString(), "EmployeeCode");
+                                string employeeCode = employeeService.GetEmpFiledById(pAttendanceLeave.EmployeeId.ToString(), "EmployeeCode");
                                 msg = string.Format("{0},{1},{2},false", employeeCode, salaryHour.ToString("#.##"), totalHours.ToString("#.##"));
                             }
                         }
@@ -1358,8 +1421,8 @@ namespace BQHRWebApi.Service
                 return new List<PeriodDate>();
             }
             //获取员工所属公司ID
-            EmployeeService empService = Factory.GetService<EmployeeService>();
-            DataTable dtEmpInfo = empService.GetEmployeeInfoByIds(new string[] { pAttendanceLeave.EmployeeId.GetString() });
+            EmployeeService empService =new EmployeeService ();
+            DataTable dtEmpInfo = empService.GetEmployeeInfoByIds(new string[] { pAttendanceLeave.EmployeeId.ToString() });
             string corporationId = string.Empty;
             string empCode = string.Empty;
             if (dtEmpInfo != null && dtEmpInfo.Rows.Count > 0)
@@ -1394,7 +1457,7 @@ namespace BQHRWebApi.Service
                             }
                         }
                         dateList.Sort();
-                        ATMonthService monthService = Factory.GetService<ATMonthService>();
+                        ATMonthService monthService =new ATMonthService ();
                         if (pSalaryPeriodId.Equals("SalaryPeriod_001"))
                         {//年
                             periodDateList = monthService.GetBeginEndDate(corporationId, dateList[0], dateList[dateList.Count - 1], true);
@@ -1439,49 +1502,7 @@ namespace BQHRWebApi.Service
             return periodDateList;
         }
 
-        /// <summary>
-        /// 檢查參數值
-        /// </summary>
-        /// <param name="pFormEntity">實體</param>
-        private void CheckValue(AttendanceLeaveForAPI pFormEntity)
-        {
-            ExceptionCollection ec = new ExceptionCollection();
-            if (pFormEntity.EmployeeId.CheckNullOrEmpty())
-            {
-                ec.Add(new ArgumentNullException("AttendanceLeave.EmployeeId"));
-            }
-            if (pFormEntity.AttendanceTypeId.CheckNullOrEmpty())
-            {
-                ec.Add(new ArgumentNullException("AttendanceLeave.AttendanceTypeId"));
-            }
-            if (pFormEntity.BeginDate.CheckNullOrEmpty())
-            {
-                ec.Add(new ArgumentNullException("AttendanceLeave.BeginDate"));
-            }
-            if (pFormEntity.BeginTime.CheckNullOrEmpty())
-            {
-                ec.Add(new ArgumentNullException("AttendanceLeave.BeginTime"));
-            }
-            if (pFormEntity.EndDate.CheckNullOrEmpty())
-            {
-                ec.Add(new ArgumentNullException("AttendanceLeave.EndDate"));
-            }
-            if (pFormEntity.EndTime.CheckNullOrEmpty())
-            {
-                ec.Add(new ArgumentNullException("AttendanceLeave.EndTime"));
-            }
-
-            string errorMsg = string.Empty;
-            if (ec.Count > 0)
-            {
-                foreach (Exception ex in ec)
-                {
-                    errorMsg += ex.Message.Replace("\r\n", "").Replace("\n", "") + "\r\n";
-                }
-                throw new BusinessRuleException(errorMsg);
-            }
-        }
-
+      
 
         /// <summary>
         /// 檢查請假時間與出差申請時間是否重複
@@ -1516,12 +1537,8 @@ namespace BQHRWebApi.Service
 
                 AttendanceLeaveForAPI[] arrayEntity = new AttendanceLeaveForAPI[] { apiEntity };
 
-                // ESS表單上的檢查
-                Dictionary<int, string> dicCheck = new Dictionary<int, string>();
-                //檢查請假時間與出差申請時間是否重複
-                dicCheck = this.CheckBusinessApplyTime(arrayEntity);
-
-                if (dicCheck == null && dicCheck.Count == 0)
+                string msg = this.CheckBusinessApplyTime(apiEntity.EmployeeId.ToString(), apiEntity.BeginDate, apiEntity.BeginTime, apiEntity.EndDate, apiEntity.EndTime, entityType, string.Empty, true);
+                if (!msg.CheckNullOrEmpty())
                 {
                     dic.Add(Array.IndexOf(formEntities, apiEntity), "提示訊息：請假時間與出差申請時間重疊，是否繼續提交表單？");
                 }
@@ -1531,6 +1548,147 @@ namespace BQHRWebApi.Service
                 return dic;
             }
             return null;
+        }
+        /// <summary>
+        /// 校验与出差申请时间是否重复
+        /// (请假、年假、调休、特休专用,HR与ESS共用)
+        /// </summary>
+        /// <param name="pEmployeeId">员工ID</param>
+        /// <param name="pBeginDate">开始日期</param>
+        /// <param name="pBeginTime">开始时间</param>
+        /// <param name="pEndDate">结束日期</param>
+        /// <param name="pEndTime">结束时间</param>
+        /// <param name="pEntityType">请假类型（年假、请假、调休、特休）</param>
+        /// <param name="pGuid">不同请假类型的ID</param>
+        /// <param name="pIsRuleLeave">是否是请假中的请规律假</param>
+        /// <returns>重复信息</returns>
+        public  string CheckBusinessApplyTime(string pEmployeeId, DateTime pBeginDate, string pBeginTime, DateTime pEndDate, string pEndTime, CheckEntityType pEntityType, string pGuid, bool pIsRuleLeave)
+        {
+            DataTable dt = new DataTable();
+            string errorMsg = string.Empty;
+            DateTime tempBegin = DateTime.MinValue;
+            DateTime tempEnd = DateTime.MinValue;
+            DateTime begin = DateTime.MinValue;
+            DateTime end = DateTime.MinValue;
+            string typeId = string.Empty;
+            DataTable dtApply = new DataTable();
+            DataTable dtBusiness = new DataTable();
+           
+                StringBuilder sb = new StringBuilder();
+
+                #region 取出差申请时间
+
+                sb.AppendFormat(@"SELECT person.EmployeeId, BusinessApply.BeginDate, BusinessApply.BeginTime, BusinessApply.EndDate, BusinessApply.EndTime, ISNULL(BusinessApply.AttendanceTypeId, '701') AS AttendanceTypeId
+                                                  FROM BusinessApplyPerson AS person
+                                                  LEFT JOIN BusinessApply ON BusinessApply.BusinessApplyId = person.BusinessApplyId
+                                                  WHERE person.EmployeeId = '{0}' 
+                                                  AND person.BusinessApplyId NOT IN (
+                                                    SELECT main.BusinessApplyId FROM BusinessRegisterinfo as info
+                                                    left join BusinessRegister as main on main.BusinessRegisterId=info.BusinessRegisterId
+                                                    where IsRevoke=1 
+                                                    And info.EmployeeId='{0}' 
+                                                    And info.BeginDate >= '{1}' AND info.BeginDate <= '{2}') 
+                                                  AND person.BusinessApplyId NOT IN (
+                                                      SELECT BusinessApplyId 
+                                                      FROM BusinessApply 
+                                                      WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002') 
+                                                  AND BusinessApply.BeginDate >= '{1}' AND BusinessApply.BeginDate <= '{2}'  ", pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
+
+                if (pEntityType == CheckEntityType.Apply && !pGuid.CheckNullOrEmpty())
+                {
+                    sb.AppendFormat(" AND info.BusinessApplyId <> '{0}' ", pGuid);
+                }
+            #endregion
+
+            EmployeeService empSer = new EmployeeService();
+            string empName=empSer.GetEmployeeNameById(pEmployeeId);
+            dt = HRHelper.ExecuteDataTable(sb.ToString());
+            
+
+            #region 判断重复
+            begin = pBeginDate.AddTimeToDateTime(pBeginTime);
+            end = pEndDate.AddTimeToDateTime(pEndTime);
+            AttendanceTypeService typeSer = new AttendanceTypeService ();
+          
+            DateTime beginDate = DateTime.MinValue;
+            DateTime endDate = DateTime.MinValue;
+            string strBegin = string.Empty;
+            string strEnd = string.Empty;
+            string strBeginTime = string.Empty;
+            string strEndTime = string.Empty;
+            string typeName = string.Empty;
+            //请规律假
+            DateTime beginPoint = DateTime.MinValue;//假期开始点
+            DateTime endPoint = DateTime.MinValue;//假期结束点
+            DateTime leaveBegin = DateTime.MinValue;//假期开始日期
+            DateTime leaveEnd = DateTime.MinValue;//假期结束日期
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                    tempBegin = DateTime.MinValue;
+                    tempEnd = DateTime.MinValue;
+                    beginDate = DateTime.MinValue;
+                    endDate = DateTime.MinValue;
+                    typeId = row["AttendanceTypeId"] as string;
+                     typeName = typeSer.GetNameById(typeId);
+                    strBegin = row["BeginDate"].ToString();
+                    strEnd = row["EndDate"].ToString();
+                    strBeginTime = row["BeginTime"] as string;
+                    strEndTime = row["EndTime"] as string;
+                    if (!typeId.CheckNullOrEmpty() && !strBegin.CheckNullOrEmpty() && !strEnd.CheckNullOrEmpty()
+                        && !strBeginTime.CheckNullOrEmpty() && !strEndTime.CheckNullOrEmpty())
+                    {
+                        if (DateTime.TryParse(strBegin, out beginDate) && DateTime.TryParse(strEnd, out endDate))
+                        {
+                            if (DateTime.TryParse(beginDate.ToDateFormatString() + " " + strBeginTime, out tempBegin) &&
+                                DateTime.TryParse(endDate.ToDateFormatString() + " " + strEndTime, out tempEnd))
+                            {
+                                //请规律假：每天校验一次
+                                if ((pEntityType == CheckEntityType.Leave || pEntityType == CheckEntityType.TWALReg) && pIsRuleLeave)
+                                {
+                                    #region 规律假
+                                    leaveBegin = pBeginDate.Date;
+                                    leaveEnd = pEndDate.Date;
+                                    beginPoint = pBeginDate.AddTimeToDateTime(pBeginTime);
+                                    endPoint = pBeginDate.AddTimeToDateTime(pEndTime);
+
+                                    if (beginPoint.CompareTo(endPoint) >= 0)
+                                    {//跨天
+                                        leaveEnd = pEndDate.AddDays(-1);
+                                    }
+                                    while (leaveBegin <= leaveEnd)
+                                    {
+                                        beginPoint = leaveBegin.AddTimeToDateTime(pBeginTime);
+                                        endPoint = leaveBegin.AddTimeToDateTime(pEndTime);
+
+                                        if (beginPoint.CompareTo(endPoint) >= 0)
+                                        {//跨天
+                                            endPoint = endPoint.AddDays(1);
+                                        }
+                                        if (!CheckTime(beginPoint, endPoint, tempBegin, tempEnd))
+                                        {
+                                            errorMsg += string.Format("员工{0}:{1}至{2}已存在{3}记录;", empName, tempBegin.ToDateTimeFormatString(false), tempEnd.ToDateTimeFormatString(false), typeName);
+                                        }
+                                        leaveBegin = leaveBegin.AddDays(1);
+                                    }
+                                    #endregion
+                                }
+                                else
+                                {
+                                    if (!CheckTime(begin, end, tempBegin, tempEnd))
+                                    {
+                                        errorMsg += string.Format("员工{0}:{1}至{2}已存在{3}记录;", empName, tempBegin.ToDateTimeFormatString(false), tempEnd.ToDateTimeFormatString(false), typeName);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            #endregion
+
+            return errorMsg;
         }
 
 
@@ -1561,10 +1719,10 @@ namespace BQHRWebApi.Service
                 {
                     entity.IsCheckAtType = true;
                     entity.StateId = "PlanState_00";
-                    entity.OwnerId = entity.EmployeeId.GetString();
+                    entity.OwnerId = entity.EmployeeId.ToString();
                     if (!entity.EmployeeId.CheckNullOrEmpty())
                     {
-                        string employeeId = entity.EmployeeId.GetString();
+                        string employeeId = entity.EmployeeId.ToString();
 
                         string corporationId = empServ.GetEmpFiledById(employeeId, "CorporationId");
                         if (!corporationId.CheckNullOrEmpty())
@@ -1601,6 +1759,16 @@ namespace BQHRWebApi.Service
         /// <returns>返回Hours:時數,Unit:單位</returns>
         public virtual DataTable GetLeaveHoursForAPI(AttendanceLeaveForAPI formEntity)
         {
+            EmployeeService employeeService = new EmployeeService();// Factory.GetService<EmployeeService>();
+
+            string empId = employeeService.GetEmpIdByCode(formEntity.EmpCode);
+            if (empId.CheckNullOrEmpty())
+            {
+                throw new BusinessRuleException("EmpCode 找不到对应的员工");
+            }
+            formEntity.EmployeeId = empId.GetGuid();
+            formEntity.AttendanceLeaveId = Guid.NewGuid();
+            formEntity.IsEss = true;
             this.CheckValue(formEntity);
 
             DataTable dtHour = new DataTable();
@@ -2745,7 +2913,7 @@ ORDER BY BeginDate DESC"
                 throw new BusinessRuleException(sbError.ToString());
             }
             //校验时间重复
-            checkStr = CheckAllTime(pDataEntity.EmployeeId.GetString(), pDataEntity.BeginDate,
+            checkStr = CheckAllTime(pDataEntity.EmployeeId.ToString(), pDataEntity.BeginDate,
                 pDataEntity.BeginTime, pDataEntity.EndDate, pDataEntity.EndTime, CheckEntityType.Leave, pDataEntity.AttendanceLeaveId.GetString(), pDataEntity.AttendanceLeaveId.CheckNullOrEmpty() ? true : false);
             if (!checkStr.CheckNullOrEmpty())
                 throw new BusinessRuleException(checkStr);
@@ -2768,8 +2936,8 @@ ORDER BY BeginDate DESC"
             {
                 // 20170412 modified by yingchun for A00-20170103002_38796+38797+38798
                 //如果没排班，则报异常员工未排班
-                AttendanceEmpRankService empRankService = Factory.GetService<AttendanceEmpRankService>();
-                DataTable dtEmpRank = empRankService.GetEmpRanks(new string[] { pLeave.EmployeeId.GetString() }, pLeave.BeginDate, pLeave.EndDate);
+                AttendanceEmpRankService empRankService =new AttendanceEmpRankService ();
+                DataTable dtEmpRank = empRankService.GetEmpRanks(new string[] { pLeave.EmployeeId.ToString() }, pLeave.BeginDate, pLeave.EndDate);
                 if (dtEmpRank == null || dtEmpRank.Rows.Count == 0)
                 {
                     throw new BusinessRuleException("员工未排班");
@@ -2788,7 +2956,7 @@ ORDER BY BeginDate DESC"
         protected void UpdateSpecialDataNew(AttendanceLeave leave, bool pIsCheckInly)
         {
             EmployeeService employeeService = new EmployeeService();
-            string employeeName = employeeService.GetEmployeeNameById(leave.EmployeeId.GetString());
+            string employeeName = employeeService.GetEmployeeNameById(leave.EmployeeId.ToString());
             // IDocumentService<AttendanceType> typeService = Factory.GetService<IAttendanceTypeService>().GetServiceNoPower();
             AttendanceTypeService typeService = new AttendanceTypeService();
             AttendanceType attype = typeService.GetAttendanceType(leave.AttendanceTypeId);
@@ -3085,14 +3253,14 @@ ORDER BY BeginDate DESC"
                                                            LEFT JOIN AttendanceRank AS Rank
                                                              ON emPrank.AttendanceRankId = Rank.AttendanceRankId
                                                     WHERE  emPrank.EmployeeId = '{0}'
-                                                           AND emPrank.DATE = '{1}'", pLeave.EmployeeId.GetString(), pLeave.EndDate.AddDays(-1).ToDateFormatString());
+                                                           AND emPrank.DATE = '{1}'", pLeave.EmployeeId.ToString(), pLeave.EndDate.AddDays(-1).ToDateFormatString());
 
             dtRank = HRHelper.ExecuteDataTable(strSql);
 
             sb.AppendFormat(@"SELECT EmployeeId,Amount,DaySTHours,IsOnceOver,ATSpecialHolidaySetId,
                                     ActualDays,RemaiderDays,LeaveInfoIds
                                     FROM ATSpecialHolidaySet  
-                                    WHERE EmployeeId = '{0}' AND AttendanceTypeId = '{1}' ", pLeave.EmployeeId.GetString(), pLeave.AttendanceTypeId);
+                                    WHERE EmployeeId = '{0}' AND AttendanceTypeId = '{1}' ", pLeave.EmployeeId.ToString(), pLeave.AttendanceTypeId);
 
             // 20090907 marked by jiangpeng 修正繁体机上DateTime转换错误
             sb.AppendFormat("AND BeginDate <= '{0}' ", pLeave.BeginDate.ToString("yyy-MM-dd HH:mm:ss"));

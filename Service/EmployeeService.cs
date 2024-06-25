@@ -13,6 +13,24 @@ namespace BQHRWebApi.Service
     {
         public EmployeeService() { }
 
+        public string GetEmpIdByCode(string empCode) {
+            #region 参数检查
+            if (empCode.CheckNullOrEmpty())
+            {
+                throw new ArgumentNullException("empCode Error");
+            }
+            #endregion
+
+            DataTable dt = HRHelper.ExecuteDataTable(string.Format("select EmployeeId from employee where Code='{0}'", empCode));
+
+            if (dt != null && dt.Rows.Count > 0)
+            {
+
+                return dt.Rows[0][0].ToString();
+            }
+
+            return string.Empty;
+        }
         /// <summary>
         /// 根据员工ID获取员工姓名
         /// </summary>
