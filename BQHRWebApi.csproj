@@ -8,13 +8,21 @@
 
   <ItemGroup>
     <Compile Remove="HRServerForCase\**" />
+    <Compile Remove="HRWebAPIForFW\**" />
     <Compile Remove="logs\**" />
+    <Compile Remove="packages\**" />
     <Content Remove="HRServerForCase\**" />
+    <Content Remove="HRWebAPIForFW\**" />
     <Content Remove="logs\**" />
+    <Content Remove="packages\**" />
     <EmbeddedResource Remove="HRServerForCase\**" />
+    <EmbeddedResource Remove="HRWebAPIForFW\**" />
     <EmbeddedResource Remove="logs\**" />
+    <EmbeddedResource Remove="packages\**" />
     <None Remove="HRServerForCase\**" />
+    <None Remove="HRWebAPIForFW\**" />
     <None Remove="logs\**" />
+    <None Remove="packages\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,8 +41,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="HRServerForCase\Dcms.HR.Business.ExtendItem\Dcms.HR.Business.ExtendItem.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Dcms.Common">
       <HintPath>..\..\..\SourceCenter\Product\V5.1 10\Export\Dcms.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.Common.Business">
+      <HintPath>..\..\V5.1.15(Ultimate)\Export\Dcms.Common.Business.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.Common.Report">
+      <HintPath>..\..\V5.1.15(Ultimate)\Export\Dcms.Common.Report.dll</HintPath>
     </Reference>
     <Reference Include="Dcms.HR.Business.Common">
       <HintPath>..\..\BQHRWebApi\lib\Dcms.HR.Business.Common.dll</HintPath>

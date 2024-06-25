@@ -1,0 +1,39 @@
+{
+	"info": {
+		"_postman_id": "67e19a2a-e248-4094-a3f4-c7bc48a4658e",
+		"name": "泛微API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "8126201"
+	},
+	"item": [
+		{
+			"name": "获得员工打卡数据",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"RequestCode\": \"API_001\",\r\n  \"Parameters\": [\r\n    {\r\n      \"name\": \"pEmployeeId\",\r\n      \"value\": \"a8e0a002-07c1-4ebc-93ba-a91519029eeb\"\r\n    },\r\n    {\r\n      \"name\": \"pBeginDate\",\r\n      \"value\": \"2024-05-01\"\r\n    },\r\n    {\r\n      \"name\": \"pEndDate\",\r\n      \"value\": \"2024-05-10\"\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:44314/api/services",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "44314",
+					"path": [
+						"api",
+						"services"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
