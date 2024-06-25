@@ -16,10 +16,10 @@ namespace Dcms.HR.Services
     using Dcms.Common;
 
 
-    public class IExtendItemAddin : HRServiceProviderAddin
+    public class ExtendItemAddin : HRServiceProviderAddin
     {
 
-        public IExtendItemAddin() :
+        public ExtendItemAddin() :
                 base()
         {
         }

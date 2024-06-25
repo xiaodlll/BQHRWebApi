@@ -68,7 +68,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IExtendItemAddin.cs" />
+    <Compile Include="ExtendItemAddin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ExtendItemService.cs" />
   </ItemGroup>

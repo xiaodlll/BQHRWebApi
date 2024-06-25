@@ -24,6 +24,9 @@ namespace Dcms.HR.Services
 {
 
     public interface IExtendItemService : IHRDocumentService<ExtendItem>
-    {    
+    {
+        string InvokeHRService(string pInput);
+
+        string InvokeHRServiceEx(string pInput);
     }
 }

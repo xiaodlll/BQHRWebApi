@@ -1,0 +1,22 @@
+{
+  "ServiceType": "Dcms.HR.Services.IAttendanceCollectService,Dcms.HR.Business.AttendanceCollect",
+  "Method": "GetCollectByEmpId",
+  "Parameters": [
+    {
+      "name": "pEmployeeId",
+      "type": "System.String",
+      "value": null
+    },
+    {
+      "name": "pBeginDate",
+      "type": "System.DateTime",
+      "value": null
+    },
+    {
+      "name": "pEndDate",
+      "type": "System.DateTime",
+      "value": null
+    }
+  ],
+  "_comment": "获得员工打卡数据"
+}
