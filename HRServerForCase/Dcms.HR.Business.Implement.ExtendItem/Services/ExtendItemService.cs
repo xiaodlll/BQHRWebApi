@@ -38,7 +38,7 @@ namespace Dcms.HR.Services
 
 
     [ServiceClass(typeof(IExtendItemService), ServiceCreateType.Callback)]
-    public class ExtendItemService : HRBusinessServiceEx<ExtendItem>, IExtendItemService
+    public partial class ExtendItemService : HRBusinessServiceEx<ExtendItem>, IExtendItemService
     {
 
         #region webapi接口
