@@ -437,27 +437,766 @@ namespace BQHRWebApi.Service
         /// <param name="pLeave">请假实体</param>
         /// <param name="pBegin">开始时间</param>
         /// <param name="pEnd">结束时间</param>
-        public virtual AttendanceLeave SetLeaveInfos(AttendanceLeave pLeave, DateTime pBegin, DateTime pEnd)
+        //public virtual AttendanceLeave SetLeaveInfos(AttendanceLeave pLeave, DateTime pBegin, DateTime pEnd)
+        //{
+        //    AttendanceTypeService typeService = new AttendanceTypeService ();
+        //    List<AttendanceLeaveInfo> listLeaveInfo = GetLeaveInfos(pLeave.EmployeeId.ToString(), pLeave.AttendanceTypeId, pBegin, pEnd, pLeave.AttendanceLeaveId.GetString());
+        //    foreach (AttendanceLeaveInfo leaveInfo in listLeaveInfo)
+        //    {
+        //        leaveInfo.Remark += pLeave.Remark;
+        //        if (pLeave.AttendanceTypeId == "401")
+        //        {
+        //            leaveInfo.FiscalYearId = pLeave.FiscalYearId;
+        //        }
+        //        pLeave.Infos.Add(leaveInfo);
+        //    }
+
+        //    //比较当前员工的请假时数是否大于最大带薪时数
+        //    string msg = GetSalaryTimes(pLeave);
+        //    if (msg.IndexOf("false") > -1)
+        //    {
+        //        string[] tmpMsg = msg.Split(',');
+        //        //20140916 added by huangzj for 22233 A00-20140912004 假勤单位是天 需要报错报出天
+
+        //        AttendanceType atType = typeService.GetAttendanceType(pLeave.AttendanceTypeId);
+        //        if (atType.AttendanceUnitId.Equals("AttendanceUnit_001"))
+        //        {
+        //            //假勤单位是天 需要报错报出天
+        //            throw new Exception(string.Format("工号为 {0} 的员工当前请假总天数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1]));
+        //        }
+        //        throw new BusinessRuleException(string.Format("工号为 {0} 的员工当前请假总时数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1]));
+        //    }
+        //    return pLeave;
+        //}
+
+        /// <summary>
+        /// 获取日期段中日期的假日类型
+        /// </summary>
+        /// <param name="pEmployeeId"></param>
+        /// <param name="pBeginDate"></param>
+        /// <param name="pEndDate"></param>
+        /// <param name="pAttendanceDayType"></param>
+        /// <returns></returns>
+        public virtual Dictionary<string, string> GetHolidayByDate(string pEmployeeId, DateTime pBeginDate, DateTime pEndDate, int pAttendanceDayType)
         {
-            AttendanceTypeService typeService = new AttendanceTypeService ();
-            List<AttendanceLeaveInfo> listLeaveInfo = GetLeaveInfos(pLeave.EmployeeId.ToString(), pLeave.AttendanceTypeId, pBegin, pEnd, pLeave.AttendanceLeaveId.GetString());
-            foreach (AttendanceLeaveInfo leaveInfo in listLeaveInfo)
-            {
-                leaveInfo.Remark += pLeave.Remark;
-                if (pLeave.AttendanceTypeId == "401")
+            Dictionary<string, string> dicCalendar = new Dictionary<string, string>();
+            
+               
+                StringBuilder sb = new StringBuilder();
+
+                //只在员工班次表里面找行事历
+                sb.AppendFormat(@"SELECT   aht.[Name]               AS TYPE,
+                                                 Weekday                  AS Week,
+                                                 AttendanceemPrank.[Date]
+                                        FROM     AttendanceemPrank
+                                                 LEFT JOIN AttendanceHolidayType aht
+                                                   ON aht.HolidayTypeId = AttendanceemPrank.AttendanceHolidayTypeId
+                                        WHERE    AttendanceemPrank.EmployeeId = '{0}'
+                                                 AND AttendanceemPrank.[Date] BETWEEN '{1}'
+                                                                                      AND '{2}'
+                                        ORDER BY AttendanceemPrank.[Date]", pEmployeeId, pBeginDate.Date.ToDateTimeFormatString(), pEndDate.Date.AddDays(1).AddSeconds(-1).ToDateTimeFormatString());
+                DataTable dt = HRHelper.ExecuteDataTable(sb.ToString());
+                string key = string.Empty;
+                for (int i = 0; i < dt.Rows.Count; ++i)
                 {
-                    leaveInfo.FiscalYearId = pLeave.FiscalYearId;
+                    if (!dicCalendar.ContainsKey(dt.Rows[i]["Date"].ToString()))
+                    {
+                        key = DateTime.Parse(dt.Rows[i]["Date"].ToString()).ToDateFormatString();
+                    }
+                    if (!dicCalendar.ContainsKey(key))
+                    {
+                        dicCalendar.Add(key, dt.Rows[i]["Type"].ToString() + "|" + dt.Rows[i]["Week"].ToString());
+                    }
                 }
-                pLeave.Infos.Add(leaveInfo);
+             
+            return dicCalendar;
+        }
+
+        private DataTable GetAttCollect(string pEmployeeId, DateTime pBegin, DateTime pEnd)
+        {
+            DataTable dt = new DataTable();
+            #region 20110412 modified by songyj for 刷卡数据的排序有误
+            string strSql = string.Format(@"
+                select AttendanceCollectId,CardId,IsManual,MachineId,employeeid,CAST((CONVERT(nvarchar(10),Date,112) + ' ' +[Time]) as DateTime) [DateTime] 
+                from AttendanceCollect
+                where  employeeid='{0}' and [Date] between  '{1}' and '{2}' and StateId = 'PlanState_003' and ApproveResultId = 'OperatorResult_001' AND IsForAttendance=1
+                order by [DateTime]", pEmployeeId, pBegin.ToDateFormatString(), pEnd.AddTimeToDateTimeString("23:59:59", true));
+            #endregion
+            dt = HRHelper.ExecuteDataTable(strSql);
+
+  
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                DateTime tempDateTime = Convert.ToDateTime(dt.Rows[i]["DateTime"]);
+                if (!(tempDateTime >= pBegin && tempDateTime <= pEnd))
+                {
+                    dt.Rows.RemoveAt(i);
+                    i--;
+                }
+            }
+            return dt;
+        }
+
+        /// <summary>
+        /// 取得弹性班的开始结束时间(20101102)
+        /// </summary>
+        /// <param name="pRankId"></param>
+        /// <param name="pEmployeeId"></param>
+        /// <param name="pDate"></param>
+        /// <param name="pBeginCode"></param>
+        /// <param name="pEndCode"></param>
+        /// <returns></returns>
+        public virtual PeriodDate GetFlexBeginEndDate(string pRankId, string pEmployeeId, DateTime pDate, ref int pBeginCode, ref int pEndCode)
+        {
+            PeriodDate period = new PeriodDate();
+            DateTime periodBegin = DateTime.MinValue;
+            DateTime periodEnd = DateTime.MinValue;
+
+            AttendanceRankService docRankSer = new AttendanceRankService();
+            AttendanceRank rank = docRankSer.GetAttendanceRank(pRankId);
+            pBeginCode = -1;
+            pEndCode = -1;
+            if (rank.IsFlexRank)
+            {
+                List<int> listCode = new List<int>();
+                foreach (AttendanceRankRest rest in rank.Rests)
+                {
+                    if (rest.AttendanceRankTypeId.Equals("AttendanceRankType_001"))
+                    {
+                        listCode.Add(rest.Code);
+                    }
+                }
+
+                if (listCode.Count == 0)
+                {
+                    //没有正常班段，不用考虑
+                    return null;
+                }
+                else if (listCode.Count == 1)
+                {
+                    #region 一个正常班段
+                    AttendanceRankRest oneRest = null;
+                    foreach (AttendanceRankRest rest in rank.Rests)
+                    {
+                        if (rest.Code == listCode[0])
+                        {
+                            oneRest = rest;
+                            break;
+                        }
+                    }
+                    pBeginCode = oneRest.Code;
+                    pEndCode = oneRest.Code;
+
+                    DateTime beginTime = DateTime.MinValue;
+                    DateTime endTime = DateTime.MinValue;
+                    DateTime collectBegin = DateTime.MinValue;
+                    DateTime collectEnd = DateTime.MinValue;
+
+                    beginTime = DateTime.Parse(pDate.ToDateFormatString() + " " + oneRest.RestBeginTime);
+                    endTime = DateTime.Parse(pDate.ToDateFormatString() + " " + oneRest.RestEndTime);
+                    if (endTime <= beginTime)
+                        endTime = endTime.AddDays(1);
+                    period.BeginDate = beginTime;
+                    period.EndDate = endTime;
+                    if (oneRest.IsCardOnDuty)
+                    {
+                        if (rank.IsAdvanceFlex)
+                        {
+                            collectBegin = beginTime.AddMinutes(-(double)rank.AdvanceFlexMinutes - (double)oneRest.MaxTimes);
+                        }
+                        else
+                        {
+                            collectBegin = beginTime.AddMinutes(-(double)oneRest.MaxTimes);
+                        }
+
+                        collectEnd = endTime;
+                        DataTable colDT = this.GetAttCollect(pEmployeeId, collectBegin, collectEnd);
+                        if (colDT != null && colDT.Rows.Count > 0)
+                        {
+                            DateTime collectTime = DateTime.Parse(colDT.Rows[0]["DateTime"].ToString());  //取到刷卡
+                            if (collectTime < beginTime)
+                            {
+                                if (rank.IsAdvanceFlex)
+                                {
+                                    double advanceOnceFlex = (double)rank.AdvanceOnceFlexMinutes;
+                                    double tempHour = 0;
+                                    if (collectTime >= beginTime.AddMinutes(-(double)rank.AdvanceFlexMinutes))
+                                    {
+                                        tempHour = ((int)((beginTime - collectTime).TotalMinutes / advanceOnceFlex)) * advanceOnceFlex;
+                                    }
+                                    else
+                                    {
+                                        tempHour = ((int)((double)rank.AdvanceFlexMinutes / advanceOnceFlex)) * advanceOnceFlex;
+                                    }
+                                    period.BeginDate = beginTime.AddMinutes(-tempHour);
+                                    period.EndDate = endTime.AddMinutes(-tempHour);
+                                }
+                            }
+                            else if (collectTime > beginTime)
+                            {
+                                if (rank.IsDelayFlex)
+                                {
+                                    if (collectTime <= beginTime.AddMinutes((double)rank.DelayFlexMinutes))
+                                    {
+                                        //核算喽
+                                        double delayOnceFlex = (double)rank.DelayOnceFlexMinutes;
+                                        //double tempHour = ((int)((collectTime - beginTime).TotalMinutes / delayOnceFlex)) * delayOnceFlex;
+                                        int tempInt = (int)((collectTime - beginTime).TotalMinutes / delayOnceFlex);
+                                        double tempHour = (collectTime - beginTime).TotalMinutes / delayOnceFlex;
+                                        if (tempHour > tempInt)
+                                            tempHour = (tempInt + 1) * delayOnceFlex;
+                                        else
+                                            tempHour = tempInt * delayOnceFlex;
+                                        period.BeginDate = beginTime.AddMinutes(tempHour);
+                                        period.EndDate = endTime.AddMinutes(tempHour);
+                                    }
+                                    else
+                                    {
+                                        if (rank.LateCalculateMode.Equals("LateCalculateMode_002"))
+                                        {
+                                            //弹性后起算
+                                            //double delayOnceFlex = (double)rank.DelayOnceFlexMinutes;
+                                            //double tempHour = ((int)((double)rank.DelayFlexMinutes / delayOnceFlex)) * delayOnceFlex;
+                                            //period.BeginDate = beginTime.AddMinutes(tempHour);
+                                            //period.EndDate = endTime.AddMinutes(tempHour);
+                                            period.BeginDate = beginTime.AddMinutes((double)(rank.DelayFlexMinutes));
+                                            period.EndDate = endTime.AddMinutes((double)(rank.DelayFlexMinutes));
+                                        }
+                                        else
+                                        {
+                                            //默认按原班段起算
+                                            period.BeginDate = beginTime;
+                                            period.EndDate = endTime;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                }
+                else
+                {
+                    #region 两个以上的正常班段
+                    AttendanceRankRest beginRest = null;
+                    AttendanceRankRest endRest = null;
+                    if (listCode[listCode.Count - 1] >= listCode[0])
+                    {
+                        foreach (AttendanceRankRest rest in rank.Rests)
+                        {
+                            if (rest.Code == listCode[0])
+                            {
+                                //endRest = rest;
+                                beginRest = rest;
+                            }
+                            else if (rest.Code == listCode[listCode.Count - 1])
+                            {
+                                //beginRest = rest;
+                                endRest = rest;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (AttendanceRankRest rest in rank.Rests)
+                        {
+                            if (rest.Code == listCode[0])
+                            {
+                                endRest = rest;
+                            }
+                            else if (rest.Code == listCode[listCode.Count - 1])
+                            {
+                                beginRest = rest;
+                            }
+                        }
+                    }
+                    pBeginCode = beginRest.Code;
+                    pEndCode = endRest.Code;
+                    DateTime beginTime = DateTime.MinValue;
+                    DateTime endTime = DateTime.MinValue;
+                    DateTime collectBegin = DateTime.MinValue;
+                    DateTime collectEnd = DateTime.MinValue;
+
+                    beginTime = DateTime.Parse(pDate.ToDateFormatString() + " " + beginRest.RestBeginTime);
+                    endTime = DateTime.Parse(pDate.ToDateFormatString() + " " + endRest.RestEndTime);
+                    if (endTime <= beginTime)
+                        endTime = endTime.AddDays(1);
+                    period.BeginDate = beginTime;
+                    period.EndDate = endTime;
+                    if (beginRest.IsCardOnDuty)
+                    {
+                        if (rank.IsAdvanceFlex)
+                        {
+                            collectBegin = beginTime.AddMinutes(-(double)rank.AdvanceFlexMinutes - (double)beginRest.MaxTimes);
+                        }
+                        else
+                        {
+                            collectBegin = beginTime.AddMinutes(-(double)beginRest.MaxTimes);
+                        }
+
+                        collectEnd = DateTime.Parse(pDate.ToDateFormatString() + " " + beginRest.RestEndTime);
+                        if (collectEnd <= collectBegin)
+                            collectEnd = collectEnd.AddDays(1);
+                        DataTable colDT = this.GetAttCollect(pEmployeeId, collectBegin, collectEnd);
+                        if (colDT != null && colDT.Rows.Count > 0)
+                        {
+                            DateTime collectTime = DateTime.Parse(colDT.Rows[0]["DateTime"].ToString());  //取到刷卡
+
+                            if (collectTime < beginTime)
+                            {
+                                if (rank.IsAdvanceFlex)
+                                {
+                                    double advanceOnceFlex = (double)rank.AdvanceOnceFlexMinutes;
+                                    double tempHour = 0;
+                                    if (collectTime >= beginTime.AddMinutes(-(double)rank.AdvanceFlexMinutes))
+                                    {
+                                        tempHour = ((int)((beginTime - collectTime).TotalMinutes / advanceOnceFlex)) * advanceOnceFlex;
+                                    }
+                                    else
+                                    {
+                                        tempHour = ((int)((double)rank.AdvanceFlexMinutes / advanceOnceFlex)) * advanceOnceFlex;
+                                    }
+                                    period.BeginDate = beginTime.AddMinutes(-tempHour);
+                                    period.EndDate = endTime.AddMinutes(-tempHour);
+                                }
+                            }
+                            else if (collectTime > beginTime)
+                            {
+                                if (rank.IsDelayFlex)
+                                {
+                                    if (collectTime <= beginTime.AddMinutes((double)rank.DelayFlexMinutes))
+                                    {
+                                        //核算喽
+                                        double delayOnceFlex = (double)rank.DelayOnceFlexMinutes;
+                                        //double tempHour = ((int)((collectTime - beginTime).TotalMinutes / delayOnceFlex)) * delayOnceFlex;
+                                        int tempInt = (int)((collectTime - beginTime).TotalMinutes / delayOnceFlex);
+                                        double tempHour = (collectTime - beginTime).TotalMinutes / delayOnceFlex;
+                                        if (tempHour > tempInt)
+                                            tempHour = (tempInt + 1) * delayOnceFlex;
+                                        else
+                                            tempHour = tempInt * delayOnceFlex;
+                                        period.BeginDate = beginTime.AddMinutes(tempHour);
+                                        period.EndDate = endTime.AddMinutes(tempHour);
+                                    }
+                                    else
+                                    {
+                                        if (rank.LateCalculateMode.Equals("LateCalculateMode_002"))
+                                        {
+                                            //弹性后起算
+                                            //double delayOnceFlex = (double)rank.DelayOnceFlexMinutes;
+                                            //double tempHour = ((int)((double)rank.DelayFlexMinutes / delayOnceFlex)) * delayOnceFlex;
+                                            //period.BeginDate = beginTime.AddMinutes(tempHour);
+                                            //period.EndDate = endTime.AddMinutes(tempHour);
+                                            period.BeginDate = beginTime.AddMinutes((double)(rank.DelayFlexMinutes));
+                                            period.EndDate = endTime.AddMinutes((double)(rank.DelayFlexMinutes));
+                                        }
+                                        else
+                                        {
+                                            //默认按原班段起算
+                                            period.BeginDate = beginTime;
+                                            period.EndDate = endTime;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                }
+            }
+            else
+            {
+                //不是弹性班次
+                return null;
             }
 
+
+            return period;
+        }
+
+      
+
+        /// <summary>
+        /// 产生明细方法
+        /// </summary>
+        /// <param name="pLeave">请假实体</param>
+        /// <param name="pBegin">开始时间</param>
+        /// <param name="pEnd">结束时间</param>
+        public virtual AttendanceLeave SetLeaveInfos(AttendanceLeave pLeave, DateTime pBegin, DateTime pEnd)
+        {
+            #region 检验参数
+            if (pBegin.CompareTo(pEnd) == 0)
+            { //相同时间
+                return pLeave;
+            }
+            #endregion
+
+            #region 分段班次导致请假逻辑的修正 modify by yinbq 20081114
+            // 获取日期段中日期的假日类型
+            AttendanceLeaveService leaveService = new AttendanceLeaveService();
+            Dictionary<string, string> dicCalendar = leaveService.GetHolidayByDate(pLeave.EmployeeId.ToString(), pBegin, pEnd, pLeave.AttendanceDayType);
+            AttendanceTypeService typeService = new AttendanceTypeService();
+            AttendanceLeaveInfo info = new AttendanceLeaveInfo();
+
+            //AttendanceEmpRankService
+            AttendanceEmpRankService empRankSer = new AttendanceEmpRankService();
+            DataTable empRankDt = empRankSer.GetEmpRanks(new string[] { pLeave.EmployeeId.ToString() }, pBegin.AddDays(-1), pEnd);
+
+            //跳过节日(1)
+            bool isPassHoliday = false;
+
+            bool isPassRest = false;  //是否跳过休息日20100714 改为是否跳过休息班次
+            bool isDeductOhter = false;  //是否扣除班次以外（休息、就餐）时间 20100714改成是否扣除在岗时数
+            decimal minLeaveHours = 1;  //最小核算量
+            decimal minAuditHours = 1;  //最小审核量
+            Dictionary<string, bool> dicIsBelongBefore = new Dictionary<string, bool>();  //是否归属前一天字典
+            bool isBelongBefore = false;
+            string calculateMode = string.Empty;  //进位方式
+            int digits = 0;  //小数位数
+            Dictionary<string, List<RankRestinfo>> ranksInfo2 = new Dictionary<string, List<RankRestinfo>>();
+
+            DataTable dtLeaveConfig = typeService.GetLeaveConfig(pLeave.AttendanceTypeId);
+            if (dtLeaveConfig != null && dtLeaveConfig.Rows.Count > 0)
+            {
+                //(2)
+                if (dtLeaveConfig.Rows[0]["PassHoliday"].ToString().Equals("1") || dtLeaveConfig.Rows[0]["PassHoliday"].ToString().ToUpper().Equals("TRUE"))
+                {
+                    isPassHoliday = true;
+                }
+                if (dtLeaveConfig.Rows[0][0].ToString().Equals("1") || dtLeaveConfig.Rows[0][0].ToString().ToUpper().Equals("TRUE"))
+                {
+                    isPassRest = true;
+                }
+                if (dtLeaveConfig.Rows[0][1].ToString().Equals("1") || dtLeaveConfig.Rows[0][1].ToString().ToUpper().Equals("TRUE"))
+                {
+                    isDeductOhter = true;
+                }
+                Decimal.TryParse(dtLeaveConfig.Rows[0][2].ToString(), out minLeaveHours);
+                Decimal.TryParse(dtLeaveConfig.Rows[0][3].ToString(), out minAuditHours);
+                calculateMode = dtLeaveConfig.Rows[0][5].ToString();
+                int.TryParse(dtLeaveConfig.Rows[0][6].ToString(), out digits);
+            }
+            if (calculateMode.CheckNullOrEmpty())
+                calculateMode = "CalculateMode_004";  //无
+            if (digits == 0)
+                digits = 2; //默认保留两位小数
+
+            if (empRankDt != null && empRankDt.Rows.Count > 0)
+            {
+               
+                string rankId = string.Empty;
+                DateTime rankBegin = DateTime.MinValue;
+                DateTime rankEnd = DateTime.MinValue;
+                DateTime restBegin = DateTime.MinValue;
+                DateTime restEnd = DateTime.MinValue;
+                DateTime rankDate = DateTime.MinValue;//归属日期
+                decimal workHours = 0; //工作时数
+                foreach (DataRow var in empRankDt.Rows)
+                {
+        
+                    rankId = var["AttendanceRankId"].ToString();
+                    workHours = 0;
+                    decimal.TryParse(var["WorkHours"].ToString(), out workHours);
+                    #region 是否扣除休息日20100714改为是否跳过休息班次
+                    //20160617 marked
+                    //if (this.IsRestInfo.ContainsKey(rankId) &&
+                    //    this.IsRestInfo[rankId])
+                    //{ //休息 
+                    //    if (isPassRest)
+                    //        continue;
+                    //}
+                    #endregion
+
+               
+
+                    #region 处理班段相关
+                    if (!ranksInfo2.ContainsKey(rankId))
+                    {
+                        AttendanceRankService rankSer = new AttendanceRankService();
+
+                        DataTable rankRestDt = rankSer.GetRankRestInfo(rankId);
+                        if (rankRestDt.Rows.Count > 0)
+                        {
+                            isBelongBefore = false;
+                            Boolean.TryParse(rankRestDt.Rows[0]["IsBelongToBefore"].ToString(), out isBelongBefore);
+                            if (!dicIsBelongBefore.ContainsKey(rankId))
+                            {
+                                dicIsBelongBefore.Add(rankId, isBelongBefore);
+                            }
+                            List<RankRestinfo> tempList = new List<RankRestinfo>();
+                            RankRestinfo tempRest = new RankRestinfo();
+                            double tempDouble = 0;
+                            foreach (DataRow item in rankRestDt.Rows)
+                            {
+                                tempRest = new RankRestinfo();
+                                //班段类型
+                                tempRest.AttendanceRankType = item["AttendanceRankTypeId"].ToString();
+                                //班段时数
+                                if (!double.TryParse(item["RestHours"].ToString(), out tempDouble))
+                                    throw new BusinessRuleException(string.Format("班次：{0} 班段存在错误", item["Name"].ToString()));
+                                tempRest.RestHours = tempDouble;
+                                //班段开始时间
+                                tempRest.RestBegin = item["RestBeginTime"].ToString();
+                                //班段结束时间
+                                tempRest.RestEnd = item["RestEndTime"].ToString();
+                                tempRest.NotJobTime = item["NotJobTime"].ToString().ToUpper().Equals("TRUE") || item["NotJobTime"].ToString().Equals("1") ? true : false;
+                                //20110520 added by songyj for 判断弹性班次的依据
+                                tempRest.RankCode = int.Parse(item["Code"].ToString());
+                                tempList.Add(tempRest);
+                            }
+                            ranksInfo2.Add(rankId, tempList);
+                        }
+                        // 20081210 modified by zhonglei for 没有班次明细则抛出异常
+                        else
+                        {
+
+                            throw new BusinessRuleException(string.Format("班次编码为 {0} 的班次明细不能为空", rankSer.GetRankCodeById(rankId) + ""));
+                        }
+                    }
+                    #endregion
+
+                    #region 处理请假(班段请假改为整班次请假)
+
+                    if (DateTime.TryParse(var["Date"].ToString(), out rankBegin))
+                    {
+                        rankDate = rankBegin;
+                        if (DateTime.TryParse(rankBegin.ToDateFormatString() + " " + var["WorkBeginTime"].ToString(), out rankBegin) &&
+                            DateTime.TryParse(rankBegin.ToDateFormatString() + " " + var["WorkEndTime"].ToString(), out rankEnd))
+                        {
+                            if (dicIsBelongBefore.ContainsKey(rankId))
+                            {
+                                isBelongBefore = dicIsBelongBefore[rankId];
+                                if (isBelongBefore)
+                                {
+                                    rankBegin = rankBegin.AddDays(1);
+                                }
+                            }
+
+                            if (rankEnd <= rankBegin)
+                                rankEnd = rankEnd.AddDays(1);
+                            List<DateTime> leaveTimeList = new List<DateTime>();
+                            decimal leaveHours = 0;
+                            //对于弹性班段的请假处理，备注上要添加说明
+                            string strFlexRemark = string.Empty;
+                            DateTime leaveBegin = DateTime.MinValue;
+                            DateTime leaveEnd = DateTime.MinValue;
+                            foreach (RankRestinfo item in ranksInfo2[rankId])
+                            {
+                                //调整为判断是否扣除在岗时数
+                                if (isDeductOhter && item.NotJobTime)
+                                    continue;
+                                // 20130819 added by jiangpeng for bug 13365 加班就餐段不参与计算
+                                if (item.AttendanceRankType.Equals("AttendanceRankType_004"))
+                                {
+                                    continue;
+                                }
+                                if (DateTime.TryParse(rankBegin.ToDateFormatString() + " " + item.RestBegin, out restBegin) &&
+                                    DateTime.TryParse(rankBegin.ToDateFormatString() + " " + item.RestEnd, out restEnd))
+                                {
+                                    restBegin = (restBegin < rankBegin) ? restBegin.AddDays(1) : restBegin;
+                                    restEnd = (restEnd < restBegin) ? restEnd.AddDays(1) : restEnd;
+
+                                    Rectangle result = GetIntersect(new DateTime[] { pBegin, pEnd }, new DateTime[] { restBegin, restEnd });
+
+                                    #region 处理请假时数时加入弹性班次的判断
+                                    int beginCode = -1;
+                                    int endCode = -1;
+
+
+                                    PeriodDate period = leaveService.GetFlexBeginEndDate(rankId, pLeave.EmployeeId.ToString(), rankBegin.Date, ref beginCode, ref endCode);
+                                    //20160505 edit by LinBJ for 35070~35074 重寫彈性邏輯
+                                    if (period != null && beginCode != -1 && endCode != -1)
+                                    {
+                                        if (item.RankCode == beginCode || item.RankCode == endCode)
+                                        {
+                                            if (pBegin.TimeOfDay != rankBegin.TimeOfDay)
+                                            {
+                                                DateTime newRestBegin = restBegin;
+                                                DateTime newRestEnd = restEnd;
+                                                if (item.RankCode == beginCode)
+                                                {
+                                                    newRestBegin = period.BeginDate;
+                                                }
+                                                if (item.RankCode == endCode)
+                                                {
+                                                    newRestEnd = period.EndDate;
+                                                }
+                                                result = GetIntersect(new DateTime[] { pBegin, pEnd }, new DateTime[] { newRestBegin, newRestEnd });//弹性班次的最后一个正常班段的结束时间
+                                                strFlexRemark = string.Format("今天是弹性上班，弹性上班开始时间：【{0}】，弹性上班结束时间：【{1}】。", period.BeginDate.ToTimeFormatString(), period.EndDate.ToTimeFormatString());
+                                                #region 20150706 LinBJ add by S00-20150609002 29817 对3段班(上午、休息、下午)，并且下午整班段请假时的班次时间平移逻辑进行调整
+                                                List<RankRestinfo> restList = ranksInfo2[rankId].OrderBy(rest => rest.RankCode).ToList();
+                                                //20150908 Added by liuyuana for 31871&V01-20150907001：班次上增加参数IsFlexFirstEnd来控制新的逻辑是否生效
+
+                                                AttendanceRankService docRankSer = new AttendanceRankService();
+                                                AttendanceRank rank = docRankSer.GetAttendanceRank(rankId);
+                                                if (restList.Count == 3 && rank.IsFlexFirstEnd)
+                                                {
+                                                    if (restList[1].AttendanceRankType != "AttendanceRankType_001"
+                                                      && restList[0].AttendanceRankType == "AttendanceRankType_001"
+                                                      && restList[2].AttendanceRankType == "AttendanceRankType_001")
+                                                    {
+                                                        if (pLeave.BeginTime == restList[2].RestBegin && pLeave.EndTime == restList[2].RestEnd && restList[2].RankCode == endCode)
+                                                        {
+                                                            int min = (period.BeginDate - rankBegin).Minutes;
+                                                            strFlexRemark = string.Format("今天是弹性上班，弹性上班开始时间：【{0}】，弹性上班结束时间：【{1}】。", period.BeginDate.ToTimeFormatString(),
+                                                               rankBegin.AddHours(restList[0].RestHours).AddMinutes(min).ToTimeFormatString());
+                                                            result = GetIntersect(new DateTime[] { pBegin, pEnd }, new DateTime[] { restBegin, restEnd });
+                                                        }
+                                                    }
+                                                }
+                                                #endregion
+                                                restBegin = newRestBegin;
+                                                restEnd = newRestEnd;
+                                            }
+                                        }
+                                    }
+
+                                    //if (period != null && beginCode != -1 && endCode != -1) {
+                                    //    if (item.RankCode == endCode) {//最后一个正常班段
+                                    //        //班次的最后一个班段的结束时间不等于弹性之后的时间，则添加备注
+                                    //        if (period.EndDate != restEnd) {
+                                    //            //根据刷卡数据判断为弹性上班的，并且请假开始时间≠班次开始时间时，才在请假明细信息的备注中写入
+                                    //            //判断请假时间(无日期) ≠ 班次开始时间(无日期)才在请假明细信息的备注中写入
+                                    //            if (pBegin.TimeOfDay != rankBegin.TimeOfDay) {
+                                    //                result = GetIntersect(new DateTime[] { pBegin, pEnd }, new DateTime[] { restBegin, period.EndDate });//弹性班次的最后一个正常班段的结束时间
+                                    //                strFlexRemark = string.Format(Resources.OTResult_FlexRemark, period.BeginDate.ToTimeFormatString(), period.EndDate.ToTimeFormatString());
+                                    //                #region 20150706 LinBJ add by S00-20150609002 29817 对3段班(上午、休息、下午)，并且下午整班段请假时的班次时间平移逻辑进行调整
+                                    //                List<RankRestinfo> restList = ranksInfo2[rankId].OrderBy(rest => rest.RankCode).ToList();
+                                    //                //20150908 Added by liuyuana for 31871&V01-20150907001：班次上增加参数IsFlexFirstEnd来控制新的逻辑是否生效
+                                    //                IDocumentService<AttendanceRank> docRankSer = Factory.GetService<IAttendanceRankService>().GetServiceNoPower();
+                                    //                AttendanceRank rank = docRankSer.Read(rankId);
+                                    //                if (restList.Count == 3 && rank.IsFlexFirstEnd) {
+                                    //                    if (restList[1].AttendanceRankType != "AttendanceRankType_001"
+                                    //                      && restList[0].AttendanceRankType == "AttendanceRankType_001"
+                                    //                      && restList[2].AttendanceRankType == "AttendanceRankType_001") {
+                                    //                        if (pLeave.BeginTime == restList[2].RestBegin && pLeave.EndTime == restList[2].RestEnd && restList[2].RankCode == endCode) {
+                                    //                            int min = (period.BeginDate - rankBegin).Minutes;
+                                    //                            strFlexRemark = string.Format(Resources.OTResult_FlexRemark, period.BeginDate.ToTimeFormatString(),
+                                    //                               rankBegin.AddHours(restList[0].RestHours).AddMinutes(min).ToTimeFormatString());
+                                    //                            if (min < 0) {
+                                    //                                result = GetIntersect(new DateTime[] { pBegin, pEnd }, new DateTime[] { restBegin, restEnd });
+                                    //                            }
+                                    //                        }
+                                    //                    }
+                                    //                }
+                                    //                #endregion
+
+                                    //                //20140813 add by LinBJ for 查询的班次若为弹性班次，则修改班段结束时间
+                                    //                restEnd = period.EndDate;
+                                    //            }
+                                    //        }
+                                    //    }
+                                    //}
+                                    #endregion
+
+                                    if (result.IsEmpty || result.Left == result.Right)
+                                    {//无需请假
+                                    }
+                                    else
+                                    {//请假时间区间
+                                        #region  明细处理
+                                        DateTime leaveBegin2 = DateTime.MinValue.AddMinutes(result.Left);
+                                        DateTime leaveEnd2 = DateTime.MinValue.AddMinutes(result.Right);
+                                        leaveTimeList.Add(leaveBegin2);
+                                        leaveTimeList.Add(leaveEnd2);
+
+                                        //需要判断是否满班次
+                                        //20141024 edit by LinBJ for 23205 C01-20141023013 彈性班不適用滿班次邏輯
+                                        if (leaveBegin2.CompareTo(restBegin) == 0 && leaveEnd2.CompareTo(restEnd) == 0 && strFlexRemark.CheckNullOrEmpty())
+                                        {//满班次
+                                            leaveHours += (decimal)item.RestHours;
+                                        }
+                                        else
+                                        {
+                                            leaveHours += CalculateHours(leaveBegin2, leaveEnd2);
+                                        }
+
+                                        #endregion
+                                    }
+                                }
+                            }
+                            #region 20110105 added by jianpeng for 合并请假记录
+                            if (leaveHours > 0)
+                            {
+                                //设置请假的班次时间
+                                leaveTimeList.Sort();
+                                leaveBegin = leaveTimeList[0];
+                                leaveEnd = leaveTimeList[leaveTimeList.Count - 1];
+                                info = new AttendanceLeaveInfo();
+                                info.AttendanceRankId = rankId;
+                                // 20081105 modified by zhonglei for 获取平日假勤的ID
+                                string tmpAtTypeId = string.Empty;
+                                if (pLeave.AttendanceTypeId.IndexOf("+") > -1 || pLeave.AttendanceTypeId.IndexOf("*") > -1)
+                                {
+                                    tmpAtTypeId = pLeave.AttendanceTypeId.Substring(1);
+                                }
+                                else
+                                {
+                                    tmpAtTypeId = pLeave.AttendanceTypeId;
+                                }
+                                info.AttendanceTypeId = pLeave.AttendanceTypeId;
+                                info.EmployeeId = pLeave.EmployeeId.Value;
+                                //info.EmployeeRankId = var["AttendanceEmployeeRankId"].ToString().GetGuid();
+                                info.BeginDate = leaveBegin.Date;
+                                info.EndDate = leaveEnd.Date;
+                                info.BeginTime = leaveBegin.ToString(Constants.FORMAT_SHORTTIMEPATTERN);
+                                info.EndTime = leaveEnd.ToString(Constants.FORMAT_SHORTTIMEPATTERN);
+                                //info.Date = rankBegin.Date;
+                                info.Date = rankDate.Date;
+                                info.Hours = leaveHours;
+                                #region 折算算法（与特休相同）
+                                info.Hours = GetAmountHours(minLeaveHours, minAuditHours, info.Hours);
+                                #endregion
+                                #region 年假資訊
+                                if (pLeave.AttendanceTypeId == "401")
+                                {
+                                    EmployeeService employeeService=new EmployeeService();
+                                    string corporationId = employeeService.GetEmpFiledById(pLeave.EmployeeId.ToString(), "CorporationId");
+                                    ALPlanService planService = new ALPlanService();
+                                    string parameterUnit = planService.GetParameterUnit(corporationId);
+                                    info.AnnualLeaveUnit = parameterUnit;
+                                    info.FiscalYearId = pLeave.FiscalYearId;
+                                    if (!info.AnnualLeaveUnit.Equals("AnnualLeaveUnit_003"))
+                                    {
+                                        //info.Days = CalculateDays(8, info.AnnualLeaveUnit, leaveBegin, leaveEnd, info.Hours);
+                                        // 20130823 Modefyied by jiangpeng 用班次时数而不是用8
+                                        info.Days = CalculateDays(workHours, info.AnnualLeaveUnit, leaveBegin, leaveEnd, info.Hours);
+                                    }
+                                }
+                                else
+                                {
+                                    //20140916 modified by huangzj for 22233 A00-20140912004 请假天数用班次时数折算，不再用8小时
+                                    //#if Ultimate
+                                    info.Days = CalcuteHours(calculateMode, 2, info.Hours, workHours, true);//小时进位转换为天
+                                                                                                            //#endif
+                                }
+                                #endregion
+
+                                //对于弹性班段的请假处理，备注上要添加说明 
+                                //20141125 LinBJ Add by Q00-20141103010 24390 24391 
+                                //若有弹性再加判请假明细是否有请假开始时间!＝班次开始时间的数据，则该天班次有弹性，请假明细备注中追加写入相关弹性信息
+                         
+                                AttendanceRankService ATRankService = new AttendanceRankService();
+                                AttendanceRank rank = ATRankService.GetAttendanceRank(rankId);
+                                if (!strFlexRemark.CheckNullOrEmpty() && info.BeginTime != rank.WorkBeginTime)
+                                    info.Remark = strFlexRemark;
+                                pLeave.Infos.Add(info);//加入明细
+                            }
+                            #endregion
+                        }
+                    }
+                    #endregion
+                }
+            }
+            #endregion
+
             //比较当前员工的请假时数是否大于最大带薪时数
-            string msg = GetSalaryTimes(pLeave);
+            string msg = leaveService.GetSalaryTimes(pLeave);
             if (msg.IndexOf("false") > -1)
             {
                 string[] tmpMsg = msg.Split(',');
                 //20140916 added by huangzj for 22233 A00-20140912004 假勤单位是天 需要报错报出天
-
+               
                 AttendanceType atType = typeService.GetAttendanceType(pLeave.AttendanceTypeId);
                 if (atType.AttendanceUnitId.Equals("AttendanceUnit_001"))
                 {
@@ -466,6 +1205,7 @@ namespace BQHRWebApi.Service
                 }
                 throw new BusinessRuleException(string.Format("工号为 {0} 的员工当前请假总时数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1]));
             }
+
             return pLeave;
         }
 
@@ -531,7 +1271,7 @@ namespace BQHRWebApi.Service
             if (empRankDt != null && empRankDt.Rows.Count > 0)
             {
                 string rankId = string.Empty;
-                string atHolidayType = string.Empty;
+                //string atHolidayType = string.Empty;
                 DateTime rankBegin = DateTime.MinValue;
                 DateTime rankEnd = DateTime.MinValue;
                 DateTime restBegin = DateTime.MinValue;
@@ -541,26 +1281,26 @@ namespace BQHRWebApi.Service
                 foreach (DataRow var in empRankDt.Rows)
                 {
                     rankId = var["AttendanceRankId"].ToString();
-                    atHolidayType = var["AttendanceHolidayTypeId"].ToString();
+                    //atHolidayType = var["AttendanceHolidayTypeId"].ToString();
                     workHours = 0;
                     decimal.TryParse(var["WorkHours"].ToString(), out workHours);
 
-                    if (atHolidayType == "DefaultHolidayType003" && isPassHoliday)
-                    {
-                        continue;//跳過節日
-                    }
-                    if (atHolidayType == "DefaultHolidayType004" && isPassRest)
-                    {
-                        continue;//跳過假日
-                    }
-                    if (atHolidayType == "DefaultHolidayType005" && isPassBreakDay)
-                    {
-                        continue;//跳過休息日
-                    }
-                    if (var["EmptyDay"].ToString().ToBool() && isPassEmptyDay)
-                    {
-                        continue;//跳過空班
-                    }
+                    //if (atHolidayType == "DefaultHolidayType003" && isPassHoliday)
+                    //{
+                    //    continue;//跳過節日
+                    //}
+                    //if (atHolidayType == "DefaultHolidayType004" && isPassRest)
+                    //{
+                    //    continue;//跳過假日
+                    //}
+                    //if (atHolidayType == "DefaultHolidayType005" && isPassBreakDay)
+                    //{
+                    //    continue;//跳過休息日
+                    //}
+                    //if (var["EmptyDay"].ToString().ToBool() && isPassEmptyDay)
+                    //{
+                    //    continue;//跳過空班
+                    //}
 
 
                     // 处理班段相关
@@ -763,7 +1503,7 @@ namespace BQHRWebApi.Service
                                 info.AttendanceRankId = rankId;
                                 info.AttendanceTypeId = pAttendanceTypeId;
                                 info.EmployeeId = pEmpId.GetGuid();
-                                info.EmployeeRankId = var["AttendanceEmployeeRankId"].ToString().GetGuid();
+                                //info.EmployeeRankId = var["AttendanceEmployeeRankId"].ToString().GetGuid();
                                 info.BeginDate = leaveBegin.Date;
                                 info.EndDate = leaveEnd.Date;
                                 info.BeginTime = leaveBegin.ToString(Constants.FORMAT_SHORTTIMEPATTERN);
@@ -951,7 +1691,7 @@ namespace BQHRWebApi.Service
         /// </summary>
         /// <param name="pAttendanceLeave"></param>
         /// <returns></returns>
-        public virtual string GetSalaryTimes(AttendanceLeave pAttendanceLeave)
+        public virtual string GetSalaryTimes1(AttendanceLeave pAttendanceLeave)
         {
 
             //20140924　added by huangzj for 当请假是休息班时会报错，此修改没有单子
@@ -1363,6 +2103,380 @@ namespace BQHRWebApi.Service
             return msg;
 
         }
+
+
+
+        /// <summary>
+        /// 比较当前员工的请假时数是否大于最大带薪时数
+        /// </summary>
+        /// <param name="pAttendanceLeave"></param>
+        /// <returns></returns>
+        public virtual string GetSalaryTimes(AttendanceLeave pAttendanceLeave)
+        {
+            //20140924　added by huangzj for 当请假是休息班时会报错，此修改没有单子
+            if (pAttendanceLeave.Infos.Count == 0)
+                return "";
+
+            string msg = string.Empty;
+            AttendanceTypeService typeService = new AttendanceTypeService();
+            AttendanceType atType = typeService.GetAttendanceType(pAttendanceLeave.AttendanceTypeId);
+            //假勤项目：请假（AttendanceKind_004）
+            if (atType.AttendanceKindId.Equals("AttendanceKind_004") && atType.MaxSalaryHour > 0)
+            {
+
+
+                string beginDate = string.Empty;
+                string endDate = string.Empty;
+                if (!atType.SalaryPeriodId.CheckNullOrEmpty())
+                {//计算周期
+                    if (atType.SalaryPeriodId.Equals("SalaryPeriod_001"))
+                    {
+                        //年
+                        beginDate = string.Format("{0}-1-1 0:00:00", pAttendanceLeave.BeginDate.Year);
+                        endDate = (DateTime.Parse(beginDate).AddYears(1).AddSeconds(-1)).ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+                    else
+                    {
+                        //月
+                        beginDate = string.Format("{0}-{1}-1 0:00:00", pAttendanceLeave.BeginDate.Year, pAttendanceLeave.BeginDate.Month);
+                        endDate = (DateTime.Parse(beginDate).AddMonths(1).AddSeconds(-1)).ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+                    #region 考虑“合并假勤类型”
+                    StringBuilder sbTypeIds = new StringBuilder();
+                    sbTypeIds.AppendFormat("'{0}'", pAttendanceLeave.AttendanceTypeId);//添加本身的假勤类型
+                    if (!atType.DaysCoverATType.CheckNullOrEmpty())
+                    {//合并假勤类型
+                        string[] arrayTypeIds = atType.DaysCoverATType.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+                        if (arrayTypeIds.Length > 0)
+                        {
+                            foreach (string id in arrayTypeIds)
+                            {
+                                if (!id.Equals(pAttendanceLeave.AttendanceTypeId))
+                                {//排除本身的假勤类型
+                                    sbTypeIds.AppendFormat(",'{0}'", id);
+                                }
+                            }
+                        }
+                    }
+                    //排除销假和审核不同意的请假
+                    string strSQL = string.Format(@"SELECT SUM(Info.Hours) as Hours,SUM(Info.Days) as Days
+                                                        FROM AttendanceLeaveInfo Info 
+                                                        INNER JOIN AttendanceLeave Leave ON Leave.AttendanceLeaveId = Info.AttendanceLeaveId 
+                                                        INNER JOIN AttendanceType AtType ON AtType.AttendanceTypeId = Leave.AttendanceTypeId 
+                                                        WHERE Leave.EmployeeId = '{0}' AND Leave.AttendanceTypeId IN ({1}) AND Info.IsRevoke = 0 AND 
+                                                              Leave.AttendanceLeaveId NOT IN (
+                                                              SELECT AttendanceLeaveId 
+                                                              FROM AttendanceLeave 
+                                                              WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002') AND 
+                                                              Leave.BeginDate BETWEEN '{2}' AND '{3}' AND Leave.Flag = 1",
+                          pAttendanceLeave.EmployeeId.ToString(), sbTypeIds.ToString(), beginDate, endDate);
+                    #endregion
+                    if (!pAttendanceLeave.AttendanceLeaveId.CheckNullOrEmpty())
+                    {
+                        strSQL += string.Format(" AND Leave.AttendanceLeaveId <> '{0}'", pAttendanceLeave.AttendanceLeaveId.GetString());
+                    }
+
+
+                    //object obj = cmd.ExecuteScalar();
+                    DataTable dt = HRHelper.ExecuteDataTable(strSQL);
+
+                    //20140916 modified by huangzj for 22233 A00-20140912004 请假天数用班次时数折算，不再用8小时
+                    //按照假勤单位转换最大可请假时数
+                    decimal salaryHour = atType.MaxSalaryHour;//最大允许请假时数
+                    decimal totalHours = 0m; //请假总时数
+
+                    AttendanceEmpRankService srvEmpRank = new AttendanceEmpRankService();
+
+                    if (atType.AttendanceUnitId.Equals("AttendanceUnit_001"))
+                    {//天 
+                        #region 单位为天
+                        //当前请假时数
+                        for (int i = 0; i < pAttendanceLeave.Infos.Count; i++)
+                        {
+                            //if (!pAttendanceLeave.Infos[i].IsRevoke )//归属日期判断
+                            //    totalHours += pAttendanceLeave.Infos[i].Days;
+
+                            if (!pAttendanceLeave.Infos[i].IsRevoke)
+                            {
+                                var dtEmpRank = srvEmpRank.GetEmpRanks(new string[] { pAttendanceLeave.EmployeeId.ToString() }, pAttendanceLeave.Infos[i].Date, pAttendanceLeave.Infos[i].Date);
+                                //判断是否跳过假日或休息日
+                                if (atType.PassRest)
+                                {
+                                    if (!pAttendanceLeave.Infos[i].AttendanceRankId.CheckNullOrEmpty())
+                                    {
+                                        if (dtEmpRank != null && dtEmpRank.Rows.Count > 0)
+                                        {
+                                            var holidayTypeId = dtEmpRank.Rows[0]["AttendanceHolidayTypeId"].ToString();
+                                            if (holidayTypeId.Equals("DefaultHolidayType004") || holidayTypeId.Equals("DefaultHolidayType005"))
+                                            {
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                //判断是否跳过节日
+                                if (atType.PassHoliday)
+                                {
+                                    if (!pAttendanceLeave.Infos[i].AttendanceRankId.CheckNullOrEmpty())
+                                    {
+                                        if (dtEmpRank != null && dtEmpRank.Rows.Count > 0)
+                                        {
+                                            var holidayTypeId = dtEmpRank.Rows[0]["AttendanceHolidayTypeId"].ToString();
+                                            if (holidayTypeId.Equals("DefaultHolidayType002") || holidayTypeId.Equals("DefaultHolidayType003"))
+                                            {
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                totalHours += pAttendanceLeave.Infos[i].Days;
+                            }
+                        }
+
+                        //请假总时数
+                        decimal obj = 0m;
+                        if (dt != null && dt.Rows.Count > 0)
+                        {
+                            decimal.TryParse(dt.Rows[0]["Days"].ToString(), out obj);
+                            totalHours += obj;
+                        }
+                        #endregion
+                    }
+                    else
+                    {
+                        #region 单位为小时或分钟
+                        //当前请假时数
+                        for (int i = 0; i < pAttendanceLeave.Infos.Count; i++)
+                        {
+                            if (!pAttendanceLeave.Infos[i].IsRevoke)
+                            {
+                                var dtEmpRank = srvEmpRank.GetEmpRanks(new string[] { pAttendanceLeave.EmployeeId.ToString() }, pAttendanceLeave.Infos[i].Date, pAttendanceLeave.Infos[i].Date);
+                                //判断是否跳过假日或休息日
+                                if (atType.PassRest)
+                                {
+                                    if (!pAttendanceLeave.Infos[i].AttendanceRankId.CheckNullOrEmpty())
+                                    {
+                                        if (dtEmpRank != null && dtEmpRank.Rows.Count > 0)
+                                        {
+                                            var holidayTypeId = dtEmpRank.Rows[0]["AttendanceHolidayTypeId"].ToString();
+                                            if (holidayTypeId.Equals("DefaultHolidayType004") || holidayTypeId.Equals("DefaultHolidayType005"))
+                                            {
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                //判断是否跳过节日
+                                if (atType.PassHoliday)
+                                {
+                                    if (!pAttendanceLeave.Infos[i].AttendanceRankId.CheckNullOrEmpty())
+                                    {
+                                        if (dtEmpRank != null && dtEmpRank.Rows.Count > 0)
+                                        {
+                                            var holidayTypeId = dtEmpRank.Rows[0]["AttendanceHolidayTypeId"].ToString();
+                                            if (holidayTypeId.Equals("DefaultHolidayType002") || holidayTypeId.Equals("DefaultHolidayType003"))
+                                            {
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
+
+
+                                totalHours += pAttendanceLeave.Infos[i].Hours;
+                            }
+                        }
+                        //请假总时数
+                        decimal obj = 0m;
+                        if (dt != null && dt.Rows.Count > 0)
+                        {
+                            decimal.TryParse(dt.Rows[0]["Hours"].ToString(), out obj);
+                            totalHours += obj;
+                        }
+
+                        if (atType.AttendanceUnitId.Equals("AttendanceUnit_003"))
+                        {
+                            //分钟 
+                            salaryHour = salaryHour / 60;
+                        }
+                        #endregion
+                    }
+
+                    if (totalHours > salaryHour)
+                    {
+                        EmployeeService empService = new EmployeeService();
+                        msg = string.Format("{0},{1},{2},false", empService.GetEmpFiledById(pAttendanceLeave.EmployeeId.ToString(), "Code"), salaryHour.ToString("#.##"), totalHours.ToString("#.##"));
+                    }
+                }
+
+            }
+
+            #region added by jiangpeng for 任务6979 增加校验：此假勤类型为另外的假勤类型的合并假勤类型
+            if (msg.CheckNullOrEmpty() && atType.DaysCoverATType.CheckNullOrEmpty())
+            {
+                DataTable dtType = new DataTable();
+
+
+                #region old
+                //string strSql = string.Format(@"SELECT AttendanceTypeId,
+                //                                       SalaryPeriodId,
+                //                                       MaxSalaryHour,
+                //                                       DaysCoverAtType,
+                //                                       AttendanceUnitId
+                //                                FROM   AttendanceType
+                //                                WHERE  DaysCoverAtType LIKE '%{0}%'", pAttendanceLeave.AttendanceTypeId);
+                #endregion
+                //20140604 modified for bug18749 && C01-20140529011 by renping
+                string strSql = string.Format(@"SELECT AttendanceTypeId,
+                                                           SalaryPeriodId,
+                                                           MaxSalaryHour,
+                                                           DaysCoverAtType,
+                                                           AttendanceUnitId
+                                                    FROM   AttendanceType
+                                                    WHERE  DaysCoverAtType LIKE '{0};%' or DaysCoverATType LIKE '%;{0};%'", pAttendanceLeave.AttendanceTypeId);
+
+                dtType = HRHelper.ExecuteDataTable(strSql);
+
+                if (dtType != null && dtType.Rows.Count > 0)
+                {
+                    decimal maxSalaryHour = 0;
+                    string salaryPeriodId = string.Empty;
+                    string attendanceTypeId = string.Empty;
+                    string daysCoverATType = string.Empty;
+                    string attendanceUnitId = string.Empty;
+                    string strSalaryHour = dtType.Rows[0]["MaxSalaryHour"].ToString();
+                    salaryPeriodId = dtType.Rows[0]["SalaryPeriodId"] as string;
+                    attendanceTypeId = dtType.Rows[0]["AttendanceTypeId"] as string;
+                    daysCoverATType = dtType.Rows[0]["DaysCoverATType"] as string;
+                    attendanceUnitId = dtType.Rows[0]["AttendanceUnitId"] as string;
+                    decimal.TryParse(strSalaryHour, out maxSalaryHour);
+                    if (maxSalaryHour > 0 && !salaryPeriodId.CheckNullOrEmpty() && !attendanceTypeId.CheckNullOrEmpty())
+                    {
+
+
+                        string beginDate = string.Empty;
+                        string endDate = string.Empty;
+                        if (!salaryPeriodId.CheckNullOrEmpty())
+                        {//计算周期
+                            if (salaryPeriodId.Equals("SalaryPeriod_001"))
+                            {
+                                //年
+                                beginDate = string.Format("{0}-1-1 0:00:00", pAttendanceLeave.BeginDate.Year);
+                                endDate = (DateTime.Parse(beginDate).AddYears(1).AddSeconds(-1)).ToString("yyyy-MM-dd HH:mm:ss");
+                            }
+                            else
+                            {
+                                //月
+                                beginDate = string.Format("{0}-{1}-1 0:00:00", pAttendanceLeave.BeginDate.Year, pAttendanceLeave.BeginDate.Month);
+                                endDate = (DateTime.Parse(beginDate).AddMonths(1).AddSeconds(-1)).ToString("yyyy-MM-dd HH:mm:ss");
+                            }
+                            #region 考虑“合并假勤类型”
+
+                            StringBuilder sbTypeIds = new StringBuilder();
+                            sbTypeIds.AppendFormat("'{0}'", attendanceTypeId);//添加本身的假勤类型
+                            if (!daysCoverATType.CheckNullOrEmpty())
+                            {//合并假勤类型
+                                string[] arrayTypeIds = daysCoverATType.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+                                if (arrayTypeIds.Length > 0)
+                                {
+                                    foreach (string id in arrayTypeIds)
+                                    {
+                                        if (!id.Equals(attendanceTypeId))
+                                        {//排除本身的假勤类型
+                                            sbTypeIds.AppendFormat(",'{0}'", id);
+                                        }
+                                    }
+                                }
+                            }
+                            //排除销假和审核不同意的请假
+                            string strSQL = string.Format(@"SELECT SUM(Info.Hours) as Hours ,SUM(Info.Days) as Days
+                                                        FROM AttendanceLeaveInfo Info 
+                                                        INNER JOIN AttendanceLeave Leave ON Leave.AttendanceLeaveId = Info.AttendanceLeaveId 
+                                                        INNER JOIN AttendanceType AtType ON AtType.AttendanceTypeId = Leave.AttendanceTypeId 
+                                                        WHERE Leave.EmployeeId = '{0}' AND Leave.AttendanceTypeId IN ({1}) AND Info.IsRevoke = 0 AND 
+                                                              Leave.AttendanceLeaveId NOT IN (
+                                                              SELECT AttendanceLeaveId 
+                                                              FROM AttendanceLeave 
+                                                              WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002') AND 
+                                                              Leave.BeginDate BETWEEN '{2}' AND '{3}' AND Leave.Flag = 1",
+                                  pAttendanceLeave.EmployeeId.ToString(), sbTypeIds.ToString(), beginDate, endDate);
+                            #endregion
+                            if (!pAttendanceLeave.AttendanceLeaveId.CheckNullOrEmpty())
+                            {
+                                strSQL += string.Format(" AND Leave.AttendanceLeaveId <> '{0}'", pAttendanceLeave.AttendanceLeaveId.GetString());
+                            }
+
+
+                            DataTable dt = HRHelper.ExecuteDataTable(strSQL);
+                           
+                            //20140916 modified by huangzj for 22233 A00-20140912004 请假天数用班次时数折算，不再用8小时
+                            //按照假勤单位转换最大可请假时数
+                            decimal salaryHour = maxSalaryHour;//最大允许请假时数
+                            decimal totalHours = 0m; //请假总时数
+                            if (attendanceUnitId.Equals("AttendanceUnit_001"))
+                            {//天 
+                                #region 单位为天
+                                //当前请假时数
+                                for (int i = 0; i < pAttendanceLeave.Infos.Count; i++)
+                                {
+                                    if (!pAttendanceLeave.Infos[i].IsRevoke)
+                                        totalHours += pAttendanceLeave.Infos[i].Days;
+                                }
+
+                                //请假总时数
+                                decimal obj = 0m;
+                                if (dt != null && dt.Rows.Count > 0)
+                                {
+                                    decimal.TryParse(dt.Rows[0]["Days"].ToString(), out obj);
+                                    totalHours += obj;
+                                }
+                                #endregion
+                            }
+                            else
+                            {
+                                #region 单位为小时或分钟
+                                //当前请假时数
+                                for (int i = 0; i < pAttendanceLeave.Infos.Count; i++)
+                                {
+                                    if (!pAttendanceLeave.Infos[i].IsRevoke)
+                                        totalHours += pAttendanceLeave.Infos[i].Hours;
+                                }
+                                //请假总时数
+                                decimal obj = 0m;
+                                if (dt != null && dt.Rows.Count > 0)
+                                {
+                                    decimal.TryParse(dt.Rows[0]["Hours"].ToString(), out obj);
+                                    totalHours += obj;
+                                }
+
+                                if (attendanceUnitId.Equals("AttendanceUnit_003"))
+                                {
+                                    //分钟 
+                                    salaryHour = salaryHour / 60;
+                                }
+                                #endregion
+                            }
+
+                            if (totalHours > salaryHour)
+                            {
+                                EmployeeService empService = new EmployeeService();
+                                msg = string.Format("{0},{1},{2},false", empService.GetEmpFiledById(pAttendanceLeave.EmployeeId.ToString(),"Code"), salaryHour.ToString("#.##"), totalHours.ToString("#.##"));
+                            }
+                        }
+
+                    }
+                }
+            }
+            #endregion
+
+            return msg;
+
+        }
+
+
         /// <summary>
         /// 取得合併統計的請假
         /// </summary>
