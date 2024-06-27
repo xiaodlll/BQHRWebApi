@@ -1,26 +1,25 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
+using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
 using Newtonsoft.Json;
 using System.Data;
 using System.Data.SqlClient;
+using System.Reflection;
 
 namespace BQHRWebApi.Service
 {
     public class AttendanceCollectService : HRService
     {
-      
+
 
         public override async void Save(DataEntity[] entities)
         {
-            //foreach (var entity in entities)
-            //{
-            //    AttendanceCollect attendance = entity as AttendanceCollect;
-            //    SaveAttendance(attendance);
-            //}
+            AttendanceCollect[] attendanceCollects = HRHelper.WebAPIEntitysToDataEntitys<AttendanceCollect>(entities).ToArray();
+
             CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
             callServiceBindingModel.RequestCode = "API_002";
-            
+
             APIRequestParameter parameter = new APIRequestParameter();
             parameter.Name = "attendanceCollects";
             parameter.Value = JsonConvert.SerializeObject(entities);

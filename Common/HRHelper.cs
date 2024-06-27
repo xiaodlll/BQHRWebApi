@@ -490,14 +490,53 @@ namespace Dcms.HR.Services
                 PropertyInfo[] sourceProperties = webData.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
                 foreach (var sourceProp in sourceProperties)
                 {
-                    PropertyInfo targetProp = targetProperties.FirstOrDefault(p => p.Name == sourceProp.Name && p.PropertyType == sourceProp.PropertyType);
-                    if (targetProp != null)
-                    {
-                        // 如果T中有与webData同名且类型匹配的属性，则复制值
-                        object value = sourceProp.GetValue(webData);
-                        targetProp.SetValue(dataEntity, value);
+                    if (typeof(IEnumerable).IsAssignableFrom(sourceProp.PropertyType) && sourceProp.PropertyType != typeof(string))
+                    {//是集合类型
+                        PropertyInfo targetProp = targetProperties.FirstOrDefault(p => p.Name == sourceProp.Name);
+                        if (targetProp != null)
+                        {
+                            // 获取集合元素的类型
+                            Type elementType = targetProp.PropertyType.GetGenericArguments()[0];
+
+                            // 转换源集合为目标集合类型
+                            IEnumerable sourceCollection = (IEnumerable)sourceProp.GetValue(webData);
+                            var targetCollection = (IEnumerable)Activator.CreateInstance(targetProp.PropertyType);
+
+                            foreach (var item in sourceCollection)
+                            {
+                                object element = Activator.CreateInstance(elementType);
+
+                                // 获取集合元素的属性
+                                PropertyInfo[] elementProperties = elementType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                                PropertyInfo[] sourceItemProperties = item.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+                                foreach (var sourceElementProp in sourceItemProperties)
+                                {
+                                    PropertyInfo targetElementProp = elementProperties.FirstOrDefault(p => p.Name == sourceElementProp.Name);
+                                    if (targetElementProp != null)
+                                    {
+                                        object value = sourceElementProp.GetValue(item);
+                                        targetElementProp.SetValue(element, value);
+                                    }
+                                }
+
+                                // 将转换后的元素添加到目标集合
+                                targetCollection.GetType().GetMethod("Add").Invoke(targetCollection, new[] { element });
+                            }
+
+                            targetProp.SetValue(dataEntity, targetCollection);
+                        }
                     }
-                    // 否则，根据需要可以添加日志或处理逻辑，此处已省略
+                    else
+                    {
+                        PropertyInfo targetProp = targetProperties.FirstOrDefault(p => p.Name == sourceProp.Name);
+                        if (targetProp != null)
+                        {
+                            // 如果T中有与webData同名且类型匹配的属性，则复制值
+                            object value = sourceProp.GetValue(webData);
+                            targetProp.SetValue(dataEntity, value);
+                        }
+                    }
                 }
 
                 resultList.Add(dataEntity);

@@ -54,6 +54,12 @@
     <Reference Include="Dcms.Common.Report">
       <HintPath>..\..\V5.1.15(Ultimate)\Export\Dcms.Common.Report.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.Common.Torridity">
+      <HintPath>..\HRServer\Dcms.Common.Torridity.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceCollect">
+      <HintPath>..\HRServer\Dcms.HR.Business.AttendanceCollect.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.Common">
       <HintPath>..\..\BQHRWebApi\lib\Dcms.HR.Business.Common.dll</HintPath>
     </Reference>

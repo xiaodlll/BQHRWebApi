@@ -1,6 +1,6 @@
 ﻿namespace BQHRWebApi.Business
 {
-    public class AttendanceCollect: DataEntity
+    public class AttendanceCollectForAPI: DataEntity
     {
         /// <summary>
         /// 员工Id
