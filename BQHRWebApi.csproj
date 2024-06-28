@@ -60,6 +60,9 @@
     <Reference Include="Dcms.HR.Business.AttendanceCollect">
       <HintPath>..\HRServer\Dcms.HR.Business.AttendanceCollect.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceOverTimePlan">
+      <HintPath>..\HRServer\Dcms.HR.Business.AttendanceOverTimePlan.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.Common">
       <HintPath>..\..\BQHRWebApi\lib\Dcms.HR.Business.Common.dll</HintPath>
     </Reference>
