@@ -1,0 +1,12 @@
+﻿{
+  "ServiceType": "Dcms.HR.Services.IAttendanceLeaveService,Dcms.HR.Business.AttendanceLeave",
+  "Method": "GetLeaveHours",
+  "Parameters": [
+    {
+      "name": "formEntity",
+      "type": "Dcms.HR.DataEntities.AttendanceLeave",
+      "value": ""
+    }
+  ],
+  "_comment": "獲取請假時數"
+}

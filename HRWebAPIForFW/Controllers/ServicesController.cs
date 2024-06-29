@@ -24,7 +24,9 @@ namespace HRWebApi.Controllers
         // POST api/services
         public async Task<IHttpActionResult> Post(CallServiceBindingModel model)
         {
-            APIExResponse result = new APIExResponse();
+            IHttpActionResult httpActionResult;
+         
+            APIExResponse result = new APIExResponse(); 
             try
             {
                 //LoggerHelper.Info(string.Format("Post Request:{0}", JsonConvert.SerializeObject(model).ToString()));

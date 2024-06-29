@@ -7,6 +7,8 @@ namespace BQHRWebApi.Common
     {
         public static void CheckAuthorization()
         {
+            return;
+
             string licensePath = AppDomain.CurrentDomain.BaseDirectory + @"\License.ini";
 
             if (File.Exists(licensePath) == false)

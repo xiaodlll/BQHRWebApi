@@ -50,6 +50,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\HRServer\Dcms.HR.Business.AttendanceCollect.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceLeave, Version=5.1.10.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HRDll\Dcms.HR.Business.AttendanceLeave.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.Common">
       <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Dcms.HR.Business.Common.dll</HintPath>
     </Reference>
@@ -74,6 +78,7 @@
   <ItemGroup>
     <Compile Include="ExtendItemAddin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ExtendItemAttendanceLeaveService.cs" />
     <Compile Include="Services\ExtendItemAttendanceService.cs" />
     <Compile Include="Services\ExtendItemService.cs" />
   </ItemGroup>

@@ -46,16 +46,13 @@
 
   <ItemGroup>
     <Reference Include="Dcms.Common">
-      <HintPath>..\..\..\SourceCenter\Product\V5.1 10\Export\Dcms.Common.dll</HintPath>
+      <HintPath>HRDll\Dcms.Common.dll</HintPath>
     </Reference>
     <Reference Include="Dcms.Common.Business">
-      <HintPath>..\..\V5.1.15(Ultimate)\Export\Dcms.Common.Business.dll</HintPath>
-    </Reference>
-    <Reference Include="Dcms.Common.Report">
-      <HintPath>..\..\V5.1.15(Ultimate)\Export\Dcms.Common.Report.dll</HintPath>
+      <HintPath>HRDll\Dcms.Common.Business.dll</HintPath>
     </Reference>
     <Reference Include="Dcms.HR.Business.Common">
-      <HintPath>..\..\BQHRWebApi\lib\Dcms.HR.Business.Common.dll</HintPath>
+      <HintPath>HRDll\Dcms.HR.Business.Common.dll</HintPath>
     </Reference>
     <Reference Include="Neway.License.Service">
       <HintPath>lib\Neway.License.Service.dll</HintPath>

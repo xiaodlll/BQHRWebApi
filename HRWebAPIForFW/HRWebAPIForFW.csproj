@@ -233,6 +233,13 @@
     <Content Include="App_Data\RequestJson\API_001.json" />
     <Content Include=".gitignore" />
     <Content Include="App_Data\RequestJson\API_002.json" />
+    <Content Include="App_Data\RequestJson\API_AT_01.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\RequestJson\API_AT_02.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\RequestJson\AT_QJ_012.json" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />

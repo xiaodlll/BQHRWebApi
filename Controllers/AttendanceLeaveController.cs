@@ -55,7 +55,70 @@ namespace BQHRWebApi.Controllers
         }
 
 
-        [HttpGet("getleaverecordsforapi")]
+
+        [HttpPost("checkbeforesaveforapi")]
+        public async Task<ApiResponse> CheckBeforeSaveForAPI(List<AttendanceLeaveForAPI> input)
+        {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                AttendanceLeaveService service = new AttendanceLeaveService();
+                 string messg=  await service.SaveCheckForAPI(input);
+                if (messg != "")
+                {
+                    return ApiResponse.Fail(messg);
+                }
+                // Dictionary<int, List<ExpandoObject>> dynamicObjects = new Dictionary<int, List<ExpandoObject>>();
+                //List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(result);
+               
+                 return ApiResponse.Success("Success");
+            
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+        }
+
+        [HttpPost("GetHoursForAPI")]
+        public async Task<ApiResponse> GetHoursForAPI(AttendanceLeaveForAPI input) {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                AttendanceLeaveService service = new AttendanceLeaveService();
+                string messg = await service.GetLeaveHoursForCase(input);
+                // Dictionary<int, List<ExpandoObject>> dynamicObjects = new Dictionary<int, List<ExpandoObject>>();
+                //List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(result);
+                if (messg != "")
+                {
+                    return ApiResponse.Fail(messg);
+                }
+                return ApiResponse.Success("Success");
+
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+        }
+
+        [HttpPost("getleaverecordsforapi")]
         public ApiResponse GetLeaveRecordsForAPI(string[] empCodes, DateTime date)
         {
             try
