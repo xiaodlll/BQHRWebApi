@@ -1,5 +1,6 @@
 ﻿using BQHRWebApi.Common;
 using Dcms.Common;
+using Dcms.HR;
 using Dcms.HR.Services;
 using Microsoft.AspNetCore.Http.Extensions;
 using System.Data;

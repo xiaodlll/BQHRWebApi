@@ -1,0 +1,12 @@
+{
+  "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
+  "Method": "SaveAT401ForAPI",
+  "Parameters": [
+    {
+      "name": "formEntity",
+      "type": "Dcms.HR.DataEntities.AnnualLeaveRegister",
+      "value": null
+    }
+  ],
+  "_comment": "保存请假数据"
+}

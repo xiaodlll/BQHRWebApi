@@ -26,6 +26,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Business\ATSpecialHolidaySet.cs" />
+    <Compile Remove="Business\AttendanceOverTimeRest.cs" />
+    <Compile Remove="Business\AttendanceRank.cs" />
+    <Compile Remove="Business\AttendanceType.cs" />
+    <Compile Remove="Business\PeriodDate.cs" />
+    <Compile Remove="Common\Constants.cs" />
     <Compile Remove="Service\AttendanceOverTimeRestService.cs" />
   </ItemGroup>
 
@@ -54,11 +60,29 @@
     <Reference Include="Dcms.Common.Torridity">
       <HintPath>..\HRServer\Dcms.Common.Torridity.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.HR.Business.AnnualLeavePlan">
+      <HintPath>HRDll\Dcms.HR.Business.AnnualLeavePlan.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.AnnualLeaveRegister">
+      <HintPath>HRDll\Dcms.HR.Business.AnnualLeaveRegister.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.ATSpecialHolidaySet">
+      <HintPath>HRDll\Dcms.HR.Business.ATSpecialHolidaySet.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.AttendanceCollect">
       <HintPath>..\HRServer\Dcms.HR.Business.AttendanceCollect.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceLeave">
+      <HintPath>HRDll\Dcms.HR.Business.AttendanceLeave.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.AttendanceOverTimePlan">
       <HintPath>..\HRServer\Dcms.HR.Business.AttendanceOverTimePlan.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceRank">
+      <HintPath>HRDll\Dcms.HR.Business.AttendanceRank.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceType">
+      <HintPath>HRDll\Dcms.HR.Business.AttendanceType.dll</HintPath>
     </Reference>
     <Reference Include="Dcms.HR.Business.Common">
       <HintPath>HRDll\Dcms.HR.Business.Common.dll</HintPath>

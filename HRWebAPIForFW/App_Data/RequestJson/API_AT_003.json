@@ -1,10 +1,10 @@
 {
   "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
-  "Method": "SaveForAttendanceLeaveForAPI",
+  "Method": "CheckForAT406ForAPI",
   "Parameters": [
     {
-      "name": "attendanceLeave",
-      "type": "Dcms.HR.DataEntities.AttendanceLeave",
+      "name": "formEntity",
+      "type": "Dcms.HR.DataEntities.AttendanceOverTimeRest",
       "value": null
     }
   ],

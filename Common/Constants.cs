@@ -2,6 +2,10 @@
 {
     public sealed class Constants
     {
+        public const string PS01 = "PlanState_001";
+        public const string PS02 = "PlanState_002";
+        public const string PS03 = "PlanState_003";
+        public const string PS04 = "PlanState_004";
         public const string SALARYADJUSTFORDEPT_SYSTEMGUID = "d4947917-8584-4ffd-aead-82299abba59f";
         public const string SALARYFUNC_SALARYCALCULATECACHE = "60D56C6B-BA9A-4B2B-933A-834AACC25053";
         public const string SYSTEMGUID_CORPORATION_ROOT = "688564ce-c44c-4e1b-a58d-a10091b6e77b";
@@ -13,6 +17,7 @@
         public const string FORMAT_LONGTIMEPATTERN = "HH:mm:ss";
         public const string FORMAT_SHORTTIMEPATTERN = "HH:mm";
         public const string ENTER_SIGN = @"
+
 ";
     }
 }

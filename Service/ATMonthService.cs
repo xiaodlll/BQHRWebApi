@@ -9,6 +9,8 @@ using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
 using BQHRWebApi.Business;
+using Dcms.HR.DataEntities;
+using Dcms.HR;
 
 namespace BQHRWebApi.Service
 {
@@ -25,6 +27,20 @@ namespace BQHRWebApi.Service
             return sb.ToString();
         }
 
+        public  string CheckESSIsClose(string[] pEmployeeIds, DateTime pBeginDate, DateTime pEndDate)
+        {
+
+            DataTable dt = new DataTable();
+
+            dt = CheckCloseInfo(pEmployeeIds, pBeginDate, pEndDate);
+
+            StringBuilder sb = new StringBuilder();
+            foreach (DataRow dr in dt.Rows)
+            {
+                sb.AppendLine(dr["ErrorMsg"].ToString());
+            }
+            return sb.ToString();
+        }
 
         private DataTable CheckCloseInfo(string[] pEmployeeIds, DateTime pBeginDate, DateTime pEndDate)
         {

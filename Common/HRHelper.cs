@@ -248,6 +248,14 @@ namespace Dcms.HR.Services
             return ExecuteDataTable(sql);
         }
 
+        public static bool isExistFormNumber(string table,string formType,string formNumber) {
+            string sql = string.Format("select * from {0} where ESSType = '{1}' and ESSNo='{2}' ", table,formType,formNumber);
+            DataTable dt = ExecuteDataTable(sql);
+            if(dt!=null&&dt.Rows.Count>0){
+                return true;
+            }
+            return false;
+        }
 
         /// <summary>
         /// 將DataTable轉List
@@ -550,16 +558,7 @@ namespace Dcms.HR.Services
     }
 
 
-    public enum CheckEntityType
-    {
-        AnnualLeave = 1,
-        Leave = 2,
-        OTResult = 3,
-        OTRest = 4,
-        Business = 5,
-        Apply = 6,
-        TWALReg = 7,
-    }
+   
 
 
 }

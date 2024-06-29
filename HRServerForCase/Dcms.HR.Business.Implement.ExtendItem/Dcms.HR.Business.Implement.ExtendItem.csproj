@@ -46,6 +46,14 @@
     <Reference Include="Dcms.Common.Torridity">
       <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Dcms.Common.Torridity.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.HR.Business.AnnualLeavePlan, Version=5.1.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HRDll\Dcms.HR.Business.AnnualLeavePlan.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.AnnualLeaveRegister, Version=5.1.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HRDll\Dcms.HR.Business.AnnualLeaveRegister.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.AttendanceCollect, Version=5.1.10.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\HRServer\Dcms.HR.Business.AttendanceCollect.dll</HintPath>
@@ -54,11 +62,23 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HRDll\Dcms.HR.Business.AttendanceLeave.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceOverTimePlan, Version=5.1.10.5, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HRDll\Dcms.HR.Business.AttendanceOverTimePlan.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.Common">
       <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Dcms.HR.Business.Common.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.HR.Business.Employee, Version=5.1.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HRDll\Dcms.HR.Business.Employee.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.Implement.Common">
       <HintPath>..\..\HRServer\Dcms.HR.Business.Implement.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.Permission, Version=5.1.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HRDll\Dcms.HR.Business.Permission.dll</HintPath>
     </Reference>
     <Reference Include="Dcms.HR.Business.Report">
       <HintPath>..\..\..\V5.1.15(Ultimate)\Export\Dcms.HR.Business.Report.dll</HintPath>

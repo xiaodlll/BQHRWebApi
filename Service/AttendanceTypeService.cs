@@ -2,6 +2,7 @@
 using Dcms.Common;
 using Dcms.HR.Services;
 using System.Data;
+using Dcms.HR.DataEntities;
 
 namespace BQHRWebApi.Service
 {
