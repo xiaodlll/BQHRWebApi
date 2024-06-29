@@ -479,6 +479,13 @@ namespace Dcms.HR.Services
             return dataTable;
         }
 
+        public static T WebAPIEntitysToDataEntity<T>(object pWebData) where T : class, new()
+        {
+            if (pWebData == null)
+                throw new ArgumentNullException(nameof(pWebData));
+
+            return WebAPIEntitysToDataEntitys<T>(new object[] { pWebData })[0];
+        }
 
         public static List<T> WebAPIEntitysToDataEntitys<T>(object[] pWebDatas) where T : class, new()
         {

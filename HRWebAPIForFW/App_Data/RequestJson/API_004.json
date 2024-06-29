@@ -1,0 +1,12 @@
+{
+  "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
+  "Method": "SaveForAttendanceOverTimePlanForEss",
+  "Parameters": [
+    {
+      "name": "attendanceOverTimePlans",
+      "type": "Dcms.HR.DataEntities.AttendanceOverTimePlan[]",
+      "value": null
+    }
+  ],
+  "_comment": "保存加班计划"
+}

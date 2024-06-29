@@ -68,7 +68,13 @@ namespace BQHRWebApi.Service
 
         private DataTable GetEmpInfoByCode(string employeeCode)
         {
-            DataTable dt = HRHelper.ExecuteDataTable(string.Format(@"select EmployeeId from Employee where Code='{0}'", employeeCode));
+            DataTable dt = HRHelper.ExecuteDataTable(string.Format(@"select Employee.EmployeeId,CnName as EmployeeName,Employee.DepartmentId,Department.Name as DepartmentName,
+Employee.CostCenterId,CostCenter.Code as CostCenterCode,Employee.CorporationId
+from Employee
+left join Department on Department.DepartmentId=Employee.DepartmentId
+left join Corporation on Corporation.CorporationId=Employee.CorporationId
+left join CostCenter on CostCenter.CostCenterId=Employee.CostCenterId
+where Employee.Code='{0}'", employeeCode));
             return dt;
         }
 

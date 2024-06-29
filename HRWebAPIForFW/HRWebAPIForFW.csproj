@@ -258,6 +258,8 @@
     <Content Include="App_Data\RequestJson\API_AT_008.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="App_Data\RequestJson\API_003.json" />
+    <Content Include="App_Data\RequestJson\API_004.json" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
