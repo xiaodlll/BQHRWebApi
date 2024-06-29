@@ -20,7 +20,7 @@ namespace BQHRWebApi.Controllers
         }
 
         [HttpPost("BatchAdd")]
-        public ApiResponse AddAttendanceCollect(List<AttendanceCollect> input)
+        public ApiResponse AddAttendanceCollect(List<AttendanceCollectForAPI> input)
         {
             try
             {

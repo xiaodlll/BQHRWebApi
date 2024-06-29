@@ -51,6 +51,15 @@
     <Reference Include="Dcms.Common.Business">
       <HintPath>HRDll\Dcms.Common.Business.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.Common.Torridity">
+      <HintPath>..\HRServer\Dcms.Common.Torridity.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceCollect">
+      <HintPath>..\HRServer\Dcms.HR.Business.AttendanceCollect.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceOverTimePlan">
+      <HintPath>..\HRServer\Dcms.HR.Business.AttendanceOverTimePlan.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.Common">
       <HintPath>HRDll\Dcms.HR.Business.Common.dll</HintPath>
     </Reference>

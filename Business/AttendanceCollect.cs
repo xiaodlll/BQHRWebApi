@@ -1,13 +1,22 @@
 ﻿namespace BQHRWebApi.Business
 {
-    public class AttendanceCollect: DataEntity
+    public class AttendanceCollectForAPI: DataEntity
     {
         /// <summary>
-        /// 员工Id
+        /// 员工Code
         /// </summary>
-        public string EmployeeId { get; set; }
+        public string EmployeeCode { get; set; }
 
-        
+        /// <summary>
+        /// 刷卡机Code
+        /// </summary>
+        public string? MachineCode { get; set; }
+
+        /// <summary>
+        /// 卡号
+        /// </summary>
+        public string? CardCode { get; set; }
+
         /// <summary>
         /// 刷卡时间
         /// </summary>
@@ -19,8 +28,21 @@
         public string? Time { get; set; }
 
         /// <summary>
+        /// ESS单别
+        /// </summary>
+        public string? EssType { get; set; }
+
+        /// <summary>
+        /// ESS单号
+        /// </summary>
+        public string? EssNo { get; set; }
+
+        /// <summary>
         /// 备注
         /// </summary>
         public string? Remark { get; set; }
+
+
+        
     }
 }
