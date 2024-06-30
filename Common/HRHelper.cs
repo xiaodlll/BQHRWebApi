@@ -22,6 +22,7 @@ using System.Dynamic;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Dcms.HR.Services
 {
@@ -481,6 +482,13 @@ namespace Dcms.HR.Services
             return dataTable;
         }
 
+        public static T WebAPIEntitysToDataEntity<T>(object pWebData) where T : class, new()
+        {
+            if (pWebData == null)
+                throw new ArgumentNullException(nameof(pWebData));
+
+            return WebAPIEntitysToDataEntitys<T>(new object[] { pWebData })[0];
+        }
 
         public static List<T> WebAPIEntitysToDataEntitys<T>(object[] pWebDatas) where T : class, new()
         {
@@ -506,11 +514,11 @@ namespace Dcms.HR.Services
                         if (targetProp != null)
                         {
                             // 获取集合元素的类型
-                            Type elementType = targetProp.PropertyType.GetGenericArguments()[0];
+                            Type elementType = targetProp.PropertyType.BaseType.GetGenericArguments()[0];
 
                             // 转换源集合为目标集合类型
                             IEnumerable sourceCollection = (IEnumerable)sourceProp.GetValue(webData);
-                            var targetCollection = (IEnumerable)Activator.CreateInstance(targetProp.PropertyType);
+                            object targetCollection = targetProp.GetValue(dataEntity);
 
                             foreach (var item in sourceCollection)
                             {
@@ -533,8 +541,6 @@ namespace Dcms.HR.Services
                                 // 将转换后的元素添加到目标集合
                                 targetCollection.GetType().GetMethod("Add").Invoke(targetCollection, new[] { element });
                             }
-
-                            targetProp.SetValue(dataEntity, targetCollection);
                         }
                     }
                     else
