@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BQHRWebApi.Controllers
 {
+    [ApiController]
+    [Route("[controller]")]
+
     public class AttendanceOverTimePlanController
     {
         [HttpPost("checkbeforesaveforapi")]

@@ -19,7 +19,7 @@ namespace BQHRWebApi.Service
             foreach (AttendanceCollect enty in attendanceCollects)
             {
                 DataTable dtEmp = GetEmpInfoByCode(enty.EmployeeCode);
-                if (dtEmp == null && dtEmp.Rows.Count>0) {
+                if (dtEmp != null && dtEmp.Rows.Count>0) {
 
                     enty.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
                     enty.EmployeeName = dtEmp.Rows[0]["EmployeeName"].ToString();

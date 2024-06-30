@@ -33,6 +33,11 @@
         public string? Name { get; set; }
 
         /// <summary>
+        /// 制定日期
+        /// </summary>
+        public DateTime FoundDate { get; set; }
+
+        /// <summary>
         /// 加班原因
         /// </summary>
         public string? Reason { get; set; }
@@ -101,6 +106,10 @@
         /// </summary>
         public string? EndTime { get; set; }
 
+        /// <summary>
+        /// 加班时数
+        /// </summary>
+        public decimal Hours { get; set; }
 
         /// <summary>
         /// 备注

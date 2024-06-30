@@ -18,9 +18,11 @@ namespace BQHRWebApi.Service
             CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
             callServiceBindingModel.RequestCode = "API_003";
 
+            
+
             APIRequestParameter parameter = new APIRequestParameter();
             parameter.Name = "attendanceOverTimePlans";
-            parameter.Value = JsonConvert.SerializeObject(attendanceCollects);
+            parameter.Value = HRJsonConverter.SerializeAExcludingParentInDetails<AttendanceOverTimePlan>(attendanceCollects.ToArray());
 
             callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
 
@@ -51,7 +53,7 @@ namespace BQHRWebApi.Service
 
             APIRequestParameter parameter = new APIRequestParameter();
             parameter.Name = "attendanceOverTimePlans";
-            parameter.Value = JsonConvert.SerializeObject(attendanceCollects);
+            parameter.Value = HRJsonConverter.SerializeAExcludingParentInDetails<AttendanceOverTimePlan>(attendanceCollects.ToArray());
 
             callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
 
@@ -90,16 +92,22 @@ namespace BQHRWebApi.Service
 
             foreach (AttendanceOverTimePlanForAPI enty in entities)
             {
-                var attendanceCollect = HRHelper.WebAPIEntitysToDataEntity<AttendanceOverTimePlan>(enty);
+                var attendanceOTPlan = HRHelper.WebAPIEntitysToDataEntity<AttendanceOverTimePlan>(enty);
+                if (attendanceOTPlan.AttendanceOverTimePlanId.CheckNullOrEmpty())
+                {
+                    attendanceOTPlan.AttendanceOverTimePlanId = Guid.NewGuid();
+                }
+                attendanceOTPlan.StateId = "PlanState_003";
                 DataTable dtEmp = GetEmpInfoByCode(enty.EmployeeCode);
-                if (dtEmp == null && dtEmp.Rows.Count > 0)
+                if (dtEmp != null && dtEmp.Rows.Count > 0)
                 {
 
-                    attendanceCollect.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
-                    attendanceCollect.CorporationId = dtEmp.Rows[0]["CorporationId"].ToString().GetGuid();
+                    attendanceOTPlan.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
+                    attendanceOTPlan.FoundEmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
+                    attendanceOTPlan.CorporationId = dtEmp.Rows[0]["CorporationId"].ToString().GetGuid();
 
-                    attendanceCollect.IsEss = true;
-                    attendanceCollect.Flag = true;
+                    attendanceOTPlan.IsEss = true;
+                    attendanceOTPlan.Flag = true;
                 }
                 else
                 {
@@ -109,10 +117,10 @@ namespace BQHRWebApi.Service
                 {
                     foreach (var item in enty.OverTimeInfos)
                     {
-                        var overTimeInfo = attendanceCollect.OverTimeInfos.Where(a => a.AttendanceOverTimeInfoId == item.AttendanceOverTimeInfoId).FirstOrDefault();
+                        var overTimeInfo = attendanceOTPlan.OverTimeInfos.Where(a => a.AttendanceOverTimeInfoId == item.AttendanceOverTimeInfoId).FirstOrDefault();
 
                         dtEmp = GetEmpInfoByCode(item.EmployeeCode);
-                        if (dtEmp == null && dtEmp.Rows.Count > 0)
+                        if (dtEmp != null && dtEmp.Rows.Count > 0)
                         {
 
                             overTimeInfo.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
@@ -122,9 +130,10 @@ namespace BQHRWebApi.Service
                         {
                             throw new BusinessRuleException("找不到对应的员工:" + enty.EmployeeCode);
                         }
+                        overTimeInfo.Flag = true;
                     }
                 }
-                attendanceCollects.Add(attendanceCollect);
+                attendanceCollects.Add(attendanceOTPlan);
             }
 
             return attendanceCollects;
