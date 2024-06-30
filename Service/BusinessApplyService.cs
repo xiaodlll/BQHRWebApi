@@ -55,19 +55,19 @@ namespace BQHRWebApi.Service {
                     }
                 }
 
-                foreach (BusinessApplyAttendanceForAPI person in enty.Attendances)
-                {
-                    DataTable dtEmp = GetEmpInfoByCode(person.EmployeeCode);
+                //foreach (BusinessApplyAttendanceForAPI person in enty.Attendances)
+                //{
+                //    DataTable dtEmp = GetEmpInfoByCode(person.EmployeeCode);
 
-                    if (dtEmp == null && dtEmp.Rows.Count > 0)
-                    {
-                        person.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
-                    }
-                    else
-                    {
-                        throw new BusinessRuleException("找不到对应的员工:" + person.EmployeeCode);
-                    }
-                }
+                //    if (dtEmp == null && dtEmp.Rows.Count > 0)
+                //    {
+                //        person.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
+                //    }
+                //    else
+                //    {
+                //        throw new BusinessRuleException("找不到对应的员工:" + person.EmployeeCode);
+                //    }
+                //}
             }
             BusinessApply[] entys = HRHelper.WebAPIEntitysToDataEntitys<BusinessApply>(entities).ToArray();
 
@@ -160,19 +160,19 @@ namespace BQHRWebApi.Service {
                     }
                 }
 
-                foreach (BusinessApplyAttendanceForAPI person in enty.Attendances)
-                {
-                     dtEmp = GetEmpInfoByCode(person.EmployeeCode);
+                //foreach (BusinessApplyAttendanceForAPI person in enty.Attendances)
+                //{
+                //     dtEmp = GetEmpInfoByCode(person.EmployeeCode);
 
-                    if (dtEmp != null && dtEmp.Rows.Count > 0)
-                    {
-                        person.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
-                    }
-                    else
-                    {
-                        throw new BusinessRuleException("找不到对应的员工:" + person.EmployeeCode);
-                    }
-                }
+                //    if (dtEmp != null && dtEmp.Rows.Count > 0)
+                //    {
+                //        person.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
+                //    }
+                //    else
+                //    {
+                //        throw new BusinessRuleException("找不到对应的员工:" + person.EmployeeCode);
+                //    }
+                //}
             }
             //  BusinessApply[] entys = HRHelper.DataEntitysToWebAPIEntitys<BusinessApply>(entities).ToArray();
             List<BusinessApply> entys = HRHelper.WebAPIEntitysToDataEntitys<BusinessApply>("", "", entities);
@@ -185,7 +185,7 @@ namespace BQHRWebApi.Service {
 
             }
             CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
-            callServiceBindingModel.RequestCode = "API_CC_001";
+            callServiceBindingModel.RequestCode = "AT_CC_01";
 
             APIRequestParameter parameter = new APIRequestParameter();
             parameter.Name = "formEntities";
@@ -266,19 +266,19 @@ namespace BQHRWebApi.Service {
                     }
                 }
 
-                foreach (BusinessApplyAttendanceForAPI person in enty.Attendances)
-                {
-                    DataTable dtEmp = GetEmpInfoByCode(person.EmployeeCode);
+                //foreach (BusinessApplyAttendanceForAPI person in enty.Attendances)
+                //{
+                //    DataTable dtEmp = GetEmpInfoByCode(person.EmployeeCode);
 
-                    if (dtEmp != null && dtEmp.Rows.Count > 0)
-                    {
-                        person.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
-                    }
-                    else
-                    {
-                        throw new BusinessRuleException("找不到对应的员工:" + person.EmployeeCode);
-                    }
-                }
+                //    if (dtEmp != null && dtEmp.Rows.Count > 0)
+                //    {
+                //        person.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
+                //    }
+                //    else
+                //    {
+                //        throw new BusinessRuleException("找不到对应的员工:" + person.EmployeeCode);
+                //    }
+                //}
             }
             List<BusinessApply> entys = HRHelper.WebAPIEntitysToDataEntitys<BusinessApply>("", "", entities);
 
@@ -290,12 +290,12 @@ namespace BQHRWebApi.Service {
                 business.EssType = "ATCC";
 
                 business.FoundDate = DateTime.Now.Date;
-                business.StateId = Constants.PS03;
+                business.StateId = Constants.PS02;
                 business.BusinessApplyId = Guid.NewGuid();
 
             }
             CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
-            callServiceBindingModel.RequestCode = "API_CC_02";
+            callServiceBindingModel.RequestCode = "AT_CC_02";
 
             APIRequestParameter parameter = new APIRequestParameter();
             parameter.Name = "formEntities";

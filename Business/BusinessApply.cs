@@ -33,7 +33,7 @@ namespace BQHRWebApi.Business
 
             Schedules = new List<BusinessApplyScheduleForAPI>();
 
-            Attendances = new List<BusinessApplyAttendanceForAPI>();
+            //Attendances = new List<BusinessApplyAttendanceForAPI>();
         }
         /// <summary>
         /// 返回/設置 所屬公司ID
@@ -124,7 +124,7 @@ namespace BQHRWebApi.Business
         /// <summary>
         /// 返回 刷卡計畫-集合
         /// </summary>
-        public List<BusinessApplyAttendanceForAPI> Attendances { get; set; }
+        //public List<BusinessApplyAttendanceForAPI> Attendances { get; set; }
         #endregion
 
 
@@ -133,57 +133,57 @@ namespace BQHRWebApi.Business
     }
 
 
-    /// <summary>
-    /// 刷卡計畫實體
-    /// </summary>
-    [Serializable()]
-    public class BusinessApplyAttendanceForAPI
-    {
-        /// <summary>
-        /// 返回/設置 員工ID
-        /// </summary>
-        public System.Guid? EmployeeId { get; set; }
+    ///// <summary>
+    ///// 刷卡計畫實體
+    ///// </summary>
+    //[Serializable()]
+    //public class BusinessApplyAttendanceForAPI
+    //{
+    //    /// <summary>
+    //    /// 返回/設置 員工ID
+    //    /// </summary>
+    //    public System.Guid? EmployeeId { get; set; }
 
-        /// <summary>
-        /// 返回/設置 員工ID
-        /// </summary>
-        public System.String EmployeeCode { get; set; }
-        /// <summary>
-        /// 返回/設置 計畫日期
-        /// </summary>
-        public System.DateTime Date { get; set; }
+    //    /// <summary>
+    //    /// 返回/設置 員工ID
+    //    /// </summary>
+    //    public System.String EmployeeCode { get; set; }
+    //    /// <summary>
+    //    /// 返回/設置 計畫日期
+    //    /// </summary>
+    //    public System.DateTime Date { get; set; }
 
-        /// <summary>
-        /// 返回/設置 開始日期
-        /// </summary>
-        public System.DateTime BeginDate { get; set; }
+    //    /// <summary>
+    //    /// 返回/設置 開始日期
+    //    /// </summary>
+    //    public System.DateTime BeginDate { get; set; }
 
-        /// <summary>
-        /// 返回/設置 開始時間
-        /// </summary>
-        public string BeginTime { get; set; }
+    //    /// <summary>
+    //    /// 返回/設置 開始時間
+    //    /// </summary>
+    //    public string BeginTime { get; set; }
 
-        /// <summary>
-        /// 返回/設置 結束日期
-        /// </summary>
-        public System.DateTime EndDate { get; set; }
+    //    /// <summary>
+    //    /// 返回/設置 結束日期
+    //    /// </summary>
+    //    public System.DateTime EndDate { get; set; }
 
-        /// <summary>
-        /// 返回/設置 結束時間
-        /// </summary>
-        public string EndTime { get; set; }
+    //    /// <summary>
+    //    /// 返回/設置 結束時間
+    //    /// </summary>
+    //    public string EndTime { get; set; }
 
 
-        /// <summary>
-        /// 返回/設置 出差時數
-        /// </summary>
-        public decimal? ApplyHours { get; set; }
-        /// <summary>
-        /// 返回/設置 刷卡說明
-        /// </summary>
-        public string? Remark { get; set; }
+    //    /// <summary>
+    //    /// 返回/設置 出差時數
+    //    /// </summary>
+    //    public decimal? ApplyHours { get; set; }
+    //    /// <summary>
+    //    /// 返回/設置 刷卡說明
+    //    /// </summary>
+    //    public string? Remark { get; set; }
 
-    }
+    //}
 
 
     /// <summary>
