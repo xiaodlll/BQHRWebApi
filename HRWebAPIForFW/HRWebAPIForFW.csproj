@@ -239,7 +239,7 @@
     <Content Include="App_Data\RequestJson\API_AT_002.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="App_Data\RequestJson\AT_QJ_012.json" />
+    <Content Include="App_Data\RequestJson\AT_XJ_01.json" />
     <Content Include="App_Data\RequestJson\API_AT_003.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -258,6 +258,10 @@
     <Content Include="App_Data\RequestJson\API_AT_008.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="App_Data\RequestJson\AT_XJ_02.json" />
+    <Content Include="App_Data\RequestJson\AT_XJ_03.json" />
+    <Content Include="App_Data\RequestJson\AT_CC_01.json" />
+    <Content Include="App_Data\RequestJson\AT_CC_02.json" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />

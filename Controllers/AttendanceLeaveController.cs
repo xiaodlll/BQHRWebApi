@@ -143,7 +143,7 @@ namespace BQHRWebApi.Controllers
             }
         }
 
-        [HttpGet("getfiscalyear")]
+        [HttpPost("getfiscalyear")]
         public ApiResponse GetFiscalYear()
         {
             try
@@ -245,5 +245,62 @@ namespace BQHRWebApi.Controllers
         //        return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
         //    }
         //}
+
+        [HttpPost("checkrevokeforapi")]
+        public async Task<ApiResponse> CheckRevokeForAPI(string[] attendanceLeaveInfoIds, string attendanceTypeId) {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                AttendanceLeaveService service = new AttendanceLeaveService();
+                string messg = await service.CheckRevokeForAPI(attendanceLeaveInfoIds,attendanceTypeId);
+                if (messg.CheckNullOrEmpty())
+                {
+                    return ApiResponse.Success("Success"); 
+                }
+                return ApiResponse.Fail(messg);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+        }
+
+        [HttpPost("saverevokeforapi")]
+        public async Task<ApiResponse> SaveRevokeForAPI(string formNumber,string[] attendanceLeaveInfoIds, string attendanceTypeId)
+        {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                AttendanceLeaveService service = new AttendanceLeaveService();
+                string messg = await service.SaveRevokeForAPI(formNumber, attendanceLeaveInfoIds, attendanceTypeId);
+                if (messg != "")
+                {
+                    return ApiResponse.Fail(messg);
+                }
+                return ApiResponse.Success("Success");
+
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+        }
+
     }
 }

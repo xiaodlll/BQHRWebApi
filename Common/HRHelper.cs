@@ -10,6 +10,8 @@
 using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using Dcms.Common;
+using Dcms.Common.Torridity.Metadata;
+using Dcms.Common.Torridity;
 using Dcms.HR.DataEntities;
 using System;
 using System.Collections;
@@ -553,12 +555,160 @@ namespace Dcms.HR.Services
             return resultList;
         }
 
-     
+        /// <summary>
+        /// 將DataEntity轉成WebAPIEntity
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="pEntityDatas"></param>
+        /// <returns></returns>
+        public static List<T> DataEntitysToWebAPIEntitys<T>(IDataEntity[] pEntityDatas) where T : class, new()
+        {
+            List<T> list = new List<T>();
+            foreach (IDataEntity entityData in pEntityDatas)
+            {
+                IDataEntityType entityType = entityData.GetDataEntityType();
+                T webData = new T();
+                PropertyInfo[] webProp = webData.GetType().GetProperties();
+                foreach (PropertyInfo webPi in webProp)
+                {
+                    #region 簡單屬性
+                    if (entityType.SimpleProperties.Contains(webPi.Name))
+                    {
+                        webPi.SetValue(webData, entityType.SimpleProperties[webPi.Name].GetValue((IDataEntityBase)entityData), null);
+                    }
+                    #endregion
+                    #region  集合屬性
+                    if (entityType.CollectionProperties.Contains(webPi.Name))
+                    {
+                        IList entityInfoList = entityType.CollectionProperties[webPi.Name].GetValue(entityData);
+                        IList webInfoList = webPi.GetValue(webData, null) as IList;
+                        Type webInfoType = webInfoList.GetType().GetGenericArguments().First();
+                        PropertyInfo[] webInfoProp = webInfoType.GetProperties();
+                        foreach (IDataEntity entityInfo in entityInfoList)
+                        {
+                            IDataEntityType entityInfoType = entityInfo.GetDataEntityType();
+                            object webInfo = Activator.CreateInstance(webInfoType);//創建物件 
+                            foreach (PropertyInfo webInfoPi in webInfoProp)
+                            {
+                                if (entityInfoType.SimpleProperties.Contains(webInfoPi.Name))
+                                {
+                                    webInfoPi.SetValue(webInfo, entityInfoType.SimpleProperties[webInfoPi.Name].GetValue((IDataEntityBase)entityInfo), null);
+                                }
+                            }
+                            webInfoList.Add(webInfo);
+                        }
+                    }
+                    #endregion
+                }
+                list.Add(webData);
+            }
+            return list;
+        }
+
+
+        /// <summary>
+        /// 將WebAPIEntity轉成DataEntity
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="pFormType"></param>
+        /// <param name="pFormNumber"></param>
+        /// <param name="pWebDatas"></param>
+        /// <returns></returns>
+        public static List<T> WebAPIEntitysToDataEntitys<T>(string pFormType, string pFormNumber, object[] pWebDatas) where T : class, IDataEntity, new()
+        {
+            List<T> list = new List<T>();
+            foreach (object webData in pWebDatas)
+            {
+                T t = new T();
+                IDataEntity entity = t as IDataEntity;
+                IDataEntityType entityType = entity.GetDataEntityType();
+                PropertyInfo[] webProp = webData.GetType().GetProperties();
+                foreach (PropertyInfo webPi in webProp)
+                {
+                    #region 簡單屬性
+                    if (entityType.SimpleProperties.Contains(webPi.Name))
+                    {
+                        entityType.SimpleProperties[webPi.Name].SetValue((IDataEntityBase)t, webPi.GetValue(webData, null));
+                    }
+                    #endregion
+                    #region 集合屬性
+                    if (entityType.CollectionProperties.Contains(webPi.Name))
+                    {
+                        IList entityInfoList = entityType.CollectionProperties[webPi.Name].GetValue(entity);
+                        IList webInfoList = webPi.GetValue(webData, null) as IList;
+                        Type webInfoType = webInfoList.GetType().GetGenericArguments().First();
+                        IDataEntityType entityInfoType = entityType.CollectionProperties[webPi.Name].ItemDataEntityType;
+                        PropertyInfo[] webInfoProp = webInfoType.GetProperties();
+                        foreach (object webInfo in webInfoList)
+                        {
+                            object entityInfo = entityInfoType.CreateInstance();//創建物件 
+                            foreach (PropertyInfo webInfoPi in webInfoProp)
+                            {
+                                if (entityInfoType.SimpleProperties.Contains(webInfoPi.Name))
+                                {
+                                    entityInfoType.SimpleProperties[webInfoPi.Name].SetValue((IDataEntityBase)entityInfo, webInfoPi.GetValue(webInfo, null));
+                                }
+                            }
+                            if (entityInfoType.PrimaryKey.DbType == GeneralDbType.Guid)
+                            {
+                                entityInfoType.PrimaryKey.SetValue((IDataEntityBase)entityInfo, SequentialGuid.NewGuid());
+                            }
+                            entityInfoList.Add(entityInfo);
+                        }
+                    }
+                    #endregion
+                }
+                #region PrimaryKey
+                if (entityType.PrimaryKey.DbType == GeneralDbType.Guid)
+                {
+                    entityType.PrimaryKey.SetValue((IDataEntityBase)entity, SequentialGuid.NewGuid());
+                }
+                #endregion
+                #region flagObj
+                IFlagObject flagObj = entity as IFlagObject;
+                if (flagObj != null)
+                {
+                    flagObj.Flag = true;
+                }
+                #endregion
+                #region auditObj
+                IAuditObject auditObj = entity as IAuditObject;
+                if (auditObj != null)
+                {
+                    auditObj.StateId = Constants.PS02;
+                }
+                #endregion
+                #region DataModifyObj
+                Dcms.Common.DataEntities.IDataModifyObject DataModifyObj = entity as Dcms.Common.DataEntities.IDataModifyObject;
+                if (DataModifyObj != null)
+                {
+                    DataModifyObj.CreateDate = DateTime.Now;
+                    DataModifyObj.CreateBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
+                    DataModifyObj.LastModifiedDate = DateTime.Now;
+                    DataModifyObj.LastModifiedBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
+                }
+                #endregion
+                #region EssObject
+                IEssObject essObj = entity as IEssObject;
+                if (essObj != null)
+                {
+                    essObj.IsEss = true;
+                    essObj.IsFromEss = true;
+                    essObj.EssType = pFormType;
+                    essObj.EssNo = pFormNumber;
+                }
+                #endregion
+
+                t.ExtendedProperties.Add("api", "api");
+                list.Add(t);
+            }
+            return list;
+        }
 
     }
 
 
-   
+
 
 
 }

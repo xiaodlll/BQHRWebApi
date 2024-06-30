@@ -1,0 +1,27 @@
+﻿{
+  "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
+  "Method": "SaveForRevoke",
+  "Parameters": [
+    {
+      "name": "formType",
+      "type": "System.String",
+      "value": ""
+    },
+    {
+      "name": "formNumber",
+      "type": "System.String",
+      "value": ""
+    },
+    {
+      "name": "attendanceLeaveInfoIds",
+      "type": "System.String[]",
+      "value": ""
+    },
+    {
+      "name": "attendanceTypeId",
+      "type": "System.String",
+      "value": ""
+    }
+  ],
+  "_comment": "保存銷假資料"
+}

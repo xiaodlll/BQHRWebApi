@@ -1,0 +1,12 @@
+﻿{
+  "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
+  "Method": "SaveBusinessApplyForAPI",
+  "Parameters": [
+    {
+      "name": "formEntities",
+      "type": "Dcms.HR.DataEntities.BusinessApply[]",
+      "value": null
+    }
+  ],
+  "_comment": "保存出差资料"
+}

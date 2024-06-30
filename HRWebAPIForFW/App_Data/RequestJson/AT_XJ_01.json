@@ -1,0 +1,17 @@
+﻿{
+  "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
+  "Method": "CheckRevokeForAPI",
+  "Parameters": [
+    {
+      "name": "attendanceLeaveInfoIds",
+      "type": "System.String[]",
+      "value": ""
+    },
+    {
+      "name": "attendanceTypeId",
+      "type": "System.String",
+      "value": ""
+    }
+  ],
+  "_comment": "檢查銷假資料"
+}
