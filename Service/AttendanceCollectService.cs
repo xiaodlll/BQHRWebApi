@@ -66,6 +66,10 @@ namespace BQHRWebApi.Service
             }
         }
 
+
+        private void CheckData(BusinessApplyForAPI enty) { 
+           
+        }
         private DataTable GetEmpInfoByCode(string employeeCode)
         {
             DataTable dt = HRHelper.ExecuteDataTable(string.Format(@"select Employee.EmployeeId,CnName as EmployeeName,Employee.DepartmentId,Department.Name as DepartmentName,

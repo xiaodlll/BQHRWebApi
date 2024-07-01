@@ -1,0 +1,12 @@
+{
+  "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
+  "Method": "BatchSaveAT406ForAPI",
+  "Parameters": [
+    {
+      "name": "formEntities",
+      "type": "Dcms.HR.DataEntities.AttendanceOverTimeRest[]",
+      "value": null
+    }
+  ],
+  "_comment": "保存请假数据"
+}

@@ -23,36 +23,7 @@ namespace BQHRWebApi.Controllers
             _logger = logger;
         }
 
-        //[HttpPost("Save")]
-        //public ApiResponse SaveAttendanceLeave(AttendanceLeaveForAPI input)
-        //{
-        //    try
-        //    {
-        //        Authorization.CheckAuthorization();
-        //    }
-        //    catch (AuthorizationException aEx)
-        //    {
-        //        return ApiResponse.Fail("授权:" + aEx.Message);
-        //    }
-
-        //    try
-        //    {
-        //        if (input != null )
-        //        {
-        //            AttendanceLeaveService service = new AttendanceLeaveService();
-        //            service.Save(input);
-        //        }
-        //        else
-        //        {
-        //            return ApiResponse.Fail("数据传入格式不正确!");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
-        //    }
-        //    return ApiResponse.Success();
-        //}
+    
 
 
 
@@ -302,5 +273,36 @@ namespace BQHRWebApi.Controllers
             }
         }
 
+
+        [HttpPost("multisaveattendanceleave")]
+        public ApiResponse MultiSaveAttendanceLeaves(List<AttendanceLeaveForAPI> input)
+        {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                if (input != null&&input.Count>0)
+                {
+                    AttendanceLeaveService service = new AttendanceLeaveService();
+                    service.MultiSaveForAPI(input);
+                }
+                else
+                {
+                    return ApiResponse.Fail("数据传入格式不正确!");
+                }
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+            return ApiResponse.Success();
+        }
     }
 }
