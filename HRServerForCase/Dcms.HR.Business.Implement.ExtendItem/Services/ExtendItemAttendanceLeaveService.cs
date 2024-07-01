@@ -46,6 +46,52 @@ namespace Dcms.HR.Services
             service.Audit(new object[] { entyNew.AttendanceLeaveId }, auditObject);
         }
 
+        public void BatchCheckATQJForAPI(AttendanceLeave[] formEntities)
+        {
+            foreach (AttendanceLeave enty in formEntities)
+            {
+                enty.IsEss = true;
+                enty.IsFromEss = true;
+                enty.Flag = true;
+                enty.EssType = string.Empty;
+                enty.EssNo = string.Empty;
+                Factory.GetService<IAttendanceLeaveService>().CheckForESS(enty);
+            }
+        }
+
+        public void BatchSaveATQJForAPI(AttendanceLeave[] formEntities)
+        {
+            IAttendanceLeaveService service = Factory.GetService<IAttendanceLeaveService>();
+            IDocumentService<AttendanceLeave> docSer = service.GetServiceNoPower();
+            IAuditObject auditObject = new AnnualLeaveRegister();
+            IUserService services = Factory.GetService<IUserService>();
+            string employeeId = services.GetEmployeeIdOfUser();
+            if (!employeeId.CheckNullOrEmpty())
+            {
+                auditObject.ApproveEmployeeId = employeeId.GetGuid();
+                auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(employeeId);
+            }
+            auditObject.ApproveDate = DateTime.Now.Date;
+            auditObject.ApproveOperationDate = DateTime.Now;
+            auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
+            auditObject.ApproveResultId = Constants.AuditAgree;
+            auditObject.StateId = Constants.PS03;
+            auditObject.ApproveRemark = "API自动审核同意";
+            foreach (AttendanceLeave enty in formEntities)
+            {
+                enty.IsEss = true;
+                enty.IsFromEss = true;
+                enty.Flag = true;
+                Factory.GetService<IAttendanceLeaveService>().CheckForESS(enty);
+            }
+            foreach (AttendanceLeave enty in formEntities)
+            {
+                service.SaveForESS(enty);
+                AttendanceLeave entyNew = docSer.Read(enty.AttendanceLeaveId);
+                service.Audit(new object[] { entyNew.AttendanceLeaveId }, auditObject);
+            }
+        }
+
         public void CheckForAT406ForAPI(AttendanceOverTimeRest formEntity)
         {
             Factory.GetService<IAttendanceOverTimeRestService>().CheckForESS(formEntity);
@@ -78,6 +124,7 @@ namespace Dcms.HR.Services
         {
             Factory.GetService<IAnnualLeaveRegisterService>().CheckForESS(formEntity);
         }
+
         public void SaveAT401ForAPI(AnnualLeaveRegister formEntity)
         {
             IAnnualLeaveRegisterService service = Factory.GetService<IAnnualLeaveRegisterService>();
@@ -103,6 +150,102 @@ namespace Dcms.HR.Services
             service.Audit(new object[] { entyNew.AnnualLeaveRegisterId }, auditObject);
 
 
+        }
+
+
+        public void BatchCheckAT401ForAPI(AnnualLeaveRegister[] formEntities)
+        {
+            foreach (AnnualLeaveRegister enty in formEntities) {
+                enty.IsEss = true;
+                enty.IsFromEss = true;
+                enty.Flag = true;
+                enty.EssType = string.Empty;
+                enty.EssNo = string.Empty;
+                Factory.GetService<IAnnualLeaveRegisterService>().CheckForESS(enty); 
+            }
+        }
+
+        public void BatchSaveAT401ForAPI(AnnualLeaveRegister[] formEntities)
+        {
+            IAnnualLeaveRegisterService service = Factory.GetService<IAnnualLeaveRegisterService>();
+            IDocumentService<AnnualLeaveRegister> docSer = service;
+            IAuditObject auditObject = new AnnualLeaveRegister();
+            IUserService services = Factory.GetService<IUserService>();
+            string employeeId = services.GetEmployeeIdOfUser();
+            if (!employeeId.CheckNullOrEmpty())
+            {
+                auditObject.ApproveEmployeeId = employeeId.GetGuid();
+                auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(employeeId);
+            }
+            auditObject.ApproveDate = DateTime.Now.Date;
+            auditObject.ApproveOperationDate = DateTime.Now;
+            auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
+            auditObject.ApproveResultId = Constants.AuditAgree;
+            auditObject.StateId = Constants.PS03;
+            auditObject.ApproveRemark = "API自动审核同意";
+            foreach (AnnualLeaveRegister enty in formEntities)
+            {
+                enty.IsEss = true;
+                enty.IsFromEss = true;
+                enty.Flag = true;
+                Factory.GetService<IAnnualLeaveRegisterService>().CheckForESS(enty);
+            }
+            foreach (AnnualLeaveRegister enty in formEntities)
+            {
+                service.SaveForESS(enty);
+                AnnualLeaveRegister entyNew = docSer.Read(enty.AnnualLeaveRegisterId);
+                service.Audit(new object[] { entyNew.AnnualLeaveRegisterId }, auditObject);
+            }
+        }
+
+
+        public void BatchCheckAT406ForAPI(AnnualLeaveRegister[] formEntities)
+        {
+            foreach (AnnualLeaveRegister enty in formEntities)
+            {
+                enty.IsEss = true;
+                enty.IsFromEss = true;
+                enty.Flag = true;
+                enty.EssType = string.Empty;
+                enty.EssNo = string.Empty;
+                Factory.GetService<IAnnualLeaveRegisterService>().CheckForESS(enty);
+            }
+        }
+
+        public void BatchSaveAT406ForAPI(AnnualLeaveRegister[] formEntities)
+        {
+            foreach (AnnualLeaveRegister enty in formEntities)
+            {
+                enty.IsEss = true;
+                enty.IsFromEss = true;
+                enty.Flag = true;
+                Factory.GetService<IAnnualLeaveRegisterService>().CheckForESS(enty);
+            }
+            IAnnualLeaveRegisterService service = Factory.GetService<IAnnualLeaveRegisterService>();
+            IDocumentService<AnnualLeaveRegister> docSer = service;
+
+            IAuditObject auditObject = new AnnualLeaveRegister();
+            IUserService services = Factory.GetService<IUserService>();
+            string employeeId = services.GetEmployeeIdOfUser();
+            if (!employeeId.CheckNullOrEmpty())
+            {
+                auditObject.ApproveEmployeeId = employeeId.GetGuid();
+                auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(employeeId);
+            }
+            auditObject.ApproveDate = DateTime.Now.Date;
+            auditObject.ApproveOperationDate = DateTime.Now;
+            auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
+            auditObject.ApproveResultId = Constants.AuditAgree;
+            auditObject.StateId = Constants.PS03;
+            auditObject.ApproveRemark = "API自动审核同意";
+
+            foreach (AnnualLeaveRegister enty in formEntities)
+            {
+                service.SaveForESS(enty);
+                AnnualLeaveRegister entyNew = docSer.Read(enty.AnnualLeaveRegisterId);
+                service.Audit(new object[] { entyNew.AnnualLeaveRegisterId }, auditObject);
+
+            }
         }
 
         public DataTable GetLeaveHoursForAPI(AttendanceLeave attendanceLeave)

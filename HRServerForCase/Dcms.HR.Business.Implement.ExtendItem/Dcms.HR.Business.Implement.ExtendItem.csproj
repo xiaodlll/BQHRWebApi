@@ -78,6 +78,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\HRServer\Dcms.HR.Business.AttendanceCollect.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceEmployeeRank, Version=5.1.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HRDll\Dcms.HR.Business.AttendanceEmployeeRank.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.AttendanceLeave, Version=5.1.10.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HRDll\Dcms.HR.Business.AttendanceLeave.dll</HintPath>
@@ -85,6 +89,10 @@
     <Reference Include="Dcms.HR.Business.AttendanceOverTimePlan, Version=5.1.10.5, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HRDll\Dcms.HR.Business.AttendanceOverTimePlan.dll</HintPath>
+    </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceRank, Version=5.1.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HRDll\Dcms.HR.Business.AttendanceRank.dll</HintPath>
     </Reference>
     <Reference Include="Dcms.HR.Business.AttendanceType, Version=5.1.10.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

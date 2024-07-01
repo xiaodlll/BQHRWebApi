@@ -1,0 +1,12 @@
+{
+  "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
+  "Method": "BatchCheckAT401ForAPI",
+  "Parameters": [
+    {
+      "name": "formEntities",
+      "type": "Dcms.HR.DataEntities.AnnualLeaveRegister",
+      "value": null
+    }
+  ],
+  "_comment": "检查请假数据"
+}

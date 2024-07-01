@@ -110,6 +110,8 @@ namespace BQHRWebApi.Business
         public Guid? FoundEmployeeId {  get; set; }
 
 
+        public Guid? BusinessApplyId { get; set; }
+
         #region Collection properties
         /// <summary>
         /// 返回 出差人員-集合
