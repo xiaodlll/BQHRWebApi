@@ -15,7 +15,7 @@ namespace Dcms.HR.Services
     {
         public string CheckBusinessApplyForAPI(BusinessApply[] formEntities)
         {
-            StringBuilder msgStr= new StringBuilder();
+            StringBuilder msgStr = new StringBuilder();
             int i = 0;
             return "加4234";
             foreach (BusinessApply businessApply in formEntities)
@@ -32,9 +32,9 @@ namespace Dcms.HR.Services
                 {
                     throw new BusinessVerifyException(new string[] { i.ToString() }, ec);
                 }
-             
+
             }
-            if (msgStr.Length>0)
+            if (msgStr.Length > 0)
             {
                 throw new BusinessRuleException(msgStr.ToString());
             }
@@ -53,16 +53,16 @@ namespace Dcms.HR.Services
                 foreach (BusinessApplyPerson person in businessApply.Persons)
                 {
                     person.BusinessApplyPersonId = Guid.NewGuid();
-                   // person.DeputyEmployeeId= Guid.NewGuid();
+                    // person.DeputyEmployeeId= Guid.NewGuid();
                 }
                 foreach (BusinessApplySchedule sch in businessApply.Schedules)
                 {
                     sch.BusinessApplyScheduleId = Guid.NewGuid();
                 }
                 //20160628 modi by songll for Q00-20160607003 35639 35640 35641 添加BusinessApplyAtt数据
-               BusinessApply newEnty = SetBusinessApplyAttendance(businessApply);
+                BusinessApply newEnty = SetBusinessApplyAttendance(businessApply);
                 docSer.Save(businessApply);
-             //   BusinessApply entyNew = docSer.Read(businessApply.BusinessApplyId);
+                //   BusinessApply entyNew = docSer.Read(businessApply.BusinessApplyId);
                 IAuditObject auditObject = new AttendanceLeave();
                 IUserService services = Factory.GetService<IUserService>();
                 string employeeId = services.GetEmployeeIdOfUser();
@@ -190,7 +190,7 @@ namespace Dcms.HR.Services
         /// <param name="pApply"></param>
         /// <returns></returns>
         [ExternalSystem("Ess")]
-        public  string CheckForESS(BusinessApply pApply)
+        public string CheckForESS(BusinessApply pApply)
         {
             ExceptionCollection ec = SaveBeforeCheck(pApply, true);
             if (ec.Count > 0)

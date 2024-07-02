@@ -1,7 +1,5 @@
-﻿using Serilog.Events;
-using Serilog;
-using System.Data;
-using System.Reflection.Emit;
+﻿using Serilog;
+using Serilog.Events;
 
 namespace BQHRWebApi.Common
 {

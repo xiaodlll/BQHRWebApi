@@ -29,9 +29,10 @@ namespace BQHRWebApi.Service
             {
                 throw new Exception("name is null");
             }
-            string repeatSql = string.Format("select * from ResourceKind where code ='{0}' or name ='{1}'", enty.Code.Trim(),enty.Name.Trim());
-            DataTable dt = HRHelper.ExecuteDataTable(repeatSql) ;
-            if (dt!=null&&dt.Rows.Count>0) {
+            string repeatSql = string.Format("select * from ResourceKind where code ='{0}' or name ='{1}'", enty.Code.Trim(), enty.Name.Trim());
+            DataTable dt = HRHelper.ExecuteDataTable(repeatSql);
+            if (dt != null && dt.Rows.Count > 0)
+            {
                 throw new Exception("编码或名称已存在");
             }
             string sql = @" insert into ResourceKind(ResourceKindId,CorporationId,Code,Name,Remark,Flag,CreateBy,CreateDate,LastModifiedBy,LastModifiedDate,OwnerId)
@@ -45,17 +46,19 @@ namespace BQHRWebApi.Service
             HRHelper.ExecuteNonQuery(sql, listPara.ToArray());
         }
 
-       
 
-        public  void DeleteResourceKind(string id) {
-            HRHelper.ExecuteNonQuery(string.Format("delete from ResourceKind where ResourceKindId='{0}'",id));
+
+        public void DeleteResourceKind(string id)
+        {
+            HRHelper.ExecuteNonQuery(string.Format("delete from ResourceKind where ResourceKindId='{0}'", id));
         }
 
         /// <summary>
         /// 获取资源大类
         /// </summary>
         /// <returns></returns>
-        public DataTable GetAllResourceKind() {
+        public DataTable GetAllResourceKind()
+        {
             return HRHelper.ExecuteDataTable("select ResourceKindId,Code,Name from ResourceKind where flag=1");
         }
 

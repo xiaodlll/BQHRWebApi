@@ -1,14 +1,7 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using Dcms.HR.Services;
-using System;
 using System.Data;
-using System.Data.SqlClient;
-using System.Reflection;
-using System.Resources;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace BQHRWebApi.Service
 {
@@ -21,19 +14,21 @@ namespace BQHRWebApi.Service
             foreach (var entity in entities)
             {
                 ResourceDetail enty = entity as ResourceDetail;
-                if (enty != null) { 
-                    
+                if (enty != null)
+                {
+
                 }
                 SaveResourceDetail(enty);
             }
         }
 
-     
+
 
         public void SaveResourceDetail(ResourceDetail enty)
         {
             DataTable dtItem = new DataTable();
-            if (string.IsNullOrEmpty(enty.ResourceItemId)) {
+            if (string.IsNullOrEmpty(enty.ResourceItemId))
+            {
                 throw new Exception("ResourceItemId is null");
             }
             if (string.IsNullOrEmpty(enty.IOType))
@@ -44,10 +39,10 @@ namespace BQHRWebApi.Service
             {
                 throw new Exception("AlertType is null");
             }
-            if(enty.IOType== "IOType_001" && enty.AlertType== "AlertType_002")//出 出库 项目需要品号管理 资源品号不能为空
+            if (enty.IOType == "IOType_001" && enty.AlertType == "AlertType_002")//出 出库 项目需要品号管理 资源品号不能为空
             {
-               
-                string  sqla = string.Format("select Quantity,IsManagement,ResourceItemId,Code from ResourceItem where ResourceItemId='{0}'", enty.ResourceItemId);
+
+                string sqla = string.Format("select Quantity,IsManagement,ResourceItemId,Code from ResourceItem where ResourceItemId='{0}'", enty.ResourceItemId);
                 dtItem = HRHelper.ExecuteDataTable(sqla);
                 if (dtItem == null || dtItem.Rows.Count == 0)
                 {
@@ -55,7 +50,8 @@ namespace BQHRWebApi.Service
                 }
                 bool isManagement = false;
                 Boolean.TryParse(dtItem.Rows[0]["IsManagement"].ToString(), out isManagement);
-                if (isManagement) {
+                if (isManagement)
+                {
                     if (string.IsNullOrEmpty(enty.ResourceItemNoId))
                     {
                         throw new Exception("ResourceItemNoId is null");
@@ -64,14 +60,15 @@ namespace BQHRWebApi.Service
             }
 
 
-            if (enty.Qty==0) { 
+            if (enty.Qty == 0)
+            {
                 throw new Exception("Qty is null");
             }
             if (string.IsNullOrEmpty(enty.TransDate.ToString()))
             {
                 throw new Exception("TransDate is null");
             }
-            
+
             bool Mayloan = false;
             if (!string.IsNullOrEmpty(enty.ResourceItemNoId))
             {
@@ -104,12 +101,14 @@ namespace BQHRWebApi.Service
                 bool isManagement = false;
                 string strn = "";
                 string itemCode = dtItem.Rows[0]["Code"].ToString();
-                Boolean.TryParse(dtItem.Rows[0]["IsManagement"].ToString(),out isManagement);
+                Boolean.TryParse(dtItem.Rows[0]["IsManagement"].ToString(), out isManagement);
                 Dictionary<string, string> dicAlterType = new Dictionary<string, string>();
                 DataTable dtAlterType = new DataTable();
                 dtAlterType = GetAlertType();
-                foreach (DataRow dr in dtAlterType.Rows) {
-                    if (!dicAlterType.ContainsKey(dr["CodeinfoId"].ToString())) {
+                foreach (DataRow dr in dtAlterType.Rows)
+                {
+                    if (!dicAlterType.ContainsKey(dr["CodeinfoId"].ToString()))
+                    {
                         dicAlterType.Add(dr["CodeinfoId"].ToString(), dr["ScName"].ToString());
                     }
                 }
@@ -123,7 +122,7 @@ namespace BQHRWebApi.Service
                 if (enty.IOType.Equals("IOType_001") && !enty.AlertType.Equals("AlertType_004"))
                 {
                     // ResourceItem resourceItem = ResourceItemService.GetResourceItem(enty.ResourceItemId);
-                   
+
                     decimal qty = (decimal)itemQuantity - enty.Qty;  //「出」時用
                     if (!string.IsNullOrEmpty(enty.ResourceItemNoId)) //有 资源品号 時進入if
                     {
@@ -142,7 +141,7 @@ namespace BQHRWebApi.Service
                         {
                             strn = string.Format("update ResourceItemNo set Mayloan={1} where ResourceItemNoId='{0}'", enty.ResourceItemNoId, 0);
                             HRHelper.ExecuteNonQuery(strn);
-                            enty.ResourceId=enty.ResourceItemNoId;
+                            enty.ResourceId = enty.ResourceItemNoId;
                             var scName = dicAlterType[enty.AlertType].ToString();
                             enty.Remark = enty.TransDate.ToShortDateString() + scName;
                             itemQuantity = qty;
@@ -176,7 +175,7 @@ namespace BQHRWebApi.Service
                         {
                             if (!string.IsNullOrEmpty(enty.ResourceItemNoId))
                             {
-                                 strn = string.Format("update ResourceItemNo set Mayloan={1} where ResourceItemNoId='{0}'", enty.ResourceItemNoId, 1);
+                                strn = string.Format("update ResourceItemNo set Mayloan={1} where ResourceItemNoId='{0}'", enty.ResourceItemNoId, 1);
                                 HRHelper.ExecuteNonQuery(strn);
                             }
                         }
@@ -199,7 +198,7 @@ namespace BQHRWebApi.Service
                         }
                         enty.ResourceId = enty.ResourceItemNoId;
                     }
-                    else if (enty.AlertType.Equals("AlertType_004") &&string.IsNullOrEmpty( enty.ResourceItemNoId))
+                    else if (enty.AlertType.Equals("AlertType_004") && string.IsNullOrEmpty(enty.ResourceItemNoId))
                     {
                         decimal qty = (decimal)itemQuantity - enty.Qty;  //「出」時用
 
@@ -215,7 +214,7 @@ namespace BQHRWebApi.Service
                     }
                 }
                 enty.ResourceDetailId = Guid.NewGuid().ToString();
-               
+
                 sql = HRHelper.GenerateSqlInsert(enty, "ResourceDetail");
                 HRHelper.ExecuteNonQuery(sql);
 
@@ -291,8 +290,8 @@ namespace BQHRWebApi.Service
                         //service.Save(arrResourceItemNo.ToArray());
                     }
                     else if (enty.AlertType.Equals("AlertType_001") || enty.AlertType.Equals("AlertType_003"))
-                    { 
-                    string str = string.Format("update ResourceItem set Quantity={1} where ResourceItemId='{0}'", enty.ResourceItemId, itemQuantity);
+                    {
+                        string str = string.Format("update ResourceItem set Quantity={1} where ResourceItemId='{0}'", enty.ResourceItemId, itemQuantity);
                         HRHelper.ExecuteNonQuery(str);
                     }
 
@@ -304,7 +303,7 @@ namespace BQHRWebApi.Service
         }
 
 
-    
+
 
 
         /// <summary>
@@ -315,14 +314,14 @@ namespace BQHRWebApi.Service
         /// <returns></returns>
         public virtual bool GetResourceItemMayloan(string resourceItemId, string resourceItemNoId)
         {
-         {
+            {
                 bool Mayloan = false;
                 string str = @"SELECT Mayloan
                             FROM ResourceItemNo
                             WHERE ResourceItemId = '{0}' AND ResourceItemNoId = '{1}';";
                 string sql = string.Format(str, resourceItemId, resourceItemNoId);
-              
-                DataTable dt= HRHelper.ExecuteDataTable(sql);
+
+                DataTable dt = HRHelper.ExecuteDataTable(sql);
                 if (dt == null || dt.Rows.Count > 0)
                 {
                     if (dt.Rows[0]["Mayloan"].ToString() == "False")
@@ -348,8 +347,9 @@ namespace BQHRWebApi.Service
         /// I/O别
         /// </summary>
         /// <returns></returns>
-        public DataTable GetIOType() {
-            DataTable dt= HRHelper.GetCodeInfo("IOType");
+        public DataTable GetIOType()
+        {
+            DataTable dt = HRHelper.GetCodeInfo("IOType");
             return dt;
         }
         /// <summary>
@@ -362,10 +362,10 @@ namespace BQHRWebApi.Service
             return dt;
         }
 
-       /// <summary>
-       /// 来源单别
-       /// </summary>
-       /// <returns></returns>
+        /// <summary>
+        /// 来源单别
+        /// </summary>
+        /// <returns></returns>
         public DataTable GetResourceFrom()
         {
             DataTable dt = HRHelper.GetCodeInfo("ResourceFrom");
@@ -379,19 +379,19 @@ namespace BQHRWebApi.Service
         /// <returns>TransDate</returns>
         public virtual long GetMaxSerialNo(string transDate)
         {
-           
-                string str = string.Format("select distinct Max(SerialNo) SerialNo  from ResourceDetail where SerialNo like '{0}%' ", transDate);
 
-                object obj =HRHelper.ExecuteScalar(str);
-                if (obj != null && !string.IsNullOrEmpty(obj.ToString()))
-                {
-                    return Convert.ToInt64(obj);
-                }
-                else
-                {
-                    return 0;
-                }
-           
+            string str = string.Format("select distinct Max(SerialNo) SerialNo  from ResourceDetail where SerialNo like '{0}%' ", transDate);
+
+            object obj = HRHelper.ExecuteScalar(str);
+            if (obj != null && !string.IsNullOrEmpty(obj.ToString()))
+            {
+                return Convert.ToInt64(obj);
+            }
+            else
+            {
+                return 0;
+            }
+
         }
     }
 }

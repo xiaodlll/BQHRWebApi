@@ -1,16 +1,10 @@
 ﻿using BQHRWebApi.Common;
 using Dcms.Common;
-using Dcms.HR.Services;
-using Microsoft.AspNetCore.Http.Extensions;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq.Expressions;
-using System.Resources;
-using System.Text;
-using System.Text.RegularExpressions;
-using BQHRWebApi.Business;
-using Dcms.HR.DataEntities;
 using Dcms.HR;
+using Dcms.HR.DataEntities;
+using Dcms.HR.Services;
+using System.Data;
+using System.Text;
 
 namespace BQHRWebApi.Service
 {
@@ -27,7 +21,7 @@ namespace BQHRWebApi.Service
             return sb.ToString();
         }
 
-        public  string CheckESSIsClose(string[] pEmployeeIds, DateTime pBeginDate, DateTime pEndDate)
+        public string CheckESSIsClose(string[] pEmployeeIds, DateTime pBeginDate, DateTime pEndDate)
         {
 
             DataTable dt = new DataTable();
@@ -45,7 +39,7 @@ namespace BQHRWebApi.Service
         private DataTable CheckCloseInfo(string[] pEmployeeIds, DateTime pBeginDate, DateTime pEndDate)
         {
             #region 員工考勤關帳
-           // IAttendanceEmpCloseService empCloseService = Factory.GetService<IAttendanceEmpCloseService>();
+            // IAttendanceEmpCloseService empCloseService = Factory.GetService<IAttendanceEmpCloseService>();
             DataTable dt = CheckEmpCloseInfo(pEmployeeIds, pBeginDate, pEndDate);
             #endregion
             StringBuilder sb = new StringBuilder();
@@ -59,8 +53,8 @@ namespace BQHRWebApi.Service
             //公司關帳判斷
             #region 找員工所屬公司和資料
             //根据员工找公司ID
-            DataTable dtEmpCorp =HRHelper.ExecuteDataTable(string.Format(@" select employeeid,cnname,code,corporationId from employee where employeeid in ({0})",sb.ToString()));  //员工公司集合
-           
+            DataTable dtEmpCorp = HRHelper.ExecuteDataTable(string.Format(@" select employeeid,cnname,code,corporationId from employee where employeeid in ({0})", sb.ToString()));  //员工公司集合
+
             #endregion
             #region 變數宣告
             StringBuilder sbError = new StringBuilder();  //存储错误信息
@@ -169,8 +163,8 @@ namespace BQHRWebApi.Service
                     DataTable yearDt = HRHelper.ExecuteDataTable(sql);
                     PeriodDate pD = new PeriodDate();
                     pD.BeginDate = yearDt.AsEnumerable().First()["BeginDate"].ToString().ToDateTime();
-                    pD.EndDate=yearDt.AsEnumerable().Last()["EndDate"].ToString().ToDateTime();
-                    retValue.Add(pD );
+                    pD.EndDate = yearDt.AsEnumerable().Last()["EndDate"].ToString().ToDateTime();
+                    retValue.Add(pD);
                 }
             }
             else
@@ -196,8 +190,8 @@ namespace BQHRWebApi.Service
         private DataTable GetATMonthByDate(DateTime pBeginDate, DateTime pEndDate)
         {
             DataTable dt = new DataTable();
-           
-             string sql= string.Format(@"SELECT [atmonth].[corporationid],
+
+            string sql = string.Format(@"SELECT [atmonth].[corporationid],
        [ATMonth_Corporation_CorporationId].[name],
        [atmonth].[begindate],
        [atmonth].[enddate],
@@ -208,8 +202,8 @@ FROM   [atmonth] AS [ATMonth]
                  [ATMonth_Corporation_CorporationId].[corporationid]
 WHERE  ( '{0}' BETWEEN [atmonth].[begindate] AND [atmonth].[enddate]
           OR '{1}' BETWEEN [atmonth].[begindate] AND [atmonth].[enddate] ) ", pBeginDate.Date, pEndDate.Date);
-             
-             dt=HRHelper.ExecuteDataTable(sql);
+
+            dt = HRHelper.ExecuteDataTable(sql);
             return dt;
         }
 
@@ -242,10 +236,11 @@ WHERE  ( '{0}' BETWEEN [atmonth].[begindate] AND [atmonth].[enddate]
                 {
                     return dt;
                 }
-                else {
+                else
+                {
                     return null;
                 }
-                
+
             }
 
         }
@@ -331,7 +326,7 @@ WHERE  attendanceempclose.flag = 1
        AND attendanceempclose.isclose = 1
 and attendanceempclose.employeeid in ({0})
        AND atmonth.begindate >= '{1}'
-       AND atmonth.enddate <= '{2}' ",sb.ToString(), pBeginDate.Date.AddDays(-31), pEndDate.Date.AddDays(31));
+       AND atmonth.enddate <= '{2}' ", sb.ToString(), pBeginDate.Date.AddDays(-31), pEndDate.Date.AddDays(31));
             dtEmpCloseInfo = HRHelper.ExecuteDataTable(sql);
             return dtEmpCloseInfo;
         }

@@ -2,19 +2,9 @@
 // F:\SourceCenter\Product\V5.1 10\Export\Dcms.HR.Business.Business.dll
 #endregion
 
-using System;
-using System.Collections.Generic;
-
 namespace BQHRWebApi.Business
 {
     using System;
-    using System.ComponentModel;
-    using System.Threading;
-
-    using Dcms.Common.Torridity;
-    using Dcms.Common.Torridity.Metadata;
-    using Dcms.Common.DataEntities;
-    using Dcms.Common;
     using System.Collections.Generic;
 
 
@@ -22,7 +12,7 @@ namespace BQHRWebApi.Business
     /// 出差申請實體
     /// </summary>
     [Serializable()]
-    public class BusinessApplyForAPI:DataEntity
+    public class BusinessApplyForAPI : DataEntity
     {
         /// <summary>
         /// 建構
@@ -105,9 +95,9 @@ namespace BQHRWebApi.Business
         /// </summary>
         public string? Remark { get; set; }
 
-        public string FoundEmpCode {  get; set; }
+        public string FoundEmpCode { get; set; }
 
-        public Guid? FoundEmployeeId {  get; set; }
+        public Guid? FoundEmployeeId { get; set; }
 
 
         public Guid? BusinessApplyId { get; set; }
@@ -229,7 +219,7 @@ namespace BQHRWebApi.Business
         /// <summary>
         /// 返回/設置 員工ID
         /// </summary>
-        public System.Guid ? EmployeeId { get; set; }
+        public System.Guid? EmployeeId { get; set; }
 
         /// <summary>
         /// 返回/設置 主要代理人ID

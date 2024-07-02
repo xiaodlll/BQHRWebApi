@@ -1,6 +1,6 @@
 {
   "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
-  "Method": "batchCheckATQJForAPI",
+  "Method": "BatchCheckATQJForAPI",
   "Parameters": [
     {
       "name": "formEntities",

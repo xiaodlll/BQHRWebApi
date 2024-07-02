@@ -1,12 +1,8 @@
 ﻿using BQHRWebApi.Common;
 using Dcms.Common;
 using Dcms.HR.Services;
-using Microsoft.AspNetCore.Http.Extensions;
 using System.Data;
-using System.Linq.Expressions;
-using System.Resources;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace BQHRWebApi.Service
 {
@@ -59,24 +55,24 @@ namespace BQHRWebApi.Service
             //还原为日期
             pEndDate = tempEnd.Date;
 
-          
-                //20141117 added by lidong for 增加已审核同意判断 Q00-20141107006
-             string   strSql = string.Format(@"Select EmployeeId,Date From AttendanceEmpRank Where EmployeeId in ({0}) And Date >='{1}' and Date<='{2}'
+
+            //20141117 added by lidong for 增加已审核同意判断 Q00-20141107006
+            string strSql = string.Format(@"Select EmployeeId,Date From AttendanceEmpRank Where EmployeeId in ({0}) And Date >='{1}' and Date<='{2}'
                                         and StateId='PlanState_003' and ApproveResultId='OperatorResult_001'  ", sb.ToString(), pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.ToDateFormatString());
-             dt = HRHelper.ExecuteDataTable(strSql);
-                //20110902 added by songyj for 查找请假的结束日期减一天的排版是否是跨天的
-                //20140901 add by LinBJ for 增加歸屬前一天的班次判斷
-                strSql = string.Format(@"Select empRank.EmployeeId,empRank.Date, 
+            dt = HRHelper.ExecuteDataTable(strSql);
+            //20110902 added by songyj for 查找请假的结束日期减一天的排版是否是跨天的
+            //20140901 add by LinBJ for 增加歸屬前一天的班次判斷
+            strSql = string.Format(@"Select empRank.EmployeeId,empRank.Date, 
                                                    CAST((CAST(CONVERT(CHAR, empRank.Date, 20) AS CHAR(11)) + rank.WorkBeginTime) AS DATETIME) AS BeginTime,
                                                 CAST((CAST(CONVERT(CHAR, DATEADD(DAY,1,empRank.Date), 20) AS CHAR(11)) + rank.WorkEndTime) AS DATETIME) AS EndTime
                                      From AttendanceEmpRank AS empRank 
                                              Left Join AttendanceRank AS rank on rank.AttendanceRankId = empRank.AttendanceRankId
                                         Where empRank.EmployeeId in ({0}) And empRank.Date = '{1}' And (rank.IsOverZeroId = 'TrueFalse_001' or rank.IsBelongToBefore = 'True')
                                                 and empRank.StateId='PlanState_003' and empRank.ApproveResultId='OperatorResult_001' ",
-                sb.ToString(), pEndDate.AddDays(-1).ToDateFormatString());
-               
-                dtEndDateRank=HRHelper.ExecuteDataTable (strSql);
-            
+            sb.ToString(), pEndDate.AddDays(-1).ToDateFormatString());
+
+            dtEndDateRank = HRHelper.ExecuteDataTable(strSql);
+
             int num = 0;
             DateTime tempBegin = DateTime.MinValue;
             List<DateTime> tempDate = null;
@@ -119,7 +115,7 @@ namespace BQHRWebApi.Service
                             tempString += string.Format("{0},", temp.ToDateFormatString());
                         }
                         tempString = tempString.Remove(tempString.Length - 1, 1);
-                       string empName=empSer.GetEmployeeNameById(str);
+                        string empName = empSer.GetEmployeeNameById(str);
                         sbMsg.AppendFormat("员工:{0}在 {1} 没有班次安排", empName, tempString);
                         sbMsg.Append("\r\n");
                         if (num > 20)
@@ -138,7 +134,7 @@ namespace BQHRWebApi.Service
                 {
                     if (str.CheckNullOrEmpty()) continue;
                     string empName = empSer.GetEmployeeNameById(str);
-                    sbMsg.AppendFormat("员工:{0}在 {1} 没有班次安排", empName , pBeginDate.ToDateFormatString() + " - " + pEndDate.ToDateFormatString());
+                    sbMsg.AppendFormat("员工:{0}在 {1} 没有班次安排", empName, pBeginDate.ToDateFormatString() + " - " + pEndDate.ToDateFormatString());
                     sbMsg.Append("\r\n");
                 }
             }
@@ -177,8 +173,8 @@ WHERE  attendanceemprank.employeeid IN ( {2} )
                                                        pBeginDate.ToDateFormatString(),
                                                        pEndDate.ToDateFormatString(),
                                                        sb.ToString());
-                return HRHelper.ExecuteDataTable(sql);
-            
+            return HRHelper.ExecuteDataTable(sql);
+
         }
 
     }

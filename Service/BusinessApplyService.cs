@@ -1,22 +1,16 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using Dcms.Common;
-using Dcms.Common.Core;
-using Dcms.Common.Services;
-using Dcms.Common.Torridity.Query;
 using Dcms.HR;
 using Dcms.HR.Business.Implement.Properties;
 using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
 using Newtonsoft.Json;
-using System;
 using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 
-namespace BQHRWebApi.Service { 
+namespace BQHRWebApi.Service
+{
     public class BusinessApplyService : HRService
     {
         public override async void Save(DataEntity[] entities)
@@ -37,7 +31,8 @@ namespace BQHRWebApi.Service {
                 {
                     DataTable dtEmp = GetEmpInfoByCode(person.EmployeeCode);
 
-                    if (dtEmp == null && dtEmp.Rows.Count > 0) {
+                    if (dtEmp == null && dtEmp.Rows.Count > 0)
+                    {
                         person.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
                     }
                     else
@@ -78,7 +73,7 @@ namespace BQHRWebApi.Service {
             {
                 business.FoundDate = DateTime.Now.Date;
                 business.StateId = Constants.PS03;
-                business.BusinessApplyId =Guid.NewGuid();
+                business.BusinessApplyId = Guid.NewGuid();
 
             }
             CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
@@ -97,7 +92,7 @@ namespace BQHRWebApi.Service {
 
             if (aPIExResponse != null)
             {
-                if (aPIExResponse.State != "0" )
+                if (aPIExResponse.State != "0")
                 {
                     throw new BusinessException(aPIExResponse.Msg);
                 }
@@ -230,18 +225,19 @@ namespace BQHRWebApi.Service {
                     }
                     else
                     {
-                       msg.Append((string.Format(Resources.Business_ScheduleError, item.BeginDate.ToDateFormatString(), item.EndDate.ToDateFormatString())));
+                        msg.Append((string.Format(Resources.Business_ScheduleError, item.BeginDate.ToDateFormatString(), item.EndDate.ToDateFormatString())));
                     }
                 }
             }
             #endregion
 
-            if (msg.Length <= 0) {
+            if (msg.Length <= 0)
+            {
                 foreach (BusinessApplyPersonForAPI itemChild in enty.Persons)
                 {
                     AttendanceLeaveService attendanceLeaveService = new AttendanceLeaveService();
-                    string  errMsg = attendanceLeaveService.CheckAllTime(itemChild.EmployeeId.ToString(), enty.BeginDate, enty.BeginTime, enty.EndDate, enty.EndTime
-                        , CheckEntityType.Apply, true,enty.BusinessApplyId.ToString());
+                    string errMsg = attendanceLeaveService.CheckAllTime(itemChild.EmployeeId.ToString(), enty.BeginDate, enty.BeginTime, enty.EndDate, enty.EndTime
+                        , CheckEntityType.Apply, true, enty.BusinessApplyId.ToString());
                     if (!errMsg.CheckNullOrEmpty())
                     {
                         msg.Append(errMsg);
@@ -249,7 +245,7 @@ namespace BQHRWebApi.Service {
                     #region 檢查出差申請
                     DateTime bDate = enty.BeginDate.AddTimeToDateTime(enty.BeginTime);
                     DateTime eDate = enty.EndDate.AddTimeToDateTime(enty.EndTime);
-                    string  errSameMsg = IsSameBusinessApply(enty.BusinessApplyId.ToString(), itemChild.EmployeeId.ToString(), bDate, eDate);
+                    string errSameMsg = IsSameBusinessApply(enty.BusinessApplyId.ToString(), itemChild.EmployeeId.ToString(), bDate, eDate);
                     if (!errSameMsg.CheckNullOrEmpty() && msg.Length == 0)
                     {
                         msg.AppendLine(errSameMsg);
@@ -260,7 +256,7 @@ namespace BQHRWebApi.Service {
                     //}
                 }
             }
-        
+
             return msg.ToString();
         }
         private string IsSameBusinessApply(string pBusinessApplyId, string pEmployeeId, DateTime pBDateTime, DateTime pEDateTime)
@@ -271,7 +267,7 @@ namespace BQHRWebApi.Service {
             //using (IConnectionService conService = Factory.GetService<IConnectionService>())
             //{
             //    IDbCommand cmd = conService.CreateDbCommand();
-                string strSql = string.Format(@"select detail.BusinessApplyId, detail.EmployeeId,main.BeginDate,main.BeginTime,main.EndDate,main.EndTime,main.AttendanceTypeId
+            string strSql = string.Format(@"select detail.BusinessApplyId, detail.EmployeeId,main.BeginDate,main.BeginTime,main.EndDate,main.EndTime,main.AttendanceTypeId
                                 from BusinessApplyPerson detail
                                 left join BusinessApply main on detail.BusinessApplyId=main.BusinessApplyId
                                 where 
@@ -286,7 +282,7 @@ pBusinessApplyId, pEmployeeId, pBDateTime.ToDateFormatString(), pEDateTime.ToDat
             {
                 foreach (DataRow row in dt.Rows)
                 {
-                    AttendanceTypeService typeSer = new AttendanceTypeService ();
+                    AttendanceTypeService typeSer = new AttendanceTypeService();
                     DateTime beginDate = DateTime.MinValue;
                     DateTime endDate = DateTime.MinValue;
                     string strBegin = row["BeginDate"].ToString();
@@ -305,11 +301,11 @@ pBusinessApplyId, pEmployeeId, pBDateTime.ToDateFormatString(), pEDateTime.ToDat
                                 #region 20150330 add by LinBJ for 27425 27426 A00-20150327003 須排除出差登記已銷假資料
                                 //using (IConnectionService conService = Factory.GetService<IConnectionService>())
                                 //{
-                                    //IDbCommand cmd = conService.CreateDbCommand();
-                                     strSql = string.Format(@"select info.BusinessRegisterInfoId from BusinessRegisterInfo info
+                                //IDbCommand cmd = conService.CreateDbCommand();
+                                strSql = string.Format(@"select info.BusinessRegisterInfoId from BusinessRegisterInfo info
                                                         left join BusinessRegister main on main.BusinessRegisterId =info.BusinessRegisterId 
                                                         where  main.BusinessApplyId='{0}' and info.EmployeeId='{1}' and info.IsRevoke = 1",
-                                                                    row["BusinessApplyId"].ToString(), pEmployeeId);
+                                                               row["BusinessApplyId"].ToString(), pEmployeeId);
                                 dtRegister = HRHelper.ExecuteDataTable(strSql);
                                 //    cmd.CommandText = strSql;
                                 //    dtRegister.Load(cmd.ExecuteReader());
@@ -348,20 +344,22 @@ pBusinessApplyId, pEmployeeId, pBDateTime.ToDateFormatString(), pEDateTime.ToDat
         {
             StringBuilder msgs = new StringBuilder();
             int i = 0;
-            foreach (BusinessApplyForAPI enty in entities) {
+            foreach (BusinessApplyForAPI enty in entities)
+            {
                 i++;
-                enty.BusinessApplyId=Guid.NewGuid();
+                enty.BusinessApplyId = Guid.NewGuid();
                 string s = CheckData(enty);
-                if (!s.CheckNullOrEmpty()) {
+                if (!s.CheckNullOrEmpty())
+                {
                     msgs.Append(string.Format("{0} {1}", i, s.ToString()));
                 }
             }
-             if(msgs.Length>0) return msgs.ToString();
+            if (msgs.Length > 0) return msgs.ToString();
             return "";
         }
 
 
-        public async  void SaveForCCSQ(string formNumber, BusinessApplyForAPI[] entities)
+        public async void SaveForCCSQ(string formNumber, BusinessApplyForAPI[] entities)
         {
             StringBuilder msgs = new StringBuilder();
             int i = 0;
@@ -375,8 +373,8 @@ pBusinessApplyId, pEmployeeId, pBDateTime.ToDateFormatString(), pEDateTime.ToDat
                     msgs.Append(string.Format("{0} {1}", i, s.ToString()));
                 }
             }
-            if (msgs.Length > 0) 
-                throw new BusinessRuleException( msgs.ToString());
+            if (msgs.Length > 0)
+                throw new BusinessRuleException(msgs.ToString());
 
             List<BusinessApply> entys = HRHelper.WebAPIEntitysToDataEntitys<BusinessApply>("", "", entities);
             foreach (BusinessApply business in entys)
@@ -388,11 +386,13 @@ pBusinessApplyId, pEmployeeId, pBDateTime.ToDateFormatString(), pEDateTime.ToDat
                 business.FoundDate = DateTime.Now.Date;
                 business.StateId = Constants.PS02;
                 business.BusinessApplyId = Guid.NewGuid();
-                foreach (BusinessApplyPerson person in business.Persons) { 
-                  person.BusinessApplyPersonId = Guid.NewGuid();
+                foreach (BusinessApplyPerson person in business.Persons)
+                {
+                    person.BusinessApplyPersonId = Guid.NewGuid();
                 }
-                foreach (BusinessApplySchedule sch in business.Schedules) { 
-                  sch.BusinessApplyScheduleId= Guid.NewGuid();  
+                foreach (BusinessApplySchedule sch in business.Schedules)
+                {
+                    sch.BusinessApplyScheduleId = Guid.NewGuid();
                 }
             }
             CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
@@ -425,7 +425,7 @@ pBusinessApplyId, pEmployeeId, pBDateTime.ToDateFormatString(), pEDateTime.ToDat
                 throw new Exception(response);
             }
         }
-   
+
 
         private DataTable GetEmpInfoByCode(string employeeCode)
         {

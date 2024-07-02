@@ -1,6 +1,6 @@
 ﻿namespace BQHRWebApi.Business
 {
-    public class ResourceKind: DataEntity
+    public class ResourceKind : DataEntity
     {
         public string? ResourceKindId { get; set; }
 

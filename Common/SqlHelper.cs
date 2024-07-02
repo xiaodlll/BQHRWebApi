@@ -6,11 +6,10 @@
 //<createDate>2005-08-10</createDate>
 //<Description> 微软的很稳定的组件，请不要修改</Description>
 //---------------------------------------------------------------- 
-using System;
-using System.Data;
-using System.Xml;
-using System.Data.SqlClient;
 using System.Collections;
+using System.Data;
+using System.Data.SqlClient;
+using System.Xml;
 
 
 namespace BQHRWebApi.Common
@@ -19,7 +18,8 @@ namespace BQHRWebApi.Common
     /// The SqlHelper class is intended to encapsulate high performance, scalable best practices for 
     /// common uses of SqlClient.
     /// </summary>
-    internal sealed class SqlHelper {
+    internal sealed class SqlHelper
+    {
         #region private utility methods & constructors
         private const int TIMEOUT = 3000;
 
@@ -41,10 +41,13 @@ namespace BQHRWebApi.Common
         /// </summary>
         /// <param name="command">The command to which the parameters will be added</param>
         /// <param name="commandParameters">an array of SqlParameters tho be added to command</param>
-        private static void AttachParameters(SqlCommand command, SqlParameter[] commandParameters) {
-            foreach (SqlParameter p in commandParameters) {
+        private static void AttachParameters(SqlCommand command, SqlParameter[] commandParameters)
+        {
+            foreach (SqlParameter p in commandParameters)
+            {
                 //check for derived output value with no value assigned
-                if ((p.Direction == ParameterDirection.InputOutput) && (p.Value == null)) {
+                if ((p.Direction == ParameterDirection.InputOutput) && (p.Value == null))
+                {
                     p.Value = DBNull.Value;
                 }
 
@@ -57,20 +60,24 @@ namespace BQHRWebApi.Common
         /// </summary>
         /// <param name="commandParameters">array of SqlParameters to be assigned values</param>
         /// <param name="parameterValues">array of objects holding the values to be assigned</param>
-        private static void AssignParameterValues(SqlParameter[] commandParameters, object[] parameterValues) {
-            if ((commandParameters == null) || (parameterValues == null)) {
+        private static void AssignParameterValues(SqlParameter[] commandParameters, object[] parameterValues)
+        {
+            if ((commandParameters == null) || (parameterValues == null))
+            {
                 //do nothing if we get no data
                 return;
             }
 
             // we must have the same number of values as we pave parameters to put them in
-            if (commandParameters.Length != parameterValues.Length) {
+            if (commandParameters.Length != parameterValues.Length)
+            {
                 throw new ArgumentException("Parameter count does not match Parameter Value count.");
             }
 
             //iterate through the SqlParameters, assigning the values from the corresponding position in the 
             //value array
-            for (int i = 0, j = commandParameters.Length; i < j; i++) {
+            for (int i = 0, j = commandParameters.Length; i < j; i++)
+            {
                 commandParameters[i].Value = parameterValues[i];
             }
         }
@@ -85,9 +92,11 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParameters to be associated with the command or 'null' if no parameters are required</param>
-        private static void PrepareCommand(SqlCommand command, SqlConnection connection, SqlTransaction transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters) {
+        private static void PrepareCommand(SqlCommand command, SqlConnection connection, SqlTransaction transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters)
+        {
             //if the provided connection is not open, we will open it
-            if (connection.State != ConnectionState.Open) {
+            if (connection.State != ConnectionState.Open)
+            {
                 connection.Open();
             }
 
@@ -98,7 +107,8 @@ namespace BQHRWebApi.Common
             command.CommandText = commandText;
 
             //if we were provided a transaction, assign it.
-            if (transaction != null) {
+            if (transaction != null)
+            {
                 command.Transaction = transaction;
             }
 
@@ -106,7 +116,8 @@ namespace BQHRWebApi.Common
             command.CommandType = commandType;
 
             //attach the command parameters if they are provided
-            if (commandParameters != null) {
+            if (commandParameters != null)
+            {
                 AttachParameters(command, commandParameters);
             }
 
@@ -130,7 +141,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>an int representing the number of rows affected by the command</returns>
-        public static int ExecuteNonQuery(string connectionString, CommandType commandType, string commandText) {
+        public static int ExecuteNonQuery(string connectionString, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteNonQuery(connectionString, commandType, commandText, (SqlParameter[])null);
         }
@@ -148,9 +160,11 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>an int representing the number of rows affected by the command</returns>
-        public static int ExecuteNonQuery(string connectionString, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static int ExecuteNonQuery(string connectionString, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create & open a SqlConnection, and dispose of it after we are done.
-            using (SqlConnection cn = new SqlConnection(connectionString)) {
+            using (SqlConnection cn = new SqlConnection(connectionString))
+            {
                 cn.Open();
 
                 //call the overload that takes a connection in place of the connection string
@@ -173,9 +187,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored prcedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>an int representing the number of rows affected by the command</returns>
-        public static int ExecuteNonQuery(string connectionString, string spName, params object[] parameterValues) {
+        public static int ExecuteNonQuery(string connectionString, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(connectionString, spName);
 
@@ -186,7 +202,8 @@ namespace BQHRWebApi.Common
                 return ExecuteNonQuery(connectionString, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteNonQuery(connectionString, CommandType.StoredProcedure, spName);
             }
         }
@@ -202,7 +219,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>an int representing the number of rows affected by the command</returns>
-        public static int ExecuteNonQuery(SqlConnection connection, CommandType commandType, string commandText) {
+        public static int ExecuteNonQuery(SqlConnection connection, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteNonQuery(connection, commandType, commandText, (SqlParameter[])null);
         }
@@ -220,7 +238,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>an int representing the number of rows affected by the command</returns>
-        public static int ExecuteNonQuery(SqlConnection connection, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static int ExecuteNonQuery(SqlConnection connection, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create a command and prepare it for execution
             SqlCommand cmd = new SqlCommand();
             cmd.CommandTimeout = TIMEOUT; //add by steven
@@ -249,9 +268,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>an int representing the number of rows affected by the command</returns>
-        public static int ExecuteNonQuery(SqlConnection connection, string spName, params object[] parameterValues) {
+        public static int ExecuteNonQuery(SqlConnection connection, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(connection.ConnectionString, spName);
 
@@ -262,7 +283,8 @@ namespace BQHRWebApi.Common
                 return ExecuteNonQuery(connection, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteNonQuery(connection, CommandType.StoredProcedure, spName);
             }
         }
@@ -278,7 +300,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>an int representing the number of rows affected by the command</returns>
-        public static int ExecuteNonQuery(SqlTransaction transaction, CommandType commandType, string commandText) {
+        public static int ExecuteNonQuery(SqlTransaction transaction, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteNonQuery(transaction, commandType, commandText, (SqlParameter[])null);
         }
@@ -296,7 +319,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>an int representing the number of rows affected by the command</returns>
-        public static int ExecuteNonQuery(SqlTransaction transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static int ExecuteNonQuery(SqlTransaction transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create a command and prepare it for execution
             SqlCommand cmd = new SqlCommand();
             cmd.CommandTimeout = TIMEOUT; //add by steven
@@ -325,9 +349,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>an int representing the number of rows affected by the command</returns>
-        public static int ExecuteNonQuery(SqlTransaction transaction, string spName, params object[] parameterValues) {
+        public static int ExecuteNonQuery(SqlTransaction transaction, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(transaction.Connection.ConnectionString, spName);
 
@@ -338,7 +364,8 @@ namespace BQHRWebApi.Common
                 return ExecuteNonQuery(transaction, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteNonQuery(transaction, CommandType.StoredProcedure, spName);
             }
         }
@@ -360,7 +387,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>a dataset containing the resultset generated by the command</returns>
-        public static DataSet ExecuteDataset(string connectionString, CommandType commandType, string commandText) {
+        public static DataSet ExecuteDataset(string connectionString, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteDataset(connectionString, commandType, commandText, (SqlParameter[])null);
         }
@@ -378,9 +406,11 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>a dataset containing the resultset generated by the command</returns>
-        public static DataSet ExecuteDataset(string connectionString, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static DataSet ExecuteDataset(string connectionString, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create & open a SqlConnection, and dispose of it after we are done.
-            using (SqlConnection cn = new SqlConnection(connectionString)) {
+            using (SqlConnection cn = new SqlConnection(connectionString))
+            {
                 cn.Open();
 
                 //call the overload that takes a connection in place of the connection string
@@ -403,9 +433,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>a dataset containing the resultset generated by the command</returns>
-        public static DataSet ExecuteDataset(string connectionString, string spName, params object[] parameterValues) {
+        public static DataSet ExecuteDataset(string connectionString, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(connectionString, spName);
 
@@ -416,7 +448,8 @@ namespace BQHRWebApi.Common
                 return ExecuteDataset(connectionString, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteDataset(connectionString, CommandType.StoredProcedure, spName);
             }
         }
@@ -432,7 +465,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>a dataset containing the resultset generated by the command</returns>
-        public static DataSet ExecuteDataset(SqlConnection connection, CommandType commandType, string commandText) {
+        public static DataSet ExecuteDataset(SqlConnection connection, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteDataset(connection, commandType, commandText, (SqlParameter[])null);
         }
@@ -450,7 +484,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>a dataset containing the resultset generated by the command</returns>
-        public static DataSet ExecuteDataset(SqlConnection connection, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static DataSet ExecuteDataset(SqlConnection connection, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create a command and prepare it for execution
             SqlCommand cmd = new SqlCommand();
             PrepareCommand(cmd, connection, (SqlTransaction)null, commandType, commandText, commandParameters);
@@ -484,9 +519,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>a dataset containing the resultset generated by the command</returns>
-        public static DataSet ExecuteDataset(SqlConnection connection, string spName, params object[] parameterValues) {
+        public static DataSet ExecuteDataset(SqlConnection connection, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(connection.ConnectionString, spName);
 
@@ -497,7 +534,8 @@ namespace BQHRWebApi.Common
                 return ExecuteDataset(connection, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteDataset(connection, CommandType.StoredProcedure, spName);
             }
         }
@@ -513,7 +551,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>a dataset containing the resultset generated by the command</returns>
-        public static DataSet ExecuteDataset(SqlTransaction transaction, CommandType commandType, string commandText) {
+        public static DataSet ExecuteDataset(SqlTransaction transaction, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteDataset(transaction, commandType, commandText, (SqlParameter[])null);
         }
@@ -531,7 +570,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>a dataset containing the resultset generated by the command</returns>
-        public static DataSet ExecuteDataset(SqlTransaction transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static DataSet ExecuteDataset(SqlTransaction transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create a command and prepare it for execution
             SqlCommand cmd = new SqlCommand();
             PrepareCommand(cmd, transaction.Connection, transaction, commandType, commandText, commandParameters);
@@ -565,9 +605,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>a dataset containing the resultset generated by the command</returns>
-        public static DataSet ExecuteDataset(SqlTransaction transaction, string spName, params object[] parameterValues) {
+        public static DataSet ExecuteDataset(SqlTransaction transaction, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(transaction.Connection.ConnectionString, spName);
 
@@ -578,7 +620,8 @@ namespace BQHRWebApi.Common
                 return ExecuteDataset(transaction, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteDataset(transaction, CommandType.StoredProcedure, spName);
             }
         }
@@ -591,7 +634,8 @@ namespace BQHRWebApi.Common
         /// this enum is used to indicate whether the connection was provided by the caller, or created by SqlHelper, so that
         /// we can set the appropriate CommandBehavior when calling ExecuteReader()
         /// </summary>
-        private enum SqlConnectionOwnership {
+        private enum SqlConnectionOwnership
+        {
             /// <summary>Connection is owned and managed by SqlHelper</summary>
             Internal,
             /// <summary>Connection is owned and managed by the caller</summary>
@@ -613,7 +657,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandParameters">an array of SqlParameters to be associated with the command or 'null' if no parameters are required</param>
         /// <param name="connectionOwnership">indicates whether the connection parameter was provided by the caller, or created by SqlHelper</param>
         /// <returns>SqlDataReader containing the results of the command</returns>
-        private static SqlDataReader ExecuteReader(SqlConnection connection, SqlTransaction transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters, SqlConnectionOwnership connectionOwnership) {
+        private static SqlDataReader ExecuteReader(SqlConnection connection, SqlTransaction transaction, CommandType commandType, string commandText, SqlParameter[] commandParameters, SqlConnectionOwnership connectionOwnership)
+        {
             //create a command and prepare it for execution
             SqlCommand cmd = new SqlCommand();
             PrepareCommand(cmd, connection, transaction, commandType, commandText, commandParameters);
@@ -622,10 +667,12 @@ namespace BQHRWebApi.Common
             SqlDataReader dr;
 
             // call ExecuteReader with the appropriate CommandBehavior
-            if (connectionOwnership == SqlConnectionOwnership.External) {
+            if (connectionOwnership == SqlConnectionOwnership.External)
+            {
                 dr = cmd.ExecuteReader();
             }
-            else {
+            else
+            {
                 dr = cmd.ExecuteReader(CommandBehavior.CloseConnection);
             }
 
@@ -647,7 +694,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>a SqlDataReader containing the resultset generated by the command</returns>
-        public static SqlDataReader ExecuteReader(string connectionString, CommandType commandType, string commandText) {
+        public static SqlDataReader ExecuteReader(string connectionString, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteReader(connectionString, commandType, commandText, (SqlParameter[])null);
         }
@@ -665,16 +713,19 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>a SqlDataReader containing the resultset generated by the command</returns>
-        public static SqlDataReader ExecuteReader(string connectionString, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static SqlDataReader ExecuteReader(string connectionString, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create & open a SqlConnection
             SqlConnection cn = new SqlConnection(connectionString);
             cn.Open();
 
-            try {
+            try
+            {
                 //call the private overload that takes an internally owned connection in place of the connection string
                 return ExecuteReader(cn, null, commandType, commandText, commandParameters, SqlConnectionOwnership.Internal);
             }
-            catch {
+            catch
+            {
                 //if we fail to return the SqlDatReader, we need to close the connection ourselves
                 cn.Close();
                 throw;
@@ -696,9 +747,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>a SqlDataReader containing the resultset generated by the command</returns>
-        public static SqlDataReader ExecuteReader(string connectionString, string spName, params object[] parameterValues) {
+        public static SqlDataReader ExecuteReader(string connectionString, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(connectionString, spName);
 
@@ -709,7 +762,8 @@ namespace BQHRWebApi.Common
                 return ExecuteReader(connectionString, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteReader(connectionString, CommandType.StoredProcedure, spName);
             }
         }
@@ -725,7 +779,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>a SqlDataReader containing the resultset generated by the command</returns>
-        public static SqlDataReader ExecuteReader(SqlConnection connection, CommandType commandType, string commandText) {
+        public static SqlDataReader ExecuteReader(SqlConnection connection, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteReader(connection, commandType, commandText, (SqlParameter[])null);
         }
@@ -743,7 +798,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>a SqlDataReader containing the resultset generated by the command</returns>
-        public static SqlDataReader ExecuteReader(SqlConnection connection, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static SqlDataReader ExecuteReader(SqlConnection connection, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //pass through the call to the private overload using a null transaction value and an externally owned connection
             return ExecuteReader(connection, (SqlTransaction)null, commandType, commandText, commandParameters, SqlConnectionOwnership.External);
         }
@@ -763,9 +819,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>a SqlDataReader containing the resultset generated by the command</returns>
-        public static SqlDataReader ExecuteReader(SqlConnection connection, string spName, params object[] parameterValues) {
+        public static SqlDataReader ExecuteReader(SqlConnection connection, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(connection.ConnectionString, spName);
 
                 AssignParameterValues(commandParameters, parameterValues);
@@ -773,7 +831,8 @@ namespace BQHRWebApi.Common
                 return ExecuteReader(connection, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteReader(connection, CommandType.StoredProcedure, spName);
             }
         }
@@ -789,7 +848,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>a SqlDataReader containing the resultset generated by the command</returns>
-        public static SqlDataReader ExecuteReader(SqlTransaction transaction, CommandType commandType, string commandText) {
+        public static SqlDataReader ExecuteReader(SqlTransaction transaction, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteReader(transaction, commandType, commandText, (SqlParameter[])null);
         }
@@ -807,7 +867,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>a SqlDataReader containing the resultset generated by the command</returns>
-        public static SqlDataReader ExecuteReader(SqlTransaction transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static SqlDataReader ExecuteReader(SqlTransaction transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //pass through to private overload, indicating that the connection is owned by the caller
             return ExecuteReader(transaction.Connection, transaction, commandType, commandText, commandParameters, SqlConnectionOwnership.External);
         }
@@ -827,9 +888,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>a SqlDataReader containing the resultset generated by the command</returns>
-        public static SqlDataReader ExecuteReader(SqlTransaction transaction, string spName, params object[] parameterValues) {
+        public static SqlDataReader ExecuteReader(SqlTransaction transaction, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(transaction.Connection.ConnectionString, spName);
 
                 AssignParameterValues(commandParameters, parameterValues);
@@ -837,7 +900,8 @@ namespace BQHRWebApi.Common
                 return ExecuteReader(transaction, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteReader(transaction, CommandType.StoredProcedure, spName);
             }
         }
@@ -858,7 +922,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>an object containing the value in the 1x1 resultset generated by the command</returns>
-        public static object ExecuteScalar(string connectionString, CommandType commandType, string commandText) {
+        public static object ExecuteScalar(string connectionString, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteScalar(connectionString, commandType, commandText, (SqlParameter[])null);
         }
@@ -876,9 +941,11 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>an object containing the value in the 1x1 resultset generated by the command</returns>
-        public static object ExecuteScalar(string connectionString, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static object ExecuteScalar(string connectionString, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create & open a SqlConnection, and dispose of it after we are done.
-            using (SqlConnection cn = new SqlConnection(connectionString)) {
+            using (SqlConnection cn = new SqlConnection(connectionString))
+            {
                 cn.Open();
 
                 //call the overload that takes a connection in place of the connection string
@@ -901,9 +968,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>an object containing the value in the 1x1 resultset generated by the command</returns>
-        public static object ExecuteScalar(string connectionString, string spName, params object[] parameterValues) {
+        public static object ExecuteScalar(string connectionString, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(connectionString, spName);
 
@@ -914,7 +983,8 @@ namespace BQHRWebApi.Common
                 return ExecuteScalar(connectionString, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteScalar(connectionString, CommandType.StoredProcedure, spName);
             }
         }
@@ -930,7 +1000,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>an object containing the value in the 1x1 resultset generated by the command</returns>
-        public static object ExecuteScalar(SqlConnection connection, CommandType commandType, string commandText) {
+        public static object ExecuteScalar(SqlConnection connection, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteScalar(connection, commandType, commandText, (SqlParameter[])null);
         }
@@ -948,7 +1019,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>an object containing the value in the 1x1 resultset generated by the command</returns>
-        public static object ExecuteScalar(SqlConnection connection, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static object ExecuteScalar(SqlConnection connection, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create a command and prepare it for execution
             SqlCommand cmd = new SqlCommand();
             PrepareCommand(cmd, connection, (SqlTransaction)null, commandType, commandText, commandParameters);
@@ -977,9 +1049,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>an object containing the value in the 1x1 resultset generated by the command</returns>
-        public static object ExecuteScalar(SqlConnection connection, string spName, params object[] parameterValues) {
+        public static object ExecuteScalar(SqlConnection connection, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(connection.ConnectionString, spName);
 
@@ -990,7 +1064,8 @@ namespace BQHRWebApi.Common
                 return ExecuteScalar(connection, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteScalar(connection, CommandType.StoredProcedure, spName);
             }
         }
@@ -1006,7 +1081,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>an object containing the value in the 1x1 resultset generated by the command</returns>
-        public static object ExecuteScalar(SqlTransaction transaction, CommandType commandType, string commandText) {
+        public static object ExecuteScalar(SqlTransaction transaction, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteScalar(transaction, commandType, commandText, (SqlParameter[])null);
         }
@@ -1024,7 +1100,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>an object containing the value in the 1x1 resultset generated by the command</returns>
-        public static object ExecuteScalar(SqlTransaction transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static object ExecuteScalar(SqlTransaction transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create a command and prepare it for execution
             SqlCommand cmd = new SqlCommand();
             PrepareCommand(cmd, transaction.Connection, transaction, commandType, commandText, commandParameters);
@@ -1052,9 +1129,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>an object containing the value in the 1x1 resultset generated by the command</returns>
-        public static object ExecuteScalar(SqlTransaction transaction, string spName, params object[] parameterValues) {
+        public static object ExecuteScalar(SqlTransaction transaction, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(transaction.Connection.ConnectionString, spName);
 
@@ -1065,7 +1144,8 @@ namespace BQHRWebApi.Common
                 return ExecuteScalar(transaction, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteScalar(transaction, CommandType.StoredProcedure, spName);
             }
         }
@@ -1085,7 +1165,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command using "FOR XML AUTO"</param>
         /// <returns>an XmlReader containing the resultset generated by the command</returns>
-        public static XmlReader ExecuteXmlReader(SqlConnection connection, CommandType commandType, string commandText) {
+        public static XmlReader ExecuteXmlReader(SqlConnection connection, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteXmlReader(connection, commandType, commandText, (SqlParameter[])null);
         }
@@ -1103,7 +1184,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command using "FOR XML AUTO"</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>an XmlReader containing the resultset generated by the command</returns>
-        public static XmlReader ExecuteXmlReader(SqlConnection connection, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static XmlReader ExecuteXmlReader(SqlConnection connection, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create a command and prepare it for execution
             SqlCommand cmd = new SqlCommand();
             PrepareCommand(cmd, connection, (SqlTransaction)null, commandType, commandText, commandParameters);
@@ -1132,9 +1214,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure using "FOR XML AUTO"</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>an XmlReader containing the resultset generated by the command</returns>
-        public static XmlReader ExecuteXmlReader(SqlConnection connection, string spName, params object[] parameterValues) {
+        public static XmlReader ExecuteXmlReader(SqlConnection connection, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(connection.ConnectionString, spName);
 
@@ -1145,7 +1229,8 @@ namespace BQHRWebApi.Common
                 return ExecuteXmlReader(connection, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteXmlReader(connection, CommandType.StoredProcedure, spName);
             }
         }
@@ -1161,7 +1246,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
         /// <param name="commandText">the stored procedure name or T-SQL command using "FOR XML AUTO"</param>
         /// <returns>an XmlReader containing the resultset generated by the command</returns>
-        public static XmlReader ExecuteXmlReader(SqlTransaction transaction, CommandType commandType, string commandText) {
+        public static XmlReader ExecuteXmlReader(SqlTransaction transaction, CommandType commandType, string commandText)
+        {
             //pass through the call providing null for the set of SqlParameters
             return ExecuteXmlReader(transaction, commandType, commandText, (SqlParameter[])null);
         }
@@ -1179,7 +1265,8 @@ namespace BQHRWebApi.Common
         /// <param name="commandText">the stored procedure name or T-SQL command using "FOR XML AUTO"</param>
         /// <param name="commandParameters">an array of SqlParamters used to execute the command</param>
         /// <returns>an XmlReader containing the resultset generated by the command</returns>
-        public static XmlReader ExecuteXmlReader(SqlTransaction transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters) {
+        public static XmlReader ExecuteXmlReader(SqlTransaction transaction, CommandType commandType, string commandText, params SqlParameter[] commandParameters)
+        {
             //create a command and prepare it for execution
             SqlCommand cmd = new SqlCommand();
             PrepareCommand(cmd, transaction.Connection, transaction, commandType, commandText, commandParameters);
@@ -1207,9 +1294,11 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure</param>
         /// <returns>a dataset containing the resultset generated by the command</returns>
-        public static XmlReader ExecuteXmlReader(SqlTransaction transaction, string spName, params object[] parameterValues) {
+        public static XmlReader ExecuteXmlReader(SqlTransaction transaction, string spName, params object[] parameterValues)
+        {
             //if we receive parameter values, we need to figure out where they go
-            if ((parameterValues != null) && (parameterValues.Length > 0)) {
+            if ((parameterValues != null) && (parameterValues.Length > 0))
+            {
                 //pull the parameters for this stored procedure from the parameter cache (or discover them & populate the cache)
                 SqlParameter[] commandParameters = SqlHelperParameterCache.GetSpParameterSet(transaction.Connection.ConnectionString, spName);
 
@@ -1220,7 +1309,8 @@ namespace BQHRWebApi.Common
                 return ExecuteXmlReader(transaction, CommandType.StoredProcedure, spName, commandParameters);
             }
             //otherwise we can just call the SP without params
-            else {
+            else
+            {
                 return ExecuteXmlReader(transaction, CommandType.StoredProcedure, spName);
             }
         }
@@ -1233,7 +1323,8 @@ namespace BQHRWebApi.Common
     /// SqlHelperParameterCache provides functions to leverage a static cache of procedure parameters, and the
     /// ability to discover parameters for stored procedures at run-time.
     /// </summary>
-    internal sealed class SqlHelperParameterCache {
+    internal sealed class SqlHelperParameterCache
+    {
         #region private methods, variables, and constructors
 
         //Since this class provides only static methods, make the default constructor private to prevent 
@@ -1249,15 +1340,18 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="includeReturnValueParameter">whether or not to include their return value parameter</param>
         /// <returns></returns>
-        private static SqlParameter[] DiscoverSpParameterSet(string connectionString, string spName, bool includeReturnValueParameter) {
+        private static SqlParameter[] DiscoverSpParameterSet(string connectionString, string spName, bool includeReturnValueParameter)
+        {
             using (SqlConnection cn = new SqlConnection(connectionString))
-            using (SqlCommand cmd = new SqlCommand(spName, cn)) {
+            using (SqlCommand cmd = new SqlCommand(spName, cn))
+            {
                 cn.Open();
                 cmd.CommandType = CommandType.StoredProcedure;
 
                 SqlCommandBuilder.DeriveParameters(cmd);
 
-                if (!includeReturnValueParameter) {
+                if (!includeReturnValueParameter)
+                {
                     cmd.Parameters.RemoveAt(0);
                 }
 
@@ -1270,10 +1364,12 @@ namespace BQHRWebApi.Common
         }
 
         //deep copy of cached SqlParameter array
-        private static SqlParameter[] CloneParameters(SqlParameter[] originalParameters) {
+        private static SqlParameter[] CloneParameters(SqlParameter[] originalParameters)
+        {
             SqlParameter[] clonedParameters = new SqlParameter[originalParameters.Length];
 
-            for (int i = 0, j = originalParameters.Length; i < j; i++) {
+            for (int i = 0, j = originalParameters.Length; i < j; i++)
+            {
                 clonedParameters[i] = (SqlParameter)((ICloneable)originalParameters[i]).Clone();
             }
 
@@ -1290,7 +1386,8 @@ namespace BQHRWebApi.Common
         /// <param name="connectionString">a valid connection string for a SqlConnection</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <param name="commandParameters">an array of SqlParamters to be cached</param>
-        public static void CacheParameterSet(string connectionString, string commandText, params SqlParameter[] commandParameters) {
+        public static void CacheParameterSet(string connectionString, string commandText, params SqlParameter[] commandParameters)
+        {
             string hashKey = connectionString + ":" + commandText;
 
             paramCache[hashKey] = commandParameters;
@@ -1302,15 +1399,18 @@ namespace BQHRWebApi.Common
         /// <param name="connectionString">a valid connection string for a SqlConnection</param>
         /// <param name="commandText">the stored procedure name or T-SQL command</param>
         /// <returns>an array of SqlParamters</returns>
-        public static SqlParameter[] GetCachedParameterSet(string connectionString, string commandText) {
+        public static SqlParameter[] GetCachedParameterSet(string connectionString, string commandText)
+        {
             string hashKey = connectionString + ":" + commandText;
 
             SqlParameter[] cachedParameters = (SqlParameter[])paramCache[hashKey];
 
-            if (cachedParameters == null) {
+            if (cachedParameters == null)
+            {
                 return null;
             }
-            else {
+            else
+            {
                 return CloneParameters(cachedParameters);
             }
         }
@@ -1328,7 +1428,8 @@ namespace BQHRWebApi.Common
         /// <param name="connectionString">a valid connection string for a SqlConnection</param>
         /// <param name="spName">the name of the stored procedure</param>
         /// <returns>an array of SqlParameters</returns>
-        public static SqlParameter[] GetSpParameterSet(string connectionString, string spName) {
+        public static SqlParameter[] GetSpParameterSet(string connectionString, string spName)
+        {
             return GetSpParameterSet(connectionString, spName, false);
         }
 
@@ -1342,14 +1443,16 @@ namespace BQHRWebApi.Common
         /// <param name="spName">the name of the stored procedure</param>
         /// <param name="includeReturnValueParameter">a bool value indicating whether the return value parameter should be included in the results</param>
         /// <returns>an array of SqlParameters</returns>
-        public static SqlParameter[] GetSpParameterSet(string connectionString, string spName, bool includeReturnValueParameter) {
+        public static SqlParameter[] GetSpParameterSet(string connectionString, string spName, bool includeReturnValueParameter)
+        {
             string hashKey = connectionString + ":" + spName + (includeReturnValueParameter ? ":include ReturnValue Parameter" : "");
 
             SqlParameter[] cachedParameters;
 
             cachedParameters = (SqlParameter[])paramCache[hashKey];
 
-            if (cachedParameters == null) {
+            if (cachedParameters == null)
+            {
                 cachedParameters = (SqlParameter[])(paramCache[hashKey] = DiscoverSpParameterSet(connectionString, spName, includeReturnValueParameter));
             }
 

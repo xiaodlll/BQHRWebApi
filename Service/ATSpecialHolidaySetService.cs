@@ -1,7 +1,6 @@
-﻿using BQHRWebApi.Business;
+﻿using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
 using System.Data;
-using Dcms.HR.DataEntities;
 
 namespace BQHRWebApi.Service
 {

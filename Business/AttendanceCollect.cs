@@ -1,6 +1,6 @@
 ﻿namespace BQHRWebApi.Business
 {
-    public class AttendanceCollectForAPI: DataEntity
+    public class AttendanceCollectForAPI : DataEntity
     {
         /// <summary>
         /// 员工Code
@@ -43,6 +43,6 @@
         public string? Remark { get; set; }
 
 
-        
+
     }
 }

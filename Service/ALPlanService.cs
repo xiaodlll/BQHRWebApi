@@ -2,18 +2,14 @@
 using Dcms.Common;
 using Dcms.HR;
 using Dcms.HR.Services;
-using Microsoft.AspNetCore.Http.Extensions;
 using System.Data;
-using System.Linq.Expressions;
-using System.Resources;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace BQHRWebApi.Service
 {
-    public class ALPlanService:HRService
+    public class ALPlanService : HRService
     {
-        public  decimal GetDays(string pEmployeeId, string pFiscalYearId, DateTime pBeginDate, DateTime pEndDate, string pCorId)
+        public decimal GetDays(string pEmployeeId, string pFiscalYearId, DateTime pBeginDate, DateTime pEndDate, string pCorId)
         {
             #region 参数检查
             if (pEmployeeId.CheckNullOrEmpty())
@@ -37,21 +33,21 @@ namespace BQHRWebApi.Service
             {
                 //(bug9343)如果fiscalYearId和date参数对应的不是同一年，则已财年为准
                 DataTable dt_years = new DataTable();
-               
-                   string strSql = string.Format(@"select year from fiscalYear where fiscalYearId='{0}'", pFiscalYearId);
-                
-                    dt_years=HRHelper.ExecuteDataTable(strSql);
-               
+
+                string strSql = string.Format(@"select year from fiscalYear where fiscalYearId='{0}'", pFiscalYearId);
+
+                dt_years = HRHelper.ExecuteDataTable(strSql);
+
                 string year = dt_years.Rows[0][0].ToString();
                 if (year.Equals(pBeginDate.Year.ToString()))
                 {
                     daySql = string.Format(@" and AnnualLeavePlanEmployee.BeginDate<='{0}'
-                         and AnnualLeavePlanEmployee.EndDate>='{1}'", pBeginDate.ToShortDateString(),pEndDate.ToShortDateString());
+                         and AnnualLeavePlanEmployee.EndDate>='{1}'", pBeginDate.ToShortDateString(), pEndDate.ToShortDateString());
                 }
             }
-          
+
             // 获得所有数据
-            DataTable dt = HRHelper.ExecuteDataTable(string.Format(sqlS,pFiscalYearId,pEmployeeId,daySql,pCorId));
+            DataTable dt = HRHelper.ExecuteDataTable(string.Format(sqlS, pFiscalYearId, pEmployeeId, daySql, pCorId));
             if (dt != null && dt.Rows.Count > 0)
             {//考虑到折算情况
                 return Convert.ToDecimal(dt.Rows[dt.Rows.Count - 1][0]);
@@ -101,16 +97,19 @@ namespace BQHRWebApi.Service
                 string sql = string.Format(@"select * from AnnualLeaveParameter
 	 where Flag=1
 	 and (CorporationId='688564CE-C44C-4E1B-A58D-A10091B6E77B' or CorporationId='{0}')", pCorporationId);
-               
+
                 DataTable dtParameter = HRHelper.ExecuteDataTable(sql);
                 if (dtParameter.Rows.Count == 0)
                 {
-                    res= dtParameter.Rows[0]["AnnualLeaveUnitId"].ToString();
+                    res = dtParameter.Rows[0]["AnnualLeaveUnitId"].ToString();
                 }
-                else {
-                    foreach (DataRow r in dtParameter.Rows) {
-                        if (r["CorporationId"] == pCorporationId) {
-                            res= r["AnnualLeaveUnitId"].ToString();
+                else
+                {
+                    foreach (DataRow r in dtParameter.Rows)
+                    {
+                        if (r["CorporationId"] == pCorporationId)
+                        {
+                            res = r["AnnualLeaveUnitId"].ToString();
                         }
                         if (r["CorporationId"] == Constants.SYSTEMGUID_CORPORATION_ROOT)
                         {
@@ -179,18 +178,19 @@ namespace BQHRWebApi.Service
 
             string msg = string.Empty;
             DataTable dt;
-            EmployeeService employeeService = new EmployeeService ();
+            EmployeeService employeeService = new EmployeeService();
 
-            string empName= employeeService.GetEmployeeNameById(pEmployeeId);
+            string empName = employeeService.GetEmployeeNameById(pEmployeeId);
 
-            
-             DataTable fY= HRHelper.ExecuteDataTable(string.Format("select [year] from fiscalYear where FiscalYearId='{0}'",pFiscalYearId));
-            int fYear=DateTime.Now.Year;
-            if (fY != null && fY.Rows.Count > 0) {
-                fYear =Convert.ToInt32( fY.Rows[0][0].ToString());
+
+            DataTable fY = HRHelper.ExecuteDataTable(string.Format("select [year] from fiscalYear where FiscalYearId='{0}'", pFiscalYearId));
+            int fYear = DateTime.Now.Year;
+            if (fY != null && fY.Rows.Count > 0)
+            {
+                fYear = Convert.ToInt32(fY.Rows[0][0].ToString());
 
             }
-          //  FiscalYear fiscalYear = docSvcYear.Read(pFiscalYearId);
+            //  FiscalYear fiscalYear = docSvcYear.Read(pFiscalYearId);
             //根据员工、休假年度、休假日期是否存在年假计划
             string sql = string.Format(@"                                       
                                         select main.CorporationId from AnnualLeavePlanEmployee info 

@@ -1,8 +1,9 @@
 ﻿namespace Dcms.HR.Services
 {
-    public class BusinessException: Exception
+    public class BusinessException : Exception
     {
-        public BusinessException(string error):base(error) { 
+        public BusinessException(string error) : base(error)
+        {
         }
     }
 
@@ -12,5 +13,5 @@
         {
         }
     }
-    
+
 }

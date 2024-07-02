@@ -7,22 +7,17 @@
 //<description>Global</description>
 //---------------------------------------------------------------- 
 
-using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using Dcms.Common;
-using Dcms.Common.Torridity.Metadata;
 using Dcms.Common.Torridity;
+using Dcms.Common.Torridity.Metadata;
 using Dcms.HR.DataEntities;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Dynamic;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace Dcms.HR.Services
 {
@@ -251,10 +246,12 @@ namespace Dcms.HR.Services
             return ExecuteDataTable(sql);
         }
 
-        public static bool isExistFormNumber(string table,string formType,string formNumber) {
-            string sql = string.Format("select * from {0} where ESSType = '{1}' and ESSNo='{2}' ", table,formType,formNumber);
+        public static bool isExistFormNumber(string table, string formType, string formNumber)
+        {
+            string sql = string.Format("select * from {0} where ESSType = '{1}' and ESSNo='{2}' ", table, formType, formNumber);
             DataTable dt = ExecuteDataTable(sql);
-            if(dt!=null&&dt.Rows.Count>0){
+            if (dt != null && dt.Rows.Count > 0)
+            {
                 return true;
             }
             return false;
@@ -308,6 +305,20 @@ namespace Dcms.HR.Services
                 {
                     dict[column.ColumnName] = row[column];
                 }
+
+                list.Add(expando);
+            }
+            return list;
+        }
+
+        public static List<ExpandoObject> ConvertToExpandoObjects(Dictionary<int, string> dic)
+        {
+            var list = new List<ExpandoObject>();
+            foreach (int i in dic.Keys)
+            {
+                dynamic expando = new ExpandoObject();
+                var dict = (IDictionary<string, object>)expando;
+                dict.Add(i.ToString(), dic[i].ToString());
 
                 list.Add(expando);
             }

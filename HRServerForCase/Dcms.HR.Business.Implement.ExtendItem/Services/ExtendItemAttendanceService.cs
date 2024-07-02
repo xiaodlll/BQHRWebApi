@@ -2,9 +2,6 @@
 using Dcms.Common.Services;
 using Dcms.HR.DataEntities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Dcms.HR.Services
 {

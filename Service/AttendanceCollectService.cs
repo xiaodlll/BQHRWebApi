@@ -5,8 +5,6 @@ using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
 using Newtonsoft.Json;
 using System.Data;
-using System.Data.SqlClient;
-using System.Reflection;
 
 namespace BQHRWebApi.Service
 {
@@ -19,7 +17,8 @@ namespace BQHRWebApi.Service
             foreach (AttendanceCollect enty in attendanceCollects)
             {
                 DataTable dtEmp = GetEmpInfoByCode(enty.EmployeeCode);
-                if (dtEmp != null && dtEmp.Rows.Count>0) {
+                if (dtEmp != null && dtEmp.Rows.Count > 0)
+                {
 
                     enty.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
                     enty.EmployeeName = dtEmp.Rows[0]["EmployeeName"].ToString();
@@ -33,9 +32,10 @@ namespace BQHRWebApi.Service
                     enty.CardId = GetCardId(enty.CardCode, enty.Date);
                     enty.IsEss = true;
                     enty.Flag = true;
-                }else
+                }
+                else
                 {
-                    throw new BusinessRuleException("找不到对应的员工:"+ enty.EmployeeCode);
+                    throw new BusinessRuleException("找不到对应的员工:" + enty.EmployeeCode);
                 }
             }
 
@@ -67,8 +67,9 @@ namespace BQHRWebApi.Service
         }
 
 
-        private void CheckData(BusinessApplyForAPI enty) { 
-           
+        private void CheckData(BusinessApplyForAPI enty)
+        {
+
         }
         private DataTable GetEmpInfoByCode(string employeeCode)
         {
@@ -82,11 +83,12 @@ where Employee.Code='{0}'", employeeCode));
             return dt;
         }
 
-        private Guid GetCardId(string cardCode ,DateTime date)
+        private Guid GetCardId(string cardCode, DateTime date)
         {
             Guid guid = Guid.Empty;
             object obj = HRHelper.ExecuteScalar(string.Format("select CardId from [Card] where CardNo='{0}' and UseTypeId in ('UseType_001','UseType_003') and '{1}' between BeginDate and EndDate and Flag=1", cardCode, date.ToString("yyyy-MM-dd HH:mm:ss")));
-            if (obj != null) { 
+            if (obj != null)
+            {
                 guid = (Guid)obj;
             }
             return guid;

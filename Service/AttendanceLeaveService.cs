@@ -1,28 +1,15 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
+using Dcms.Common;
+using Dcms.HR;
+using Dcms.HR.Business.Implement.Properties;
+using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
+using Newtonsoft.Json;
 using System.Data;
 using System.Data.SqlClient;
-using System.Dynamic;
-using System.Reflection;
-using System.Text;
-
-
-using Dcms.Common;
-using Microsoft.AspNetCore.Http.Extensions;
-using System.Linq.Expressions;
-using System.Text.RegularExpressions;
-using System.Resources;
 using System.Drawing;
-using Newtonsoft.Json;
-using Dcms.HR.DataEntities;
-using System.Collections.Generic;
-using Dcms.Common.DataEntities;
-using Dcms.HR;
-using Dcms.Common.Torridity.Query;
-using Dcms.Common.Services;
-using Dcms.HR.Business.Implement.Properties;
-using Dcms.Common.Core;
+using System.Text;
 
 
 namespace BQHRWebApi.Service
@@ -58,8 +45,9 @@ namespace BQHRWebApi.Service
             }
             enty.EmployeeId = empId.GetGuid();
             enty.AttendanceLeaveId = Guid.NewGuid();
-            string s=CheckValue(enty);
-            if (!s.CheckNullOrEmpty()) {
+            string s = CheckValue(enty);
+            if (!s.CheckNullOrEmpty())
+            {
                 return (s);
             }
 
@@ -100,7 +88,7 @@ namespace BQHRWebApi.Service
             else if (enty.AttendanceTypeId.Equals("401"))
             {
                 List<AnnualLeaveRegister> list = this.ChangeToALRegisterEntity(arrayEntity);
-                
+
                 AnnualLeaveRegister formEntity = list.First();
                 formEntity.EmployeeId = empId.GetGuid();
                 formEntity.IsEss = true;
@@ -181,7 +169,8 @@ namespace BQHRWebApi.Service
             return "";
         }
 
-        public async Task<DataTable> GetLeaveHoursForCase(AttendanceLeaveForAPI enty) {
+        public async Task<DataTable> GetLeaveHoursForCase(AttendanceLeaveForAPI enty)
+        {
             EmployeeService employeeService = new EmployeeService();// Factory.GetService<EmployeeService>();
             string response = "";
             string empId = employeeService.GetEmpIdByCode(enty.EmpCode);
@@ -241,13 +230,14 @@ namespace BQHRWebApi.Service
                     {
                         throw new BusinessException(aPIExResponse.Msg);
                     }
-                    else {
+                    else
+                    {
                         if (!aPIExResponse.ResultValue.CheckNullOrEmpty())
                         {
                             var dt = (DataTable)JsonConvert.DeserializeObject(aPIExResponse.ResultValue.ToString(), typeof(DataTable));
-                         
+
                             return dt;
-                        
+
                         }
                     }
                 }
@@ -258,7 +248,7 @@ namespace BQHRWebApi.Service
             }
             catch (Exception ex)
             {
-               throw new BusinessRuleException( ex.Message);
+                throw new BusinessRuleException(ex.Message);
             }
             return null;
         }
@@ -270,7 +260,8 @@ namespace BQHRWebApi.Service
             StringBuilder sbError = new StringBuilder();
             string msg = string.Empty;
             EmployeeService employeeService = new EmployeeService();
-            if (formNumber.CheckNullOrEmpty()) {
+            if (formNumber.CheckNullOrEmpty())
+            {
                 throw new BusinessRuleException("流程编号不能为空");
             }
             string empId = employeeService.GetEmpIdByCode(enty.EmpCode);
@@ -300,7 +291,8 @@ namespace BQHRWebApi.Service
             string response = "";
             if (enty.AttendanceTypeId.Equals("406"))
             {
-                if (HRHelper.isExistFormNumber("AttendanceOTRest", "ATQJ", formNumber)) {
+                if (HRHelper.isExistFormNumber("AttendanceOTRest", "ATQJ", formNumber))
+                {
                     throw new BusinessRuleException("流程编号在调休休假中已经存在");
                 }
                 List<AttendanceOverTimeRest> list = this.ChangeToOTRestEntity(arrayEntity);
@@ -322,7 +314,7 @@ namespace BQHRWebApi.Service
 
                 string json = JsonConvert.SerializeObject(callServiceBindingModel);
                 response = await HttpPostJsonHelper.PostJsonAsync(json);
-                 Dcms.HR.DataEntities.APIExResponse apiExResponse = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
+                Dcms.HR.DataEntities.APIExResponse apiExResponse = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
                 if (apiExResponse.State == "-1")
                 {
                     throw new BusinessException(apiExResponse.Msg);
@@ -379,8 +371,7 @@ namespace BQHRWebApi.Service
                 leave.IsFromEss = true;
                 leave.Flag = true;
                 leave.EssType = "ATQJ";
-                                leave.EssType = "ATQJ";
-leave.EssNo = formNumber;
+                leave.EssNo = formNumber;
                 CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
                 callServiceBindingModel.RequestCode = "API_AT_006";
 
@@ -403,11 +394,11 @@ leave.EssNo = formNumber;
                     return leave.AttendanceLeaveId.GetString();
                 }
             }
-          
+
             return "";
         }
 
-  
+
         /// <summary>
         /// 获取财年
         /// </summary>
@@ -436,17 +427,13 @@ leave.EssNo = formNumber;
             {
                 ecMsg.Append("AttendanceTypeId 为空");
             }
-            else {
+            else
+            {
                 AttendanceTypeService typeSer = new AttendanceTypeService();
-                string s= typeSer.GetNameById(pFormEntity.AttendanceTypeId);
-                if (s.CheckNullOrEmpty()) {
+                string s = typeSer.GetNameById(pFormEntity.AttendanceTypeId);
+                if (s.CheckNullOrEmpty())
+                {
                     ecMsg.Append("AttendanceTypeId 不正确");
-                }
-                if (pFormEntity.AttendanceTypeId == "401") {
-                    if (pFormEntity.FiscalYearId.CheckNullOrEmpty())
-                    {
-                        ecMsg.Append("请年假必须带入FiscalYearId");
-                    }
                 }
             }
             if (pFormEntity.BeginDate.CheckNullOrEmpty())
@@ -465,13 +452,14 @@ leave.EssNo = formNumber;
             {
                 ecMsg.Append("EndTime error");
             }
-            
+
             string errorMsg = string.Empty;
             if (ecMsg.Length > 0)
             {
                 return errorMsg.ToString();
             }
-            else {
+            else
+            {
                 DateTime tmpTime = DateTime.Now;
                 DateTime tmpTime1 = DateTime.Now;
                 if (!DateTime.TryParse(string.Format("{0} {1}", pFormEntity.BeginDate.ToShortDateString(), pFormEntity.BeginTime), out tmpTime))
@@ -483,10 +471,38 @@ leave.EssNo = formNumber;
                     ecMsg.Append("结束日期和结束时间不是正确的日期时间格式");
                 }
 
-                if (tmpTime1 < tmpTime) {
+                if (tmpTime1 < tmpTime)
+                {
 
                     ecMsg.Append("请假结束不能小于请假开始");
                 }
+            }
+            if (ecMsg.Length > 0)
+            {
+                return ecMsg.ToString();
+            }
+            CheckEntityType entityType = new CheckEntityType();
+            if (pFormEntity.AttendanceTypeId.Equals("401"))
+            {
+                entityType = CheckEntityType.AnnualLeave;
+            }
+            else if (pFormEntity.AttendanceTypeId == "406")
+            {
+                entityType = CheckEntityType.OTRest;
+            }
+            else if (pFormEntity.AttendanceTypeId == "408")
+            {
+                entityType = CheckEntityType.TWALReg;
+            }
+            else
+            {
+                entityType = CheckEntityType.Leave;
+            }
+            string errMsg = CheckAllTime(pFormEntity.EmployeeId.ToString(), pFormEntity.BeginDate, pFormEntity.BeginTime, pFormEntity.EndDate, pFormEntity.EndTime
+                   , entityType, Guid.NewGuid().GetString(), true);
+            if (!errMsg.CheckNullOrEmpty())
+            {
+                ecMsg.Append(errMsg);
             }
             return ecMsg.ToString();
         }
@@ -500,7 +516,7 @@ leave.EssNo = formNumber;
         {
             AttendanceTypeService typeService = new AttendanceTypeService();
             AttendanceType type = typeService.GetAttendanceType(pAttendanceLeave.AttendanceTypeId);
-          
+
             if (type != null)
             {//判断
                 if (string.Equals(type.IsSalaryId, Constants.TRUE_ID))
@@ -640,7 +656,7 @@ leave.EssNo = formNumber;
             if (!pDataEntity.AttendanceTypeId.Equals("401") && pDataEntity.Infos.Count == 0)
             {
                 //如果没排班，则报异常员工未排班
-                AttendanceEmpRankService empRankService =new  AttendanceEmpRankService();
+                AttendanceEmpRankService empRankService = new AttendanceEmpRankService();
                 DataTable dtEmpRank = empRankService.GetEmpRanks(new string[] { pDataEntity.EmployeeId.ToString() }, pDataEntity.BeginDate, pDataEntity.EndDate);
                 if (dtEmpRank == null || dtEmpRank.Rows.Count == 0)
                 {
@@ -650,7 +666,7 @@ leave.EssNo = formNumber;
             }
 
 
-            ATMonthService atMonthSer = new ATMonthService ();
+            ATMonthService atMonthSer = new ATMonthService();
             StringBuilder sbError = new StringBuilder();
             string errorMsg = string.Empty;
 
@@ -762,12 +778,12 @@ leave.EssNo = formNumber;
         public virtual Dictionary<string, string> GetHolidayByDate(string pEmployeeId, DateTime pBeginDate, DateTime pEndDate, int pAttendanceDayType)
         {
             Dictionary<string, string> dicCalendar = new Dictionary<string, string>();
-            
-               
-                StringBuilder sb = new StringBuilder();
 
-                //只在员工班次表里面找行事历
-                sb.AppendFormat(@"SELECT   aht.[Name]               AS TYPE,
+
+            StringBuilder sb = new StringBuilder();
+
+            //只在员工班次表里面找行事历
+            sb.AppendFormat(@"SELECT   aht.[Name]               AS TYPE,
                                                  Weekday                  AS Week,
                                                  AttendanceemPrank.[Date]
                                         FROM     AttendanceemPrank
@@ -777,20 +793,20 @@ leave.EssNo = formNumber;
                                                  AND AttendanceemPrank.[Date] BETWEEN '{1}'
                                                                                       AND '{2}'
                                         ORDER BY AttendanceemPrank.[Date]", pEmployeeId, pBeginDate.Date.ToDateTimeFormatString(), pEndDate.Date.AddDays(1).AddSeconds(-1).ToDateTimeFormatString());
-                DataTable dt = HRHelper.ExecuteDataTable(sb.ToString());
-                string key = string.Empty;
-                for (int i = 0; i < dt.Rows.Count; ++i)
+            DataTable dt = HRHelper.ExecuteDataTable(sb.ToString());
+            string key = string.Empty;
+            for (int i = 0; i < dt.Rows.Count; ++i)
+            {
+                if (!dicCalendar.ContainsKey(dt.Rows[i]["Date"].ToString()))
                 {
-                    if (!dicCalendar.ContainsKey(dt.Rows[i]["Date"].ToString()))
-                    {
-                        key = DateTime.Parse(dt.Rows[i]["Date"].ToString()).ToDateFormatString();
-                    }
-                    if (!dicCalendar.ContainsKey(key))
-                    {
-                        dicCalendar.Add(key, dt.Rows[i]["Type"].ToString() + "|" + dt.Rows[i]["Week"].ToString());
-                    }
+                    key = DateTime.Parse(dt.Rows[i]["Date"].ToString()).ToDateFormatString();
                 }
-             
+                if (!dicCalendar.ContainsKey(key))
+                {
+                    dicCalendar.Add(key, dt.Rows[i]["Type"].ToString() + "|" + dt.Rows[i]["Week"].ToString());
+                }
+            }
+
             return dicCalendar;
         }
 
@@ -806,7 +822,7 @@ leave.EssNo = formNumber;
             #endregion
             dt = HRHelper.ExecuteDataTable(strSql);
 
-  
+
             for (int i = 0; i < dt.Rows.Count; i++)
             {
                 DateTime tempDateTime = Convert.ToDateTime(dt.Rows[i]["DateTime"]);
@@ -1096,7 +1112,7 @@ leave.EssNo = formNumber;
             return period;
         }
 
-      
+
 
         /// <summary>
         /// 产生明细方法
@@ -1165,7 +1181,7 @@ leave.EssNo = formNumber;
 
             if (empRankDt != null && empRankDt.Rows.Count > 0)
             {
-               
+
                 string rankId = string.Empty;
                 DateTime rankBegin = DateTime.MinValue;
                 DateTime rankEnd = DateTime.MinValue;
@@ -1175,7 +1191,7 @@ leave.EssNo = formNumber;
                 decimal workHours = 0; //工作时数
                 foreach (DataRow var in empRankDt.Rows)
                 {
-        
+
                     rankId = var["AttendanceRankId"].ToString();
                     workHours = 0;
                     decimal.TryParse(var["WorkHours"].ToString(), out workHours);
@@ -1189,7 +1205,7 @@ leave.EssNo = formNumber;
                     //}
                     #endregion
 
-               
+
 
                     #region 处理班段相关
                     if (!ranksInfo2.ContainsKey(rankId))
@@ -1432,7 +1448,7 @@ leave.EssNo = formNumber;
                                 #region 年假資訊
                                 if (pLeave.AttendanceTypeId == "401")
                                 {
-                                    EmployeeService employeeService=new EmployeeService();
+                                    EmployeeService employeeService = new EmployeeService();
                                     string corporationId = employeeService.GetEmpFiledById(pLeave.EmployeeId.ToString(), "CorporationId");
                                     ALPlanService planService = new ALPlanService();
                                     string parameterUnit = planService.GetParameterUnit(corporationId);
@@ -1457,7 +1473,7 @@ leave.EssNo = formNumber;
                                 //对于弹性班段的请假处理，备注上要添加说明 
                                 //20141125 LinBJ Add by Q00-20141103010 24390 24391 
                                 //若有弹性再加判请假明细是否有请假开始时间!＝班次开始时间的数据，则该天班次有弹性，请假明细备注中追加写入相关弹性信息
-                         
+
                                 AttendanceRankService ATRankService = new AttendanceRankService();
                                 AttendanceRank rank = ATRankService.GetAttendanceRank(rankId);
                                 if (!strFlexRemark.CheckNullOrEmpty() && info.BeginTime != rank.WorkBeginTime)
@@ -1478,7 +1494,7 @@ leave.EssNo = formNumber;
             {
                 string[] tmpMsg = msg.Split(',');
                 //20140916 added by huangzj for 22233 A00-20140912004 假勤单位是天 需要报错报出天
-               
+
                 AttendanceType atType = typeService.GetAttendanceType(pLeave.AttendanceTypeId);
                 if (atType.AttendanceUnitId.Equals("AttendanceUnit_001"))
                 {
@@ -1503,9 +1519,9 @@ leave.EssNo = formNumber;
             List<AttendanceLeaveInfo> listLeaveInfo = new List<AttendanceLeaveInfo>();
             // 获取日期段中日期的假日类型
             //IAttendanceLeaveService leaveService = Factory.GetService<IAttendanceLeaveService>();
-            AttendanceTypeService typeService = new AttendanceTypeService ();
+            AttendanceTypeService typeService = new AttendanceTypeService();
             AttendanceLeaveInfo info = new AttendanceLeaveInfo();
-            AttendanceEmpRankService empRankSer = new AttendanceEmpRankService ();
+            AttendanceEmpRankService empRankSer = new AttendanceEmpRankService();
             //IDocumentService<AttendanceEmployeeRank> empRankService = Factory.GetService<IAttendanceEmployeeRankService>();
             //IDocumentService<AttendanceRank> docRankSer = Factory.GetService<IAttendanceRankService>().GetServiceNoPower();
             DataTable empRankDt = empRankSer.GetEmpRanks(new string[] { pEmpId }, pBeginDateTime.AddDays(-1), pEndDateTime);
@@ -1538,7 +1554,7 @@ leave.EssNo = formNumber;
                 //isPassHoliday = dtLeaveConfig.Rows[0]["PassHoliday"].ToString().ToBool();
                 //isPassBreakDay = dtLeaveConfig.Rows[0]["PassBreakDay"].ToString().ToBool();
                 isDeductOhter = dtLeaveConfig.Rows[0]["DeductOhter"].ToString().ToBool();
-               // isPassEmptyDay = dtLeaveConfig.Rows[0]["PassEmptyDay"].ToString().ToBool();
+                // isPassEmptyDay = dtLeaveConfig.Rows[0]["PassEmptyDay"].ToString().ToBool();
 
                 Decimal.TryParse(dtLeaveConfig.Rows[0][2].ToString(), out minLeaveHours);
                 Decimal.TryParse(dtLeaveConfig.Rows[0][3].ToString(), out minAuditHours);
@@ -1588,7 +1604,7 @@ leave.EssNo = formNumber;
                     // 处理班段相关
                     if (!ranksInfo2.ContainsKey(rankId))
                     {
-                        AttendanceRankService rankSer = new AttendanceRankService ();
+                        AttendanceRankService rankSer = new AttendanceRankService();
                         DataTable rankRestDt = rankSer.GetRankRestInfo(rankId);
                         if (rankRestDt.Rows.Count > 0)
                         {
@@ -1696,7 +1712,7 @@ leave.EssNo = formNumber;
                                     {
                                         if (item.RankCode == beginCode || item.RankCode == endCode)
                                         {
-                                            if (pBeginDateTime.TimeOfDay != rankBegin.TimeOfDay )
+                                            if (pBeginDateTime.TimeOfDay != rankBegin.TimeOfDay)
                                             {
                                                 DateTime newRestBegin = restBegin;
                                                 DateTime newRestEnd = restEnd;
@@ -1821,7 +1837,7 @@ leave.EssNo = formNumber;
                                 //对于弹性班段的请假处理，备注上要添加说明 
                                 //20141125 LinBJ Add by Q00-20141103010 24390 24391 
                                 //若有弹性再加判请假明细是否有请假开始时间!＝班次开始时间的数据，则该天班次有弹性，请假明细备注中追加写入相关弹性信息
-                                if (!strFlexRemark.CheckNullOrEmpty() && (info.BeginTime != rank.WorkBeginTime ))
+                                if (!strFlexRemark.CheckNullOrEmpty() && (info.BeginTime != rank.WorkBeginTime))
                                 {
                                     info.Remark = strFlexRemark;
                                 }
@@ -1968,7 +1984,7 @@ leave.EssNo = formNumber;
             return i;
         }
 
-      
+
 
         /// <summary>
         /// 比较当前员工的请假时数是否大于最大带薪时数
@@ -2275,7 +2291,7 @@ leave.EssNo = formNumber;
 
 
                             DataTable dt = HRHelper.ExecuteDataTable(strSQL);
-                           
+
                             //20140916 modified by huangzj for 22233 A00-20140912004 请假天数用班次时数折算，不再用8小时
                             //按照假勤单位转换最大可请假时数
                             decimal salaryHour = maxSalaryHour;//最大允许请假时数
@@ -2327,7 +2343,7 @@ leave.EssNo = formNumber;
                             if (totalHours > salaryHour)
                             {
                                 EmployeeService empService = new EmployeeService();
-                                msg = string.Format("{0},{1},{2},false", empService.GetEmpFiledById(pAttendanceLeave.EmployeeId.ToString(),"Code"), salaryHour.ToString("#.##"), totalHours.ToString("#.##"));
+                                msg = string.Format("{0},{1},{2},false", empService.GetEmpFiledById(pAttendanceLeave.EmployeeId.ToString(), "Code"), salaryHour.ToString("#.##"), totalHours.ToString("#.##"));
                             }
                         }
 
@@ -2399,7 +2415,7 @@ leave.EssNo = formNumber;
                 return new List<PeriodDate>();
             }
             //获取员工所属公司ID
-            EmployeeService empService =new EmployeeService ();
+            EmployeeService empService = new EmployeeService();
             DataTable dtEmpInfo = empService.GetEmployeeInfoByIds(new string[] { pAttendanceLeave.EmployeeId.ToString() });
             string corporationId = string.Empty;
             string empCode = string.Empty;
@@ -2435,7 +2451,7 @@ leave.EssNo = formNumber;
                             }
                         }
                         dateList.Sort();
-                        ATMonthService monthService =new ATMonthService ();
+                        ATMonthService monthService = new ATMonthService();
                         if (pSalaryPeriodId.Equals("SalaryPeriod_001"))
                         {//年
                             periodDateList = monthService.GetBeginEndDate(corporationId, dateList[0], dateList[dateList.Count - 1], true);
@@ -2480,7 +2496,7 @@ leave.EssNo = formNumber;
             return periodDateList;
         }
 
-      
+
 
         /// <summary>
         /// 檢查請假時間與出差申請時間是否重複
@@ -2496,7 +2512,7 @@ leave.EssNo = formNumber;
 
             foreach (AttendanceLeaveForAPI apiEntity in formEntities)
             {
-                if (apiEntity.AttendanceTypeId.Equals("401") && !isUltimate)
+                if (apiEntity.AttendanceTypeId.Equals("401"))
                 {
                     entityType = CheckEntityType.AnnualLeave;
                 }
@@ -2540,7 +2556,7 @@ leave.EssNo = formNumber;
         /// <param name="pGuid">不同请假类型的ID</param>
         /// <param name="pIsRuleLeave">是否是请假中的请规律假</param>
         /// <returns>重复信息</returns>
-        public  string CheckBusinessApplyTime(string pEmployeeId, DateTime pBeginDate, string pBeginTime, DateTime pEndDate, string pEndTime, CheckEntityType pEntityType, string pGuid, bool pIsRuleLeave)
+        public string CheckBusinessApplyTime(string pEmployeeId, DateTime pBeginDate, string pBeginTime, DateTime pEndDate, string pEndTime, CheckEntityType pEntityType, string pGuid, bool pIsRuleLeave)
         {
             DataTable dt = new DataTable();
             string errorMsg = string.Empty;
@@ -2551,12 +2567,12 @@ leave.EssNo = formNumber;
             string typeId = string.Empty;
             DataTable dtApply = new DataTable();
             DataTable dtBusiness = new DataTable();
-           
-                StringBuilder sb = new StringBuilder();
 
-                #region 取出差申请时间
+            StringBuilder sb = new StringBuilder();
 
-                sb.AppendFormat(@"SELECT person.EmployeeId, BusinessApply.BeginDate, BusinessApply.BeginTime, BusinessApply.EndDate, BusinessApply.EndTime, ISNULL(BusinessApply.AttendanceTypeId, '701') AS AttendanceTypeId
+            #region 取出差申请时间
+
+            sb.AppendFormat(@"SELECT person.EmployeeId, BusinessApply.BeginDate, BusinessApply.BeginTime, BusinessApply.EndDate, BusinessApply.EndTime, ISNULL(BusinessApply.AttendanceTypeId, '701') AS AttendanceTypeId
                                                   FROM BusinessApplyPerson AS person
                                                   LEFT JOIN BusinessApply ON BusinessApply.BusinessApplyId = person.BusinessApplyId
                                                   WHERE person.EmployeeId = '{0}' 
@@ -2572,22 +2588,22 @@ leave.EssNo = formNumber;
                                                       WHERE StateId = 'PlanState_003' AND ApproveResultId = 'OperatorResult_002') 
                                                   AND BusinessApply.BeginDate >= '{1}' AND BusinessApply.BeginDate <= '{2}'  ", pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
 
-                if (pEntityType == CheckEntityType.Apply && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND info.BusinessApplyId <> '{0}' ", pGuid);
-                }
+            if (pEntityType == CheckEntityType.Apply && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND info.BusinessApplyId <> '{0}' ", pGuid);
+            }
             #endregion
 
             EmployeeService empSer = new EmployeeService();
-            string empName=empSer.GetEmployeeNameById(pEmployeeId);
+            string empName = empSer.GetEmployeeNameById(pEmployeeId);
             dt = HRHelper.ExecuteDataTable(sb.ToString());
-            
+
 
             #region 判断重复
             begin = pBeginDate.AddTimeToDateTime(pBeginTime);
             end = pEndDate.AddTimeToDateTime(pEndTime);
-            AttendanceTypeService typeSer = new AttendanceTypeService ();
-          
+            AttendanceTypeService typeSer = new AttendanceTypeService();
+
             DateTime beginDate = DateTime.MinValue;
             DateTime endDate = DateTime.MinValue;
             string strBegin = string.Empty;
@@ -2609,7 +2625,7 @@ leave.EssNo = formNumber;
                     beginDate = DateTime.MinValue;
                     endDate = DateTime.MinValue;
                     typeId = row["AttendanceTypeId"] as string;
-                     typeName = typeSer.GetNameById(typeId);
+                    typeName = typeSer.GetNameById(typeId);
                     strBegin = row["BeginDate"].ToString();
                     strEnd = row["EndDate"].ToString();
                     strBeginTime = row["BeginTime"] as string;
@@ -2696,7 +2712,7 @@ leave.EssNo = formNumber;
                 foreach (AttendanceLeave entity in list)
                 {
                     entity.IsCheckAtType = true;
-                    entity.StateId =Constants.PS02;
+                    entity.StateId = Constants.PS02;
                     entity.OwnerId = entity.EmployeeId.ToString();
                     entity.EssNo = pFormNumber;
                     if (!entity.EmployeeId.CheckNullOrEmpty())
@@ -2788,7 +2804,7 @@ leave.EssNo = formNumber;
                     entity.AttendanceOverTimeRestId = Guid.NewGuid();
                 }
                 Guid guid = Guid.NewGuid();
-                Guid.TryParse(apiEntity.EmployeeId.ToString(),out guid);
+                Guid.TryParse(apiEntity.EmployeeId.ToString(), out guid);
                 entity.EmployeeId = guid;
                 entity.BeginDate = apiEntity.BeginDate;
                 entity.BeginTime = apiEntity.BeginTime;
@@ -2829,8 +2845,25 @@ leave.EssNo = formNumber;
                 entity.EndDate = apiEntity.EndDate;
                 entity.EndTime = apiEntity.EndTime;
                 entity.Remark = apiEntity.Remark;
-                Guid.TryParse(apiEntity.FiscalYearId.ToString(), out guid);
-                entity.FiscalYearId =guid;
+                //Guid.TryParse(apiEntity.FiscalYearId.ToString(), out guid);
+                //entity.FiscalYearId =guid;
+                if (!entity.EmployeeId.CheckNullOrEmpty())
+                {
+                    EmployeeService empSer = new EmployeeService();
+                    string corporationId = empSer.GetEmpFiledById(entity.EmployeeId.GetString(), "CorporationId");
+                    if (!corporationId.CheckNullOrEmpty())
+                    {
+                        entity.CorporationId = corporationId.GetGuid();
+                    }
+
+                    DateTime tempDate = entity.BeginDate;
+
+                    string fiscalYearId = this.GetFisicalYearIdbyDate(entity.EmployeeId.GetString(), tempDate);
+                    if (!fiscalYearId.CheckNullOrEmpty())
+                    {
+                        entity.FiscalYearId = fiscalYearId.GetGuid();
+                    }
+                }
                 list.Add(entity);
             }
             return list;
@@ -3613,11 +3646,11 @@ ORDER BY BeginDate DESC"
             //using (IConnectionService conService = Factory.GetService<IConnectionService>())
             //{
             //    IDbCommand cmd = conService.CreateDbCommand();
-                StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
-                #region 查询SQL
-                //年假
-                sb.AppendFormat(@"SELECT EmployeeId,
+            #region 查询SQL
+            //年假
+            sb.AppendFormat(@"SELECT EmployeeId,
                                            BeginDate,
                                            BeginTime,
                                            EndDate,
@@ -3632,14 +3665,14 @@ ORDER BY BeginDate DESC"
                                            AND EmployeeId = '{0}'
                                            AND BeginDate >= '{1}'
                                            AND BeginDate <= '{2}' "
-                    , pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
-                if (pEntityType == CheckEntityType.AnnualLeave && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND AnnualLeaveRegisterId <> '{0}' ", pGuid);
-                }
-                sb.AppendLine("UNION ALL ");
-                //请假
-                sb.AppendFormat(@"SELECT EmployeeId,
+                , pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
+            if (pEntityType == CheckEntityType.AnnualLeave && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND AnnualLeaveRegisterId <> '{0}' ", pGuid);
+            }
+            sb.AppendLine("UNION ALL ");
+            //请假
+            sb.AppendFormat(@"SELECT EmployeeId,
                                            BeginDate,
                                            BeginTime,
                                            EndDate,
@@ -3654,14 +3687,14 @@ ORDER BY BeginDate DESC"
                                            AND EmployeeId = '{0}'
                                            AND BeginDate >= '{1}'
                                            AND BeginDate <= '{2}' "
-    , pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
-                if (pEntityType == CheckEntityType.Leave && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND AttendanceLeaveId <> '{0}' ", pGuid);
-                }
-                sb.AppendLine("UNION ALL ");
+, pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
+            if (pEntityType == CheckEntityType.Leave && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND AttendanceLeaveId <> '{0}' ", pGuid);
+            }
+            sb.AppendLine("UNION ALL ");
 
-                sb.AppendFormat(@"SELECT daily.EmployeeId,
+            sb.AppendFormat(@"SELECT daily.EmployeeId,
                                            daily.BeginDate,
                                            daily.BeginTime,
                                            daily.EndDate,
@@ -3677,16 +3710,16 @@ ORDER BY BeginDate DESC"
                                            AND daily.BeginDate >= '{1}'
                                            AND daily.BeginDate <= '{2}'
                                            AND daily.IsRevoke = 0"
-    , pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
+, pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
 
-                if (pEntityType == CheckEntityType.OTRest && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND rest.AttendanceOverTimeRestId <> '{0}' ", pGuid);
-                }
+            if (pEntityType == CheckEntityType.OTRest && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND rest.AttendanceOverTimeRestId <> '{0}' ", pGuid);
+            }
 
-                // 20101106 added by jiangpeng for 增加对特休假的校验
-                sb.AppendLine("UNION ALL ");
-                sb.AppendFormat(@"SELECT EmployeeId,
+            // 20101106 added by jiangpeng for 增加对特休假的校验
+            sb.AppendLine("UNION ALL ");
+            sb.AppendFormat(@"SELECT EmployeeId,
                                        BeginDate,
                                        BeginTime,
                                        EndDate,
@@ -3701,19 +3734,19 @@ ORDER BY BeginDate DESC"
                                        AND BeginDate >= '{1}'
                                        AND BeginDate <= '{2}'
                                        AND IsRevoke = '0'"
-    , pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
-                if (pEntityType == CheckEntityType.TWALReg && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND TWALRegId <> '{0}' ", pGuid);
-                }
+, pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
+            if (pEntityType == CheckEntityType.TWALReg && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND TWALRegId <> '{0}' ", pGuid);
+            }
             #endregion
             //cmd.CommandText = sb.ToString();
             //dt.Load(cmd.ExecuteReader());
-              dt = HRHelper.ExecuteDataTable(sb.ToString());
-                #region 出差登记
-                //出差登记
-                sb = new StringBuilder();
-                sb.AppendFormat(@"SELECT Info.EmployeeId,
+            dt = HRHelper.ExecuteDataTable(sb.ToString());
+            #region 出差登记
+            //出差登记
+            sb = new StringBuilder();
+            sb.AppendFormat(@"SELECT Info.EmployeeId,
                                            Info.BeginDate,
                                            Info.BeginTime,
                                            Info.EndDate,
@@ -3731,21 +3764,21 @@ ORDER BY BeginDate DESC"
                                            AND Info.BeginDate >= '{1}'
                                            AND Info.BeginDate <= '{2}' "
 , pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
-                if (pEntityType == CheckEntityType.Business && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND reg.BusinessRegisterId <> '{0}' ", pGuid);
-                }
+            if (pEntityType == CheckEntityType.Business && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND reg.BusinessRegisterId <> '{0}' ", pGuid);
+            }
             #endregion
             //cmd.CommandText = sb.ToString();
             //dtBusiness.Load(cmd.ExecuteReader());
             dtBusiness = HRHelper.ExecuteDataTable(sb.ToString());
 
-                #region 出差申请
-                //出差申请
-                sb = new StringBuilder();
-           
-                //20150528 modified for 29464 && A00-20150527007 by renping
-                sb.AppendFormat(@"SELECT Person.EmployeeId,
+            #region 出差申请
+            //出差申请
+            sb = new StringBuilder();
+
+            //20150528 modified for 29464 && A00-20150527007 by renping
+            sb.AppendFormat(@"SELECT Person.EmployeeId,
                                            BusinessApply.BeginDate,
                                            BusinessApply.BeginTime,
                                            BusinessApply.EndDate,
@@ -3764,18 +3797,18 @@ ORDER BY BeginDate DESC"
                                            AND BusinessApply.EndDate >= '{1}'
                                            AND BusinessApply.BeginDate <= '{2}' "
 , pEmployeeId, pBeginDate.AddDays(-1).ToDateFormatString(), pEndDate.AddDays(1).ToDateFormatString());
-                if (pEntityType == CheckEntityType.Apply && !pGuid.CheckNullOrEmpty())
-                {
-                    sb.AppendFormat(" AND person.BusinessApplyId <> '{0}' ", pGuid);
-                }
-                #endregion
+            if (pEntityType == CheckEntityType.Apply && !pGuid.CheckNullOrEmpty())
+            {
+                sb.AppendFormat(" AND person.BusinessApplyId <> '{0}' ", pGuid);
+            }
+            #endregion
 
-                //cmd.CommandText = sb.ToString();
-                dtApply=HRHelper.ExecuteDataTable(sb.ToString());
+            //cmd.CommandText = sb.ToString();
+            dtApply = HRHelper.ExecuteDataTable(sb.ToString());
             //}
             begin = pBeginDate.AddTimeToDateTime(pBeginTime);
             end = pEndDate.AddTimeToDateTime(pEndTime);
-            AttendanceTypeService typeSer =new AttendanceTypeService ();
+            AttendanceTypeService typeSer = new AttendanceTypeService();
             DateTime beginDate = DateTime.MinValue;
             DateTime endDate = DateTime.MinValue;
             string strBegin = string.Empty;
@@ -3809,7 +3842,7 @@ ORDER BY BeginDate DESC"
                                 if (!CheckTime(begin, end, tempBegin, tempEnd))
                                 {
                                     EmployeeService empSer = new EmployeeService();
-                                    string empName= empSer.GetEmployeeNameById(pEmployeeId);
+                                    string empName = empSer.GetEmployeeNameById(pEmployeeId);
                                     errorMsg += string.Format(Resources.AttendanceLeave_LeaveInfoRepeat, empName, tempBegin.ToDateTimeFormatString(false), tempEnd.ToDateTimeFormatString(false), typeSer.GetNameById(typeId));
                                 }
                             }
@@ -3836,7 +3869,7 @@ ORDER BY BeginDate DESC"
                     strEnd = row["EndDate"].ToString();
                     strBeginTime = row["BeginTime"] as string;
                     strEndTime = row["EndTime"] as string;
-                    EmployeeService empSer=new EmployeeService ();
+                    EmployeeService empSer = new EmployeeService();
                     string empName = empSer.GetEmployeeNameById(pEmployeeId);
                     if (!typeId.CheckNullOrEmpty() && !strBegin.CheckNullOrEmpty() && !strEnd.CheckNullOrEmpty()
                         && !strBeginTime.CheckNullOrEmpty() && !strEndTime.CheckNullOrEmpty())
@@ -4261,7 +4294,7 @@ ORDER BY BeginDate DESC"
             {
                 // 20170412 modified by yingchun for A00-20170103002_38796+38797+38798
                 //如果没排班，则报异常员工未排班
-                AttendanceEmpRankService empRankService =new AttendanceEmpRankService ();
+                AttendanceEmpRankService empRankService = new AttendanceEmpRankService();
                 DataTable dtEmpRank = empRankService.GetEmpRanks(new string[] { pLeave.EmployeeId.ToString() }, pLeave.BeginDate, pLeave.EndDate);
                 if (dtEmpRank == null || dtEmpRank.Rows.Count == 0)
                 {
@@ -4523,7 +4556,7 @@ ORDER BY BeginDate DESC"
                     //    //}
                     //}
                     //如果是離職存檔不提示 added by zhoug 20150303 for bug 26798&26797&26799 Q00-20150302002
-                      if (!leave.ExtendedProperties.Contains("IsEmployeeDimission"))
+                    if (!leave.ExtendedProperties.Contains("IsEmployeeDimission"))
                     //if (IsEmployeeDimission)
                     {
                         //时数不足
@@ -4687,38 +4720,60 @@ ORDER BY BeginDate DESC"
             {
                 throw new ArgumentNullException("attendanceTypeId");
             }
-            
+            string ids = "'" + Guid.Empty.ToString() + "'";
+            for (int i = 0; i < attendanceLeaveInfoIds.Length; i++)
+            {
+                ids += ",'" + attendanceLeaveInfoIds[i] + "'";
+            }
+            DataTable dt = new DataTable();
+            if (attendanceTypeId == "401")
+            {
+                dt = HRHelper.ExecuteDataTable(string.Format("select * from AnnualLeaveRegisterInfo where AnnualLeaveRegisterInfoId in ({0})", ids));
+            }
+            else if (attendanceTypeId == "406")
+            {
+                dt = HRHelper.ExecuteDataTable(string.Format("select * from AttendanceOTRestInfo where AttendanceOverTimeRestInfoId in ({0})", ids));
+            }
+            else
+            {
+                dt = HRHelper.ExecuteDataTable(string.Format(@"select * from AttendanceLeaveInfo where AttendanceTypeId='{0}'
+and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
+            }
+            if (dt == null || dt.Rows.Count == 0)
+            {
+                throw new Exception("請假明細资料找不到");
+            }
+            string response = "";
 
-        
-                string response = "";
-         
-                CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
-                callServiceBindingModel.RequestCode = "AT_XJ_01";
+            CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
+            callServiceBindingModel.RequestCode = "AT_XJ_01";
 
-                APIRequestParameter parameter = new APIRequestParameter();
-                parameter.Name = "attendanceLeaveInfoIds";
-                parameter.Value = JsonConvert.SerializeObject(attendanceLeaveInfoIds);
+            APIRequestParameter parameter = new APIRequestParameter();
+            parameter.Name = "attendanceLeaveInfoIds";
+            parameter.Value = JsonConvert.SerializeObject(attendanceLeaveInfoIds);
 
             APIRequestParameter parameter1 = new APIRequestParameter();
             parameter1.Name = "attendanceTypeId";
             parameter1.Value = attendanceTypeId;
 
-            callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter ,parameter1};
+            callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter, parameter1 };
 
-                string json = JsonConvert.SerializeObject(callServiceBindingModel);
-                response = await HttpPostJsonHelper.PostJsonAsync(json);
-               Dcms.HR.DataEntities.APIExResponse apiExResponse = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
-            if (apiExResponse.State == "0")
+            string json = JsonConvert.SerializeObject(callServiceBindingModel);
+            response = await HttpPostJsonHelper.PostJsonAsync(json);
+            Dcms.HR.DataEntities.APIExResponse apiExResponse = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
+            if (apiExResponse.State == "0" && !apiExResponse.Msg.CheckNullOrEmpty())
             {
                 return apiExResponse.Msg;
             }
-            else {
+            if (apiExResponse.State == "-1")
+            {
                 throw new BusinessException(apiExResponse.Msg);
             }
-            return "";
+            return "success";
         }
 
-        public async Task<String> SaveRevokeForAPI(string formNumber, string[] attendanceLeaveInfoIds, string attendanceTypeId) {
+        public async Task<String> SaveRevokeForAPI(string formNumber, string[] attendanceLeaveInfoIds, string attendanceTypeId)
+        {
             if (attendanceLeaveInfoIds == null || attendanceLeaveInfoIds.Length == 0)
             {
                 throw new Exception("請假明細不能為空");
@@ -4731,7 +4786,29 @@ ORDER BY BeginDate DESC"
             {
                 throw new ArgumentNullException("formNumber");
             }
-
+            string ids = "'" + Guid.Empty.ToString() + "'";
+            for (int i = 0; i < attendanceLeaveInfoIds.Length; i++)
+            {
+                ids += ",'" + attendanceLeaveInfoIds[i] + "'";
+            }
+            DataTable dt = new DataTable();
+            if (attendanceTypeId == "401")
+            {
+                dt = HRHelper.ExecuteDataTable(string.Format("select * from AnnualLeaveRegisterInfo where AnnualLeaveRegisterInfoId in ({0})", ids));
+            }
+            else if (attendanceTypeId == "406")
+            {
+                dt = HRHelper.ExecuteDataTable(string.Format("select * from AttendanceOTRestInfo where AttendanceOverTimeRestInfoId in ({0})", ids));
+            }
+            else
+            {
+                dt = HRHelper.ExecuteDataTable(string.Format(@"select * from AttendanceLeaveInfo where AttendanceTypeId='{0}'
+and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
+            }
+            if (dt == null || dt.Rows.Count == 0)
+            {
+                throw new Exception("請假明細资料找不到");
+            }
 
             string response = "";
 
@@ -4748,7 +4825,7 @@ ORDER BY BeginDate DESC"
 
             APIRequestParameter parameter2 = new APIRequestParameter();
             parameter2.Name = "formNumber";
-            parameter2.Value =formNumber;
+            parameter2.Value = formNumber;
 
             APIRequestParameter parameter3 = new APIRequestParameter();
             parameter3.Name = "formType";
@@ -4759,15 +4836,15 @@ ORDER BY BeginDate DESC"
             string json = JsonConvert.SerializeObject(callServiceBindingModel);
             response = await HttpPostJsonHelper.PostJsonAsync(json);
             Dcms.HR.DataEntities.APIExResponse apiExResponse = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
-            if (apiExResponse.State == "0")
+            if (apiExResponse.State == "0" && !apiExResponse.Msg.CheckNullOrEmpty())
             {
                 return apiExResponse.Msg;
             }
-            else
+            if (apiExResponse.State == "-1")
             {
                 throw new BusinessException(apiExResponse.Msg);
             }
-            return "";
+            return "success";
         }
 
 
@@ -4789,19 +4866,21 @@ ORDER BY BeginDate DESC"
                 string empId = employeeService.GetEmpIdByCode(enty.EmpCode);
                 if (empId.CheckNullOrEmpty())
                 {
-                    dicCheck.Add(i,("EmpCode 找不到对应的员工"));
+                    if (dicCheck == null) dicCheck = new Dictionary<int, string>();
+                    dicCheck.Add(i, ("EmpCode 找不到对应的员工"));
                 }
                 enty.EmployeeId = empId.GetGuid();
                 enty.AttendanceLeaveId = Guid.NewGuid();
                 string str = this.CheckValue(enty);
                 if (!str.CheckNullOrEmpty())
                 {
+                    if (dicCheck == null) dicCheck = new Dictionary<int, string>();
                     dicCheck.Add(i, str);
                 }
 
-                if (dicCheck.Keys.Count > 0)
+                if (dicCheck != null && dicCheck.Keys.Count > 0)
                 {
-                    return dicCheck;
+                    continue;
                 }
 
                 AttendanceLeaveForAPI[] arrayEntity = new AttendanceLeaveForAPI[] { enty };
@@ -4809,135 +4888,182 @@ ORDER BY BeginDate DESC"
                 dicCheck = this.CheckBusinessApplyTime(arrayEntity);
                 if (dicCheck != null && dicCheck.Count > 0)
                 {
-                    return dicCheck;
+                    continue;
                 }
-                string response = "";
-                if (enty.AttendanceTypeId.Equals("406"))
+            }
+
+            if (dicCheck != null && dicCheck.Count > 0)
+            {
+                return dicCheck;
+            }
+            string response = "";
+
+            List<AttendanceLeaveForAPI> listQJ = new List<AttendanceLeaveForAPI>();
+            List<AttendanceLeaveForAPI> list406 = new List<AttendanceLeaveForAPI>();
+            List<AttendanceLeaveForAPI> list401 = new List<AttendanceLeaveForAPI>();
+            CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
+
+            foreach (AttendanceLeaveForAPI formEntity in formEntities)
+            {
+                if (formEntity.AttendanceTypeId.Equals("401"))
                 {
-                    List<AttendanceOverTimeRest> list = this.ChangeToOTRestEntity(arrayEntity);
-                   
-                    CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
-                    callServiceBindingModel.RequestCode = "API_AT_013";
-
-                    APIRequestParameter parameter = new APIRequestParameter();
-                    parameter.Name = "formEntities";
-                    parameter.Value = JsonConvert.SerializeObject(list.ToArray());
-
-                    callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
-
-                    string json = JsonConvert.SerializeObject(callServiceBindingModel);
-                    response = await HttpPostJsonHelper.PostJsonAsync(json);
+                    list401.Add(formEntity);
                 }
-                else if (enty.AttendanceTypeId.Equals("401"))
+                else if (formEntity.AttendanceTypeId.Equals("406"))
                 {
-                    List<AnnualLeaveRegister> list = this.ChangeToALRegisterEntity(arrayEntity);
-                    foreach (AnnualLeaveRegister aR in list)
-                    {
-                        aR.EmployeeId = empId.GetGuid();
-                        aR.IsEss = true;
-                        aR.IsFromEss = true;
-                        aR.Flag = true;
-                        aR.EssType = string.Empty;
-                        aR.EssNo = string.Empty;
-                        aR.IsCheckAtType = true;
-                        aR.StateId = Constants.PS02;
-                        aR.CreateDate = DateTime.Now;
-                        aR.CreateBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
-                        aR.LastModifiedDate = DateTime.Now;
-                        aR.LastModifiedBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
-                        aR.FoundOperationDate = DateTime.Now;
-                        aR.FoundUserId = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
-                        aR.OwnerId = empId;
-                        aR.Flag = true;
-                        aR.IsEss = true;
-                        aR.IsFromEss = true;
-                        aR.EssType = string.Empty;
-                        aR.EssNo = string.Empty;
-                        if (!aR.EmployeeId.CheckNullOrEmpty())
-                        {
-                            EmployeeService empSer = new EmployeeService();
-                            string corporationId = empSer.GetEmpFiledById(empId, "CorporationId");
-                            if (!corporationId.CheckNullOrEmpty())
-                            {
-                                aR.CorporationId = corporationId.GetGuid();
-                            }
-
-                            DateTime tempDate = aR.BeginDate;
-
-                            string fiscalYearId = this.GetFisicalYearIdbyDate(empId, tempDate);
-                            if (!fiscalYearId.CheckNullOrEmpty())
-                            {
-                                aR.FiscalYearId = fiscalYearId.GetGuid();
-                            }
-                        }
-                    }
-                    CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
-                    callServiceBindingModel.RequestCode = "API_AT_014";
-
-                    APIRequestParameter parameter = new APIRequestParameter();
-                    parameter.Name = "formEntities";
-                    parameter.Value = JsonConvert.SerializeObject(list.ToArray());
-
-                    callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
-
-                    string json = JsonConvert.SerializeObject(callServiceBindingModel);
-                    response = await HttpPostJsonHelper.PostJsonAsync(json);
+                    list406.Add(formEntity);
                 }
                 else
                 {
-                    List<AttendanceLeave> list = ChangeToLeaveEntity(arrayEntity, true, string.Empty, string.Empty);
-                    int j = 0;
-                    foreach (AttendanceLeave leave in list)
-                    {
-                        j++;
-                      
-                            string[] tmpMsg = null;
-                            string msgInfo = this.GetSalaryTimes(leave);
-                            if (msgInfo.IndexOf("false") > -1)
-                            {
-                                tmpMsg = msgInfo.Split(',');
-                                dicCheck.Add(i,(string.Format("工号为 {0} 的员工当前请假总时数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1])));
-                            }
-                    }
-                    if (dicCheck.Keys.Count > 0) {
-                        return dicCheck;
-                    }
-                    j = 0;
-                    foreach (AttendanceLeave leave in list)
-                    {
-                        j++;
-                        msg = "";
-                        try
-                        {
-                            this.CheckForESS(leave);
-                        }
-                        catch (Exception ex)
-                        {
-                            msg = ex.Message;
-                        }
-                        if (!msg.CheckNullOrEmpty())
-                        {
-                            dicCheck.Add(i, msg);
-                        }
-                    }
-                    if (dicCheck.Keys.Count > 0)
-                    {
-                        return dicCheck;
-                    }
+                    listQJ.Add(formEntity);
                 }
             }
+            //检查
+            if (list401.Count > 0)
+            {
+                //用异常方式返回的
+                List<AnnualLeaveRegister> list = this.ChangeToALRegisterEntity(list401.ToArray());
+                foreach (AnnualLeaveRegister aR in list)
+                {
+                    aR.IsEss = true;
+                    aR.IsFromEss = true;
+                    aR.Flag = true;
+                    aR.EssType = string.Empty;
+                    aR.EssNo = string.Empty;
+                    aR.IsCheckAtType = true;
+                    aR.StateId = Constants.PS02;
+                    aR.CreateDate = DateTime.Now;
+                    aR.CreateBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
+                    aR.LastModifiedDate = DateTime.Now;
+                    aR.LastModifiedBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
+                    aR.FoundOperationDate = DateTime.Now;
+                    aR.FoundUserId = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
+                    aR.OwnerId = aR.EmployeeId.GetString();
+                    aR.Flag = true;
+                    aR.IsEss = true;
+                    aR.IsFromEss = true;
+                    aR.EssType = "ATQJ";
+                    aR.EssNo = "";
+                    if (!aR.EmployeeId.CheckNullOrEmpty())
+                    {
+                        EmployeeService empSer = new EmployeeService();
+                        string corporationId = empSer.GetEmpFiledById(aR.EmployeeId.GetString(), "CorporationId");
+                        if (!corporationId.CheckNullOrEmpty())
+                        {
+                            aR.CorporationId = corporationId.GetGuid();
+                        }
+
+                        DateTime tempDate = aR.BeginDate;
+
+                        string fiscalYearId = this.GetFisicalYearIdbyDate(aR.EmployeeId.GetString(), tempDate);
+                        if (!fiscalYearId.CheckNullOrEmpty())
+                        {
+                            aR.FiscalYearId = fiscalYearId.GetGuid();
+                        }
+                    }
+                }
+                callServiceBindingModel.RequestCode = "API_AT_014";
+                APIRequestParameter parameter = new APIRequestParameter();
+                parameter.Name = "formEntities";
+                parameter.Value = JsonConvert.SerializeObject(list.ToArray());
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+                string json = JsonConvert.SerializeObject(callServiceBindingModel);
+                response = await HttpPostJsonHelper.PostJsonAsync(json);
+                Dcms.HR.DataEntities.APIExResponse apiExResponse401 = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
+                if (apiExResponse401.State == "-1")
+                {
+                    throw new BusinessException(apiExResponse401.Msg);
+                }
+                else if (apiExResponse401.State == "0" && apiExResponse401.ResultValue.CheckNullOrEmpty())
+                {
+                    throw new BusinessException(apiExResponse401.ResultValue.ToString());
+                }
+            }
+            if (list406.Count > 0)
+            {
+                //用异常方式返回的
+                List<AttendanceOverTimeRest> list = this.ChangeToOTRestEntity(list406.ToArray());
+
+                callServiceBindingModel.RequestCode = "API_AT_013";
+
+                APIRequestParameter parameter = new APIRequestParameter();
+                parameter.Name = "formEntities";
+                parameter.Value = JsonConvert.SerializeObject(list.ToArray());
+
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+
+                string json = JsonConvert.SerializeObject(callServiceBindingModel);
+                response = await HttpPostJsonHelper.PostJsonAsync(json);
+                Dcms.HR.DataEntities.APIExResponse apiExResponse406 = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
+                if (apiExResponse406.State == "-1")
+                {
+                    throw new BusinessException(apiExResponse406.Msg);
+                }
+                else if (apiExResponse406.State == "0" && !apiExResponse406.ResultValue.CheckNullOrEmpty())
+                {
+                    throw new BusinessException(apiExResponse406.ResultValue.ToString());
+                }
+            }
+            if (listQJ.Count > 0)
+            {
+                List<AttendanceLeave> list = ChangeToLeaveEntity(listQJ.ToArray(), true, string.Empty, string.Empty);
+                int j = 0;
+                foreach (AttendanceLeave leave in list)
+                {
+                    j++;
+                    string[] tmpMsg = null;
+                    string msgInfo = this.GetSalaryTimes(leave);
+                    if (msgInfo.IndexOf("false") > -1)
+                    {
+                        tmpMsg = msgInfo.Split(',');
+                        if (dicCheck == null) dicCheck = new Dictionary<int, string>();
+                        dicCheck.Add(j, (string.Format("工号为 {0} 的员工当前请假总时数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1])));
+                    }
+                }
+                if (dicCheck != null && dicCheck.Keys.Count > 0)
+                {
+                    return dicCheck;
+                }
+
+                j = 0;
+                foreach (AttendanceLeave leave in list)
+                {
+                    j++;
+                    msg = "";
+                    try
+                    {
+                        this.CheckForESS(leave);
+                    }
+                    catch (Exception ex)
+                    {
+                        msg = ex.Message;
+                    }
+                    if (!msg.CheckNullOrEmpty())
+                    {
+                        if (dicCheck == null) dicCheck = new Dictionary<int, string>();
+                        dicCheck.Add(j, msg);
+                    }
+                }
+                if (dicCheck != null && dicCheck.Keys.Count > 0)
+                {
+                    return dicCheck;
+                }
+            }
+
             return null;
         }
 
 
 
-        public async Task<Dictionary<int, string>> MultiSaveForAPI(string QJType, AttendanceLeaveForAPI[] formEntities)
+        public async Task<string> MultiSaveForAPI(string formNumber, AttendanceLeaveForAPI[] formEntities)
         {
             string formType = "ATQJ";
             StringBuilder sbError = new StringBuilder();
-            string msg = string.Empty;
+            string msg = string.Empty; string json = string.Empty;
             Dictionary<int, string> dicCheck = new Dictionary<int, string>();
             int i = 0; string response = "";
+            CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
+
             foreach (AttendanceLeaveForAPI enty in formEntities)
             {
                 i++;
@@ -4946,19 +5072,21 @@ ORDER BY BeginDate DESC"
                 string empId = employeeService.GetEmpIdByCode(enty.EmpCode);
                 if (empId.CheckNullOrEmpty())
                 {
+                    if (dicCheck == null) dicCheck = new Dictionary<int, string>();
                     dicCheck.Add(i, ("EmpCode 找不到对应的员工"));
+                    continue;
                 }
                 enty.EmployeeId = empId.GetGuid();
                 enty.AttendanceLeaveId = Guid.NewGuid();
                 string str = this.CheckValue(enty);
                 if (!str.CheckNullOrEmpty())
                 {
+                    if (dicCheck == null)
+                    {
+                        dicCheck = new Dictionary<int, string>();
+                    }
                     dicCheck.Add(i, str);
-                }
-
-                if (dicCheck.Keys.Count > 0)
-                {
-                    return dicCheck;
+                    continue;
                 }
 
                 AttendanceLeaveForAPI[] arrayEntity = new AttendanceLeaveForAPI[] { enty };
@@ -4966,185 +5094,233 @@ ORDER BY BeginDate DESC"
                 dicCheck = this.CheckBusinessApplyTime(arrayEntity);
                 if (dicCheck != null && dicCheck.Count > 0)
                 {
-                    return dicCheck;
-                }
-               
-                if (enty.AttendanceTypeId.Equals("406"))
-                {
-                    List<AttendanceOverTimeRest> list = this.ChangeToOTRestEntity(arrayEntity);
-
-                    CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
-                    callServiceBindingModel.RequestCode = "API_AT_013";
-
-                    APIRequestParameter parameter = new APIRequestParameter();
-                    parameter.Name = "formEntities";
-                    parameter.Value = JsonConvert.SerializeObject(list.ToArray());
-
-                    callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
-
-                    string json = JsonConvert.SerializeObject(callServiceBindingModel);
-                    response = await HttpPostJsonHelper.PostJsonAsync(json);
-                }
-                else if (enty.AttendanceTypeId.Equals("401"))
-                {
-                    List<AnnualLeaveRegister> list = this.ChangeToALRegisterEntity(arrayEntity);
-                    foreach (AnnualLeaveRegister aR in list)
-                    {
-                        aR.EmployeeId = empId.GetGuid();
-                        aR.IsEss = true;
-                        aR.IsFromEss = true;
-                        aR.Flag = true;
-                        aR.EssType = string.Empty;
-                        aR.EssNo = string.Empty;
-                        aR.IsCheckAtType = true;
-                        aR.StateId = Constants.PS02;
-                        aR.CreateDate = DateTime.Now;
-                        aR.CreateBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
-                        aR.LastModifiedDate = DateTime.Now;
-                        aR.LastModifiedBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
-                        aR.FoundOperationDate = DateTime.Now;
-                        aR.FoundUserId = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
-                        aR.OwnerId = empId;
-                        aR.Flag = true;
-                        aR.IsEss = true;
-                        aR.IsFromEss = true;
-                        aR.EssType = string.Empty;
-                        aR.EssNo = string.Empty;
-                        if (!aR.EmployeeId.CheckNullOrEmpty())
-                        {
-                            EmployeeService empSer = new EmployeeService();
-                            string corporationId = empSer.GetEmpFiledById(empId, "CorporationId");
-                            if (!corporationId.CheckNullOrEmpty())
-                            {
-                                aR.CorporationId = corporationId.GetGuid();
-                            }
-
-                            DateTime tempDate = aR.BeginDate;
-
-                            string fiscalYearId = this.GetFisicalYearIdbyDate(empId, tempDate);
-                            if (!fiscalYearId.CheckNullOrEmpty())
-                            {
-                                aR.FiscalYearId = fiscalYearId.GetGuid();
-                            }
-                        }
-                    }
-                    CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
-                    callServiceBindingModel.RequestCode = "API_AT_014";
-
-                    APIRequestParameter parameter = new APIRequestParameter();
-                    parameter.Name = "formEntities";
-                    parameter.Value = JsonConvert.SerializeObject(list.ToArray());
-
-                    callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
-
-                    string json = JsonConvert.SerializeObject(callServiceBindingModel);
-                    response = await HttpPostJsonHelper.PostJsonAsync(json);
-                }
-                else
-                {
-                    List<AttendanceLeave> list = ChangeToLeaveEntity(arrayEntity, true, string.Empty, string.Empty);
-                    int j = 0;
-                    foreach (AttendanceLeave leave in list)
-                    {
-                        j++;
-
-                        string[] tmpMsg = null;
-                        string msgInfo = this.GetSalaryTimes(leave);
-                        if (msgInfo.IndexOf("false") > -1)
-                        {
-                            tmpMsg = msgInfo.Split(',');
-                            dicCheck.Add(i, (string.Format("工号为 {0} 的员工当前请假总时数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1])));
-                        }
-                    }
-                    if (dicCheck.Keys.Count > 0)
-                    {
-                        return dicCheck;
-                    }
-                    j = 0;
-                    foreach (AttendanceLeave leave in list)
-                    {
-                        j++;
-                        msg = "";
-                        try
-                        {
-                            this.CheckForESS(leave);
-                        }
-                        catch (Exception ex)
-                        {
-                            msg = ex.Message;
-                        }
-                        if (!msg.CheckNullOrEmpty())
-                        {
-                            dicCheck.Add(i, msg);
-                        }
-                    }
-                    if (dicCheck.Keys.Count > 0)
-                    {
-                        return dicCheck;
-                    }
+                    continue;
                 }
             }
+            StringBuilder errors = new StringBuilder();
+            if (dicCheck != null && dicCheck.Keys.Count > 0)
+            {
+                foreach (int key in dicCheck.Keys)
+                {
+                    errors.Append(string.Format("{0}:{1}", key.ToString(), dicCheck[key].ToString()));
+                }
+                throw new BusinessRuleException(errors.ToString());
+
+            }
+
+            List<AttendanceLeaveForAPI> listQJ = new List<AttendanceLeaveForAPI>();
+            List<AttendanceLeaveForAPI> list406 = new List<AttendanceLeaveForAPI>();
+            List<AttendanceLeaveForAPI> list401 = new List<AttendanceLeaveForAPI>();
+
             foreach (AttendanceLeaveForAPI formEntity in formEntities)
             {
-                string guid = string.Empty;
-                CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
-
-                AttendanceLeaveForAPI[] arrayEntity = new AttendanceLeaveForAPI[] { formEntity };
-                
                 if (formEntity.AttendanceTypeId.Equals("401"))
                 {
-                    List<AnnualLeaveRegister> list = this.ChangeToALRegisterEntity(arrayEntity);
-                    // guid = Factory.GetService<IAnnualLeaveRegisterService>().SaveForAPI(formType, formNumber, list.First());
-                    callServiceBindingModel.RequestCode = "API_AT_08";
-
-                    APIRequestParameter parameter = new APIRequestParameter();
-                    parameter.Name = "formEntity";
-                    parameter.Value = JsonConvert.SerializeObject(list.First());
-
-                    callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
-
+                    list401.Add(formEntity);
                 }
                 else if (formEntity.AttendanceTypeId.Equals("406"))
-                { //調休假
-                    List<AttendanceOverTimeRest> list = this.ChangeToOTRestEntity(arrayEntity);
-                    if (formEntities.Length > 1)
-                    {
-                        count += 1;
-                        list.First().ExtendedProperties.Add("APICode", count.ToString().PadLeft(3, '0'));
-                    }
-
-
-                    callServiceBindingModel.RequestCode = "API_AT_007";
-
-                    APIRequestParameter parameter = new APIRequestParameter();
-                    parameter.Name = "formEntity";
-                    parameter.Value = JsonConvert.SerializeObject(list.First());
-
-                    callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
-
-                    //  guid = Factory.GetService<IAttendanceOverTimeRestService>().SaveForAPI(formType, formNumber, list.First());
+                {
+                    list406.Add(formEntity);
                 }
                 else
                 {
-                    List<AttendanceLeave> list = this.ChangeToLeaveEntity(arrayEntity, true, formType, "");
-                    // this.SaveForESS(list.First());
-                    callServiceBindingModel.RequestCode = "API_AT_006";
-
-                    APIRequestParameter parameter = new APIRequestParameter();
-                    parameter.Name = "formEntity";
-                    parameter.Value = JsonConvert.SerializeObject(list.First());
-
-                    callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
-
-                    guid = list.First().AttendanceLeaveId.GetString();
+                    listQJ.Add(formEntity);
                 }
+            }
+            //检查
+            if (list401.Count > 0)
+            {
+                //用异常方式返回的
+                List<AnnualLeaveRegister> list = this.ChangeToALRegisterEntity(list401.ToArray());
+                foreach (AnnualLeaveRegister aR in list)
+                {
+                    aR.IsEss = true;
+                    aR.IsFromEss = true;
+                    aR.Flag = true;
+                    aR.EssType = string.Empty;
+                    aR.EssNo = string.Empty;
+                    aR.IsCheckAtType = true;
+                    aR.StateId = Constants.PS02;
+                    aR.CreateDate = DateTime.Now;
+                    aR.CreateBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
+                    aR.LastModifiedDate = DateTime.Now;
+                    aR.LastModifiedBy = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
+                    aR.FoundOperationDate = DateTime.Now;
+                    aR.FoundUserId = Constants.SYSTEMGUID_USER_ADMINISTRATOR.GetGuid();
+                    aR.OwnerId = aR.EmployeeId.GetString();
+                    aR.Flag = true;
+                    aR.IsEss = true;
+                    aR.IsFromEss = true;
+                    aR.EssType = "ATQJ";
+                    aR.EssNo = formNumber;
+                    if (!aR.EmployeeId.CheckNullOrEmpty())
+                    {
+                        EmployeeService empSer = new EmployeeService();
+                        string corporationId = empSer.GetEmpFiledById(aR.EmployeeId.GetString(), "CorporationId");
+                        if (!corporationId.CheckNullOrEmpty())
+                        {
+                            aR.CorporationId = corporationId.GetGuid();
+                        }
 
-                string json = JsonConvert.SerializeObject(callServiceBindingModel);
+                        DateTime tempDate = aR.BeginDate;
+
+                        string fiscalYearId = this.GetFisicalYearIdbyDate(aR.EmployeeId.GetString(), tempDate);
+                        if (!fiscalYearId.CheckNullOrEmpty())
+                        {
+                            aR.FiscalYearId = fiscalYearId.GetGuid();
+                        }
+                    }
+                }
+                callServiceBindingModel.RequestCode = "API_AT_014";
+                APIRequestParameter parameter = new APIRequestParameter();
+                parameter.Name = "formEntities";
+                parameter.Value = JsonConvert.SerializeObject(list.ToArray());
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+                json = JsonConvert.SerializeObject(callServiceBindingModel);
                 response = await HttpPostJsonHelper.PostJsonAsync(json);
-                guids.Add(guid);
+                Dcms.HR.DataEntities.APIExResponse apiExResponse401 = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
+                if (apiExResponse401.State == "-1")
+                {
+                    throw new BusinessException(apiExResponse401.Msg);
+                }
+                else if (apiExResponse401.State == "0" && apiExResponse401.ResultValue.CheckNullOrEmpty())
+                {
+                    throw new BusinessException(apiExResponse401.ResultValue.ToString());
+                }
+            }
+            if (list406.Count > 0)
+            {
+                //用异常方式返回的
+                List<AttendanceOverTimeRest> list = this.ChangeToOTRestEntity(list406.ToArray());
+                foreach (AttendanceOverTimeRest enty in list)
+                {
+                    enty.IsEss = true;
+                    enty.IsFromEss = true;
+                    enty.EssType = "ATQJ";
+                    enty.EssNo = formNumber;
+                }
+                callServiceBindingModel.RequestCode = "API_AT_013";
+
+                APIRequestParameter parameter = new APIRequestParameter();
+                parameter.Name = "formEntities";
+                parameter.Value = JsonConvert.SerializeObject(list.ToArray());
+
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+
+                json = JsonConvert.SerializeObject(callServiceBindingModel);
+                response = await HttpPostJsonHelper.PostJsonAsync(json);
+                Dcms.HR.DataEntities.APIExResponse apiExResponse406 = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
+                if (apiExResponse406.State == "-1")
+                {
+                    throw new BusinessException(apiExResponse406.Msg);
+                }
+                else if (apiExResponse406.State == "0" && !apiExResponse406.ResultValue.CheckNullOrEmpty())
+                {
+                    throw new BusinessException(apiExResponse406.ResultValue.ToString());
+                }
+            }
+            if (listQJ.Count > 0)
+            {
+                List<AttendanceLeave> list = ChangeToLeaveEntity(listQJ.ToArray(), true, string.Empty, string.Empty);
+                int j = 0;
+                foreach (AttendanceLeave leave in list)
+                {
+                    j++;
+                    string[] tmpMsg = null;
+                    string msgInfo = this.GetSalaryTimes(leave);
+                    if (msgInfo.IndexOf("false") > -1)
+                    {
+                        tmpMsg = msgInfo.Split(',');
+                        errors.Append(string.Format("{3}: 工号为 {0} 的员工当前请假总时数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1], j.ToString()));
+                    }
+                }
+                if (errors.Length > 0)
+                {
+                    return errors.ToString();
+                }
+                errors.Length = 0;
+                foreach (AttendanceLeave enty in list)
+                {
+                    enty.IsEss = true;
+                    enty.IsFromEss = true;
+                    enty.EssType = "ATQJ";
+                    enty.AttendanceLeaveId = Guid.NewGuid();
+
+                    enty.EssNo = formNumber;
+                }
+                callServiceBindingModel.RequestCode = "API_AT_011";
+
+                APIRequestParameter parameter = new APIRequestParameter();
+                parameter.Name = "formEntities";
+                parameter.Value = JsonConvert.SerializeObject(list.ToArray());
+
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+
+                json = JsonConvert.SerializeObject(callServiceBindingModel);
+                response = await HttpPostJsonHelper.PostJsonAsync(json);
+                Dcms.HR.DataEntities.APIExResponse apiExRes = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
+                if (apiExRes.State == "-1")
+                {
+                    throw new BusinessException(apiExRes.Msg);
+                }
+                else if (apiExRes.State == "0" && !apiExRes.ResultValue.CheckNullOrEmpty())
+                {
+                    throw new BusinessException(apiExRes.ResultValue.ToString());
+                }
             }
 
-            return null;
+            //保存
+            if (list401.Count > 0)
+            {
+                List<AnnualLeaveRegister> list = this.ChangeToALRegisterEntity(list401.ToArray());
+                callServiceBindingModel.RequestCode = "API_AT_018";
+                APIRequestParameter parameter = new APIRequestParameter();
+                parameter.Name = "formEntities";
+                parameter.Value = JsonConvert.SerializeObject(list);
+
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+
+                json = JsonConvert.SerializeObject(callServiceBindingModel);
+                response = await HttpPostJsonHelper.PostJsonAsync(json);
+            }
+            if (list406.Count > 0)
+            {
+                List<AttendanceOverTimeRest> list = this.ChangeToOTRestEntity(list406.ToArray());
+                callServiceBindingModel.RequestCode = "API_AT_017";
+
+                APIRequestParameter parameter = new APIRequestParameter();
+                parameter.Name = "formEntities";
+                parameter.Value = JsonConvert.SerializeObject(list);
+
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+                json = JsonConvert.SerializeObject(callServiceBindingModel);
+                response = await HttpPostJsonHelper.PostJsonAsync(json);
+            }
+            if (listQJ.Count > 0)
+            {
+                List<AttendanceLeave> list = this.ChangeToLeaveEntity(listQJ.ToArray(), true, string.Empty, string.Empty);
+
+                callServiceBindingModel.RequestCode = "API_AT_016";
+
+                APIRequestParameter parameter = new APIRequestParameter();
+                parameter.Name = "formEntities";
+                parameter.Value = JsonConvert.SerializeObject(list);
+
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+
+                json = JsonConvert.SerializeObject(callServiceBindingModel);
+                response = await HttpPostJsonHelper.PostJsonAsync(json);
+            }
+            /*{"State":"-1","Msg":"System.Exception: Dcms.Common.BusinessRuleException: 员工罗江:2020-06-24 09:00至2020-06-24 12:00已存在病假记录;\r\n   在 Dcms.HR.Services.AttendanceOverTimeRestService.DealDailyTimes(AttendanceOverTimeRest adjust)\r\n   在 Dcms.HR.Services.AttendanceOverTimeRestService.SetOTRest(AttendanceOverTimeRest& rest)\r\n   在 Dcms.HR.Services.AttendanceOverTimeRestService.CheckForESS(AttendanceOverTimeRest pOTRest)\r\n   在 Dcms.HR.Services.ExtendItemService.CheckForAT406ForAPI(AttendanceOverTimeRest formEntity)\r\n   在 Dcms.HR.Services.ExtendItemService.InvokeHRServiceEx(String pInput)","ResultType":null,"ResultValue":null}*/
+            Dcms.HR.DataEntities.APIExResponse apiExResponse = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
+            if (apiExResponse.State == "-1")
+            {
+                throw new BusinessException(apiExResponse.Msg);
+            }
+            else
+            {
+                return "success";
+            }
         }
 
         #endregion

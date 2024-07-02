@@ -3,7 +3,6 @@ using BQHRWebApi.Common;
 using BQHRWebApi.Service;
 using Dcms.HR.Services;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System.Data;
 using System.Dynamic;
 
@@ -88,7 +87,8 @@ namespace BQHRWebApi.Controllers
         }
 
         [HttpGet("getresourcegroup")]
-        public ApiResponse GetResourceGroup() {
+        public ApiResponse GetResourceGroup()
+        {
             try
             {
                 Authorization.CheckAuthorization();
@@ -109,7 +109,7 @@ namespace BQHRWebApi.Controllers
             {
                 return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
             }
-          
+
         }
 
         [HttpGet("getisreturnid")]
@@ -164,6 +164,6 @@ namespace BQHRWebApi.Controllers
             }
         }
 
-       
+
     }
 }

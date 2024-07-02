@@ -3,7 +3,7 @@
   "Method": "BatchSaveAT401ForAPI",
   "Parameters": [
     {
-      "name": "formEntity",
+      "name": "formEntities",
       "type": "Dcms.HR.DataEntities.AnnualLeaveRegister[]",
       "value": null
     }

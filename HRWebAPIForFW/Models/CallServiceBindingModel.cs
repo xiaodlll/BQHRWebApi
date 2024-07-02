@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Dcms.HR.DataEntities;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
-using Dcms.HR.Business;
-using Dcms.HR.DataEntities;
 
 namespace HRWebApi.Models
 {

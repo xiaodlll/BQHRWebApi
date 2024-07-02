@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.ComponentModel;
-
-using Dcms.Common.Torridity;
+﻿using Dcms.Common.Torridity;
 using Dcms.Common.Torridity.Metadata;
-using System.Globalization;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Dcms.HR.DataEntities
 {

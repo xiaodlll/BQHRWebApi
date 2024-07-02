@@ -28,7 +28,7 @@ namespace BQHRWebApi.Controllers
             }
             catch (AuthorizationException aEx)
             {
-                return ApiResponse.Fail("授权:"+ aEx.Message);
+                return ApiResponse.Fail("授权:" + aEx.Message);
             }
 
 
@@ -43,7 +43,8 @@ namespace BQHRWebApi.Controllers
                 {
                     return ApiResponse.Fail("数据传入格式不正确!");
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
             }

@@ -8,7 +8,7 @@ using System.Dynamic;
 
 namespace BQHRWebApi.Controllers
 {
-    
+
 
     [ApiController]
     [Route("[controller]")]
@@ -112,7 +112,7 @@ namespace BQHRWebApi.Controllers
         }
 
 
-      
+
 
     }
 }

@@ -1,19 +1,9 @@
-﻿using HRWebApi.Models;
+﻿using Dcms.HR.DataEntities;
+using HRWebApi.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Dcms.HR.Business;
-using Dcms.HR.Services;
-using Newtonsoft.Json;
-using System.Data;
-using System.IO;
-using System.Text;
-using Newtonsoft.Json.Linq;
-using Dcms.HR.DataEntities;
 
 namespace HRWebApi.Controllers
 {
@@ -25,8 +15,8 @@ namespace HRWebApi.Controllers
         public async Task<IHttpActionResult> Post(CallServiceBindingModel model)
         {
             IHttpActionResult httpActionResult;
-         
-            APIExResponse result = new APIExResponse(); 
+
+            APIExResponse result = new APIExResponse();
             try
             {
                 //LoggerHelper.Info(string.Format("Post Request:{0}", JsonConvert.SerializeObject(model).ToString()));

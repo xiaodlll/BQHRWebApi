@@ -3,7 +3,6 @@ using BQHRWebApi.Common;
 using BQHRWebApi.Service;
 using Dcms.HR.Services;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System.Data;
 using System.Dynamic;
 

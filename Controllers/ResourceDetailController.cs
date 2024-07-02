@@ -49,7 +49,7 @@ namespace BQHRWebApi.Controllers
             }
             return ApiResponse.Success();
         }
-       
+
 
         [HttpGet("getalerttype")]
         public ApiResponse GetAlertType()

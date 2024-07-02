@@ -5,8 +5,9 @@
         /// <summary>
         /// 响应
         /// </summary>
-        public ApiResponse() { 
-        
+        public ApiResponse()
+        {
+
         }
 
         /// <summary>
@@ -50,7 +51,7 @@
             return apiResponse;
         }
 
-        public static ApiResponse Success(string des = "调用成功!", Object data=null)
+        public static ApiResponse Success(string des = "调用成功!", Object data = null)
         {
             ApiResponse apiResponse = new ApiResponse();
             apiResponse.result = 0;

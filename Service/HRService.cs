@@ -1,17 +1,15 @@
 ﻿using BQHRWebApi.Business;
-using Microsoft.Extensions.Configuration;
-using System.Configuration;
-using System.Data.SqlClient;
 using System.Data;
-using Dcms.HR.Services;
+using System.Data.SqlClient;
 
 namespace BQHRWebApi.Common
 {
     public class HRService
     {
 
-        public HRService() {
-            
+        public HRService()
+        {
+
         }
 
         protected void AddParaWithValue(List<SqlParameter> listPara, string pParaName, DbType dbType, object pValue)
@@ -27,8 +25,8 @@ namespace BQHRWebApi.Common
         {
             throw new NotImplementedException();
         }
-      
-        
+
+
 
     }
 }

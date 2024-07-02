@@ -2,10 +2,6 @@
 using BQHRWebApi.Common;
 using Dcms.HR.Services;
 using System.Data;
-using System.Data.SqlClient;
-using System.Dynamic;
-using System.Reflection;
-using System.Text;
 
 namespace BQHRWebApi.Service
 {
@@ -22,7 +18,7 @@ namespace BQHRWebApi.Service
             }
         }
 
-       
+
         public void SaveResourceItemNo(ResourceItemNo enty)
         {
             enty.ResourceItemNoId = Guid.NewGuid().ToString();
@@ -43,7 +39,7 @@ namespace BQHRWebApi.Service
         /// <returns></returns>
         public DataTable GetItemInfoByItemId(string itemId)
         {
-            string sql = string.Format(" select ResourceItemNoId,Item,SerialNo from ResourceItemNo where ResourceItemId='{0}' order by SerialNo",itemId);
+            string sql = string.Format(" select ResourceItemNoId,Item,SerialNo from ResourceItemNo where ResourceItemId='{0}' order by SerialNo", itemId);
             DataTable dt = HRHelper.ExecuteDataTable(sql);
             return dt;
         }

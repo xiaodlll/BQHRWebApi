@@ -1,15 +1,15 @@
-﻿using BQHRWebApi.Business;
-using Dcms.Common;
+﻿using Dcms.Common;
+using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
 using System.Data;
-using Dcms.HR.DataEntities;
 
 namespace BQHRWebApi.Service
 {
     public class AttendanceTypeService
     {
 
-        public AttendanceType GetAttendanceType(string typeId) {
+        public AttendanceType GetAttendanceType(string typeId)
+        {
             DataTable dtType = HRHelper.ExecuteDataTable(string.Format("select * from AttendanceType where AttendanceTypeId='{0}'", typeId));
             List<AttendanceType> myObjects = HRHelper.DataTableToList<AttendanceType>(dtType);
             AttendanceType type = myObjects[0];
@@ -53,11 +53,11 @@ namespace BQHRWebApi.Service
         {
             DataTable dt = new DataTable();
             List<bool> list = new List<bool>();
-           
-                string strSql = string.Empty;
-                strSql = string.Format("select PassRest,DeductOhter,MinLeaveHours,MinAuditHours,AttendanceUnitId,CalculateModeId,Digits, " +
-                    "PassHoliday From AttendanceType Where AttendanceTypeId='{0}'", pAttendanceTypeId);
-               dt=HRHelper.ExecuteDataTable(strSql);
+
+            string strSql = string.Empty;
+            strSql = string.Format("select PassRest,DeductOhter,MinLeaveHours,MinAuditHours,AttendanceUnitId,CalculateModeId,Digits, " +
+                "PassHoliday From AttendanceType Where AttendanceTypeId='{0}'", pAttendanceTypeId);
+            dt = HRHelper.ExecuteDataTable(strSql);
             return dt;
         }
     }

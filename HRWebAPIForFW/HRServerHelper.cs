@@ -1,22 +1,18 @@
-﻿using System;
+﻿using Dcms.HR.DataEntities;
+using Dcms.HR.Services;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using Dcms.Common.Services;
-using Dcms.HR.Services;
-using Dcms.HR.Business;
-using Newtonsoft.Json;
-using System.Data.SqlClient;
-using Dcms.HR.DataEntities;
 
-namespace HRWebApi {
-    public class HRServerHelper {
+namespace HRWebApi
+{
+    public class HRServerHelper
+    {
 
-        public static object GetHRService(Type type) {
+        public static object GetHRService(Type type)
+        {
             string server = System.Configuration.ConfigurationManager.AppSettings["ServerIP"];
             string port = System.Configuration.ConfigurationManager.AppSettings["ServerPort"];
 
@@ -27,14 +23,17 @@ namespace HRWebApi {
             return service;
         }
 
-        public static object GetResultBySQL(string pSql) {
+        public static object GetResultBySQL(string pSql)
+        {
             DataTable dt = GetData(pSql);
-            if (dt.Rows.Count > 0) {
+            if (dt.Rows.Count > 0)
+            {
                 return dt.Rows[0][0].ToString();
             }
             return null;
         }
-        public static DataTable GetData(string cmdSQL) {
+        public static DataTable GetData(string cmdSQL)
+        {
             APIRequest request = new APIRequest();
             request.ServiceType = "Dcms.HR.Services.IIntegrationCopyService,Dcms.HR.Business.Integration";
             request.Method = "ExecuteSelectSql";
@@ -53,7 +52,8 @@ namespace HRWebApi {
             return dt;
         }
 
-        public static T GetHRService<T>() {
+        public static T GetHRService<T>()
+        {
             T t = (T)(GetHRService(typeof(T)));
             return t;
         }
@@ -74,13 +74,15 @@ namespace HRWebApi {
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public static async Task<APIExResponse> CallServiceEx(APIRequest request) {
+        public static async Task<APIExResponse> CallServiceEx(APIRequest request)
+        {
             string resultJson = HRServerHelper.GetHRService<IExtendItemService>().InvokeHRServiceEx(JsonConvert.SerializeObject(request));
 
             return await Task.FromResult<APIExResponse>(JsonConvert.DeserializeObject<APIExResponse>(resultJson));
         }
 
-        public static APIResponse CallServiceNotAsync(APIRequest request) {
+        public static APIResponse CallServiceNotAsync(APIRequest request)
+        {
             string resultJson = HRServerHelper.GetHRService<IExtendItemService>().InvokeHRService(JsonConvert.SerializeObject(request));
 
             return (APIResponse)(JsonConvert.DeserializeObject<APIResponse>(resultJson));

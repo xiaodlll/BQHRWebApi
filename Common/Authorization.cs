@@ -44,7 +44,7 @@ namespace BQHRWebApi.Common
             string endDate = authorizationDataArr[1];
             string controlType = authorizationDataArr[2];
             int warningDays = int.Parse(authorizationDataArr[3]);
-            endDate = endDate.Replace("��", "").Replace("-","");
+            endDate = endDate.Replace("��", "").Replace("-", "");
             string endDateStr = endDate.Substring(0, 4) + "-" + endDate.Substring(4, 2) + "-" + endDate.Substring(6, 2);
             DateTime now = DateTime.Now;
             int remainDays = DateTime.Parse(endDateStr).Subtract(now.Date).Days; //软件授权剩余使用天数（不包含当天）

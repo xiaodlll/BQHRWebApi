@@ -1,12 +1,6 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
+using System.Diagnostics;
 
 public class RequestLoggingFilter : IActionFilter
 {

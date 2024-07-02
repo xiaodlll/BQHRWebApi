@@ -6,7 +6,7 @@ using Dcms.HR.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.Dynamic;
-using System.Reflection.Emit;
+using System.Text;
 
 namespace BQHRWebApi.Controllers
 {
@@ -23,44 +23,39 @@ namespace BQHRWebApi.Controllers
             _logger = logger;
         }
 
-    
 
+        //[HttpPost("checkbeforesaveforapi")]
+        //public async Task<ApiResponse> CheckBeforeSaveForAPI(AttendanceLeaveForAPI input)
+        //{
+        //    try
+        //    {
+        //        Authorization.CheckAuthorization();
+        //    }
+        //    catch (AuthorizationException aEx)
+        //    {
+        //        return ApiResponse.Fail("授权:" + aEx.Message);
+        //    }
 
+        //    try
+        //    {
+        //        AttendanceLeaveService service = new AttendanceLeaveService();
+        //         string messg=  await service.SaveCheckForAPI(input);
+        //        if (messg != "")
+        //        {
+        //            return ApiResponse.Fail(messg);
+        //        }
+        //         return ApiResponse.Success("Success");
 
-        [HttpPost("checkbeforesaveforapi")]
-        public async Task<ApiResponse> CheckBeforeSaveForAPI(AttendanceLeaveForAPI input)
-        {
-            try
-            {
-                Authorization.CheckAuthorization();
-            }
-            catch (AuthorizationException aEx)
-            {
-                return ApiResponse.Fail("授权:" + aEx.Message);
-            }
-
-            try
-            {
-                AttendanceLeaveService service = new AttendanceLeaveService();
-                 string messg=  await service.SaveCheckForAPI(input);
-                if (messg != "")
-                {
-                    return ApiResponse.Fail(messg);
-                }
-                // Dictionary<int, List<ExpandoObject>> dynamicObjects = new Dictionary<int, List<ExpandoObject>>();
-                //List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(result);
-               
-                 return ApiResponse.Success("Success");
-            
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+        //    }
+        //}
 
         [HttpPost("GetHoursForAPI")]
-        public async Task<ApiResponse> GetHoursForAPI(AttendanceLeaveForAPI input) {
+        public async Task<ApiResponse> GetHoursForAPI(AttendanceLeaveForAPI input)
+        {
             try
             {
                 Authorization.CheckAuthorization();
@@ -77,7 +72,7 @@ namespace BQHRWebApi.Controllers
 
                 List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(messg);
                 return ApiResponse.Success("Success", dynamicObjects);
-              
+
 
             }
             catch (Exception ex)
@@ -86,59 +81,57 @@ namespace BQHRWebApi.Controllers
             }
         }
 
+        //[HttpPost("saveforapi")]
+        //public async Task<ApiResponse> SaveForAPI(string formNumber, AttendanceLeaveForAPI input)
+        //{
+        //    try
+        //    {
+        //        Authorization.CheckAuthorization();
+        //    }
+        //    catch (AuthorizationException aEx)
+        //    {
+        //        return ApiResponse.Fail("授权:" + aEx.Message);
+        //    }
 
+        //    try
+        //    {
+        //        AttendanceLeaveService service = new AttendanceLeaveService();
+        //        string messg = await service.SaveForAPI(formNumber, input);
 
-        [HttpPost("saveforapi")]
-        public async Task<ApiResponse> SaveForAPI(string formNumber,AttendanceLeaveForAPI input)
-        {
-            try
-            {
-                Authorization.CheckAuthorization();
-            }
-            catch (AuthorizationException aEx)
-            {
-                return ApiResponse.Fail("授权:" + aEx.Message);
-            }
+        //        return ApiResponse.Success("Success");
 
-            try
-            {
-                AttendanceLeaveService service = new AttendanceLeaveService();
-                string messg = await service.SaveForAPI(formNumber, input);
-              
-                return ApiResponse.Success("Success");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+        //    }
+        //}
 
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
-            }
-        }
+        //[HttpPost("getfiscalyear")]
+        //public ApiResponse GetFiscalYear()
+        //{
+        //    try
+        //    {
+        //        Authorization.CheckAuthorization();
+        //    }
+        //    catch (AuthorizationException aEx)
+        //    {
+        //        return ApiResponse.Fail("授权:" + aEx.Message);
+        //    }
 
-        [HttpPost("getfiscalyear")]
-        public ApiResponse GetFiscalYear()
-        {
-            try
-            {
-                Authorization.CheckAuthorization();
-            }
-            catch (AuthorizationException aEx)
-            {
-                return ApiResponse.Fail("授权:" + aEx.Message);
-            }
+        //    try
+        //    {
+        //        AttendanceLeaveService service = new AttendanceLeaveService();
+        //        DataTable table = service.GetFiscalYear();
+        //        List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(table);
+        //        return ApiResponse.Success("Success", dynamicObjects);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+        //    }
 
-            try
-            {
-                AttendanceLeaveService service = new AttendanceLeaveService();
-                DataTable table = service.GetFiscalYear();
-                List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(table);
-                return ApiResponse.Success("Success", dynamicObjects);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
-            }
-
-        }
+        //}
 
         //[HttpPost("getleaverecordsforapi")]
         //public ApiResponse GetLeaveRecordsForAPI(string[] empCodes, DateTime date)
@@ -218,7 +211,8 @@ namespace BQHRWebApi.Controllers
         //}
 
         [HttpPost("checkrevokeforapi")]
-        public async Task<ApiResponse> CheckRevokeForAPI(string[] attendanceLeaveInfoIds, string attendanceTypeId) {
+        public async Task<ApiResponse> CheckRevokeForAPI(string[] attendanceLeaveInfoIds, string attendanceTypeId)
+        {
             try
             {
                 Authorization.CheckAuthorization();
@@ -231,10 +225,10 @@ namespace BQHRWebApi.Controllers
             try
             {
                 AttendanceLeaveService service = new AttendanceLeaveService();
-                string messg = await service.CheckRevokeForAPI(attendanceLeaveInfoIds,attendanceTypeId);
-                if (messg.CheckNullOrEmpty())
+                string messg = await service.CheckRevokeForAPI(attendanceLeaveInfoIds, attendanceTypeId);
+                if (messg.CheckNullOrEmpty() || messg == "success")
                 {
-                    return ApiResponse.Success("Success"); 
+                    return ApiResponse.Success("Success");
                 }
                 return ApiResponse.Fail(messg);
             }
@@ -245,7 +239,7 @@ namespace BQHRWebApi.Controllers
         }
 
         [HttpPost("saverevokeforapi")]
-        public async Task<ApiResponse> SaveRevokeForAPI(string formNumber,string[] attendanceLeaveInfoIds, string attendanceTypeId)
+        public async Task<ApiResponse> SaveRevokeForAPI(string formNumber, string[] attendanceLeaveInfoIds, string attendanceTypeId)
         {
             try
             {
@@ -260,11 +254,11 @@ namespace BQHRWebApi.Controllers
             {
                 AttendanceLeaveService service = new AttendanceLeaveService();
                 string messg = await service.SaveRevokeForAPI(formNumber, attendanceLeaveInfoIds, attendanceTypeId);
-                if (messg != "")
+                if (messg.CheckNullOrEmpty() || messg == "success")
                 {
-                    return ApiResponse.Fail(messg);
+                    return ApiResponse.Success("Success");
                 }
-                return ApiResponse.Success("Success");
+                return ApiResponse.Fail(messg);
 
             }
             catch (Exception ex)
@@ -274,8 +268,9 @@ namespace BQHRWebApi.Controllers
         }
 
 
-        [HttpPost("multisaveattendanceleave")]
-        public ApiResponse MultiSaveAttendanceLeaves(List<AttendanceLeaveForAPI> input)
+
+        [HttpPost("batchcheckleaves")]
+        public async Task<ApiResponse> BatchCheckLeaves(AttendanceLeaveForAPI[] input)
         {
             try
             {
@@ -288,10 +283,50 @@ namespace BQHRWebApi.Controllers
 
             try
             {
-                if (input != null&&input.Count>0)
+                if (input != null && input.Length > 0)
                 {
                     AttendanceLeaveService service = new AttendanceLeaveService();
-                    service.MultiSaveForAPI(input);
+                    Dictionary<int, string> reT = await service.MultiCheckForAPI(input.ToArray());
+                    StringBuilder s = new StringBuilder();
+                    if (reT != null && reT.Keys.Count > 0)
+                    {
+                        List<ExpandoObject> dynamicObjects = HRHelper.ConvertToExpandoObjects(reT);
+                        return ApiResponse.Success("Success", dynamicObjects);
+                    }
+                    return ApiResponse.Success("Success");
+                }
+                else
+                {
+                    return ApiResponse.Fail("数据传入格式不正确!");
+                }
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+            return ApiResponse.Success();
+        }
+
+
+        [HttpPost("batchsaveleaves")]
+        public async Task<ApiResponse> MultiSaveLeaves(string formNumber, AttendanceLeaveForAPI[] input)
+        {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                if (input != null && input.Length > 0)
+                {
+                    AttendanceLeaveService service = new AttendanceLeaveService();
+                    string s = await service.MultiSaveForAPI(formNumber, input);
+                    return ApiResponse.Success("Success", s);
                 }
                 else
                 {

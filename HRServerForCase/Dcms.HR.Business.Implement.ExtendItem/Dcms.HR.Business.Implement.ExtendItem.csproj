@@ -94,6 +94,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HRDll\Dcms.HR.Business.AttendanceRank.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceSum, Version=5.1.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HRDll\Dcms.HR.Business.AttendanceSum.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.AttendanceType, Version=5.1.10.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HRDll\Dcms.HR.Business.AttendanceType.dll</HintPath>

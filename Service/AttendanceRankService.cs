@@ -1,8 +1,7 @@
-﻿using BQHRWebApi.Business;
-using Dcms.Common;
+﻿using Dcms.Common;
+using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
 using System.Data;
-using Dcms.HR.DataEntities;
 
 namespace BQHRWebApi.Service
 {
@@ -11,7 +10,8 @@ namespace BQHRWebApi.Service
 
         public AttendanceRankService() { }
 
-        public  DataTable GetRankRestInfo(string pRankId) {
+        public DataTable GetRankRestInfo(string pRankId)
+        {
             string sql = string.Format(@"SELECT Parent.NAME,
        Parent.attendancerankid,
        Parent.workbegintime,
@@ -68,8 +68,8 @@ FROM   attendancerankrest
        LEFT JOIN attendancerank parent
               ON attendancerankrest.attendancerankid = parent.attendancerankid
 WHERE  parent.flag = 1
-	and parent.AttendanceRankId='{0}' ",pRankId);
-            DataTable dt =HRHelper.ExecuteDataTable(sql);
+	and parent.AttendanceRankId='{0}' ", pRankId);
+            DataTable dt = HRHelper.ExecuteDataTable(sql);
             return dt;
         }
 
@@ -104,7 +104,8 @@ WHERE  parent.flag = 1
 
             DataTable dtRankRest = HRHelper.ExecuteDataTable(string.Format("select * from AttendanceRankRest where AttendanceRankId='{0}'", rankId));
             List<AttendanceRankRest> myRestObjects = HRHelper.DataTableToList<AttendanceRankRest>(dtRankRest);
-            foreach (AttendanceRankRest info in myRestObjects) {
+            foreach (AttendanceRankRest info in myRestObjects)
+            {
                 rank.Rests.Add(info);
             }
 

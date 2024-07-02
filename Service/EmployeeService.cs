@@ -1,10 +1,7 @@
 ﻿using BQHRWebApi.Common;
 using Dcms.Common;
 using Dcms.HR.Services;
-using Microsoft.AspNetCore.Http.Extensions;
 using System.Data;
-using System.Linq.Expressions;
-using System.Resources;
 using System.Text;
 
 namespace BQHRWebApi.Service
@@ -13,7 +10,8 @@ namespace BQHRWebApi.Service
     {
         public EmployeeService() { }
 
-        public string GetEmpIdByCode(string empCode) {
+        public string GetEmpIdByCode(string empCode)
+        {
             #region 参数检查
             if (empCode.CheckNullOrEmpty())
             {
@@ -36,7 +34,7 @@ namespace BQHRWebApi.Service
         /// </summary>
         /// <param name="pEmployeeId"></param>
         /// <returns></returns>
-        public  string GetEmployeeNameById(string pEmployeeId)
+        public string GetEmployeeNameById(string pEmployeeId)
         {
             #region 参数检查
             if (pEmployeeId.CheckNullOrEmpty())
@@ -44,8 +42,8 @@ namespace BQHRWebApi.Service
                 throw new ArgumentNullException("pEmployeeId Error");
             }
             #endregion
-         
-            DataTable dt = HRHelper.ExecuteDataTable(string.Format("select CnName from employee where employeeid='{0}'",pEmployeeId));
+
+            DataTable dt = HRHelper.ExecuteDataTable(string.Format("select CnName from employee where employeeid='{0}'", pEmployeeId));
 
             if (dt != null && dt.Rows.Count > 0)
             {
@@ -57,7 +55,8 @@ namespace BQHRWebApi.Service
 
         }
 
-        public string GetEmpFiledById(string pEmployeeId,string pField) {
+        public string GetEmpFiledById(string pEmployeeId, string pField)
+        {
             #region 参数检查
             if (pEmployeeId.CheckNullOrEmpty())
             {
@@ -77,7 +76,8 @@ namespace BQHRWebApi.Service
         }
 
 
-        public DataTable GetEmployeeInfoByIds(string[] pEmployeeIds) {
+        public DataTable GetEmployeeInfoByIds(string[] pEmployeeIds)
+        {
             StringBuilder sb = new StringBuilder();
             foreach (string str in pEmployeeIds)
             {
@@ -87,7 +87,7 @@ namespace BQHRWebApi.Service
             if (sb.Length > 0)
                 sb.Remove(0, 1);
 
-          return  HRHelper.ExecuteDataTable(string.Format("select * from employee where employeeid in ({0})",sb.ToString()));
+            return HRHelper.ExecuteDataTable(string.Format("select * from employee where employeeid in ({0})", sb.ToString()));
         }
 
 

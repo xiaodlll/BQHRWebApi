@@ -2,10 +2,6 @@
 using BQHRWebApi.Common;
 using Dcms.HR.Services;
 using System.Data;
-using System.Data.SqlClient;
-using System.Dynamic;
-using System.Reflection;
-using System.Text;
 
 namespace BQHRWebApi.Service
 {
@@ -31,7 +27,7 @@ namespace BQHRWebApi.Service
         //    foreach (var property in properties)
         //    {
         //        var propertyValue = property.GetValue(obj);
-                 
+
         //        if (propertyValue != null)
         //        {
         //            columns.AppendFormat("[{0}],", property.Name);
@@ -64,9 +60,10 @@ namespace BQHRWebApi.Service
         //}
 
 
-    public void SaveResourceItem(ResourceItem enty)
+        public void SaveResourceItem(ResourceItem enty)
         {
-            if (string.IsNullOrEmpty(enty.Code)) {
+            if (string.IsNullOrEmpty(enty.Code))
+            {
                 throw new Exception("code is null");
             }
             if (string.IsNullOrEmpty(enty.Name))
@@ -77,7 +74,8 @@ namespace BQHRWebApi.Service
             {
                 throw new Exception("ResourceKindId is null");
             }
-            if (string.IsNullOrEmpty(enty.IsReturnId)) { 
+            if (string.IsNullOrEmpty(enty.IsReturnId))
+            {
                 throw new Exception("IsReturnId is null");
             }
             string repeatSql = string.Format("select * from ResourceItem where code ='{0}' or name ='{1}'", enty.Code.Trim(), enty.Name.Trim());
@@ -86,8 +84,8 @@ namespace BQHRWebApi.Service
             {
                 throw new Exception("编码或名称已存在");
             }
-            enty.ResourceItemId=Guid.NewGuid().ToString();
-            string sql =HRHelper. GenerateSqlInsert(enty, "ResourceItem");
+            enty.ResourceItemId = Guid.NewGuid().ToString();
+            string sql = HRHelper.GenerateSqlInsert(enty, "ResourceItem");
 
             // string sql = @" insert into ResourceItem(ResourceItemId,CorporationId,Code,Name,Remark,Flag,CreateBy,CreateDate,LastModifiedBy,LastModifiedDate,OwnerId)
             //values(NEWID(),'688564CE-C44C-4E1B-A58D-A10091B6E77B',@Code,@Name,@Remark,1,'98385A19-5BA6-43E5-BD0A-6A727F2E9C35',GETDATE(),'98385A19-5BA6-43E5-BD0A-6A727F2E9C35',GETDATE(),'Bad')
@@ -110,8 +108,9 @@ namespace BQHRWebApi.Service
         /// 资源细项
         /// </summary>
         /// <returns></returns>
-        public DataTable GetResourceGroup() {
-            DataTable dt= HRHelper.GetCodeInfo("ResourceGroup");
+        public DataTable GetResourceGroup()
+        {
+            DataTable dt = HRHelper.GetCodeInfo("ResourceGroup");
             return dt;
         }
         /// <summary>
@@ -124,22 +123,22 @@ namespace BQHRWebApi.Service
             return dt;
         }
 
-       /// <summary>
-       /// 借用期限
-       /// </summary>
-       /// <returns></returns>
+        /// <summary>
+        /// 借用期限
+        /// </summary>
+        /// <returns></returns>
         public DataTable GetBorrowPeriod()
         {
             DataTable dt = HRHelper.GetCodeInfo("BorrowPeriod");
             return dt;
         }
 
-        public  ResourceItem GetResourceItem(string id) 
-         {
+        public ResourceItem GetResourceItem(string id)
+        {
             string sql = string.Format("select * from ResourceItem where ResourceItemId='{0}'", id);
             DataTable dt = HRHelper.ExecuteDataTable(sql);
             List<ResourceItem> myObjects = HRHelper.DataTableToList<ResourceItem>(dt);
-          //  List<ResourceItem> dynamicObjects = HRHelper.DataTableToList(dt);
+            //  List<ResourceItem> dynamicObjects = HRHelper.DataTableToList(dt);
             return myObjects[0];
         }
     }

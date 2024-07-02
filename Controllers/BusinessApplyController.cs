@@ -3,9 +3,6 @@ using BQHRWebApi.Common;
 using BQHRWebApi.Service;
 using Dcms.HR.Services;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System.Data;
-using System.Dynamic;
 
 namespace BQHRWebApi.Controllers
 {
@@ -70,7 +67,7 @@ namespace BQHRWebApi.Controllers
             try
             {
                 BusinessApplyService service = new BusinessApplyService();
-              string s= await service.CheckForCCSQ(input.ToArray());
+                string s = await service.CheckForCCSQ(input.ToArray());
                 if (s != "")
                 {
                     return ApiResponse.Fail(s);
@@ -99,7 +96,7 @@ namespace BQHRWebApi.Controllers
             try
             {
                 BusinessApplyService service = new BusinessApplyService();
-                 service.SaveForCCSQ(formNumber, input);
+                service.SaveForCCSQ(formNumber, input);
                 return ApiResponse.Success("Success");
 
             }
