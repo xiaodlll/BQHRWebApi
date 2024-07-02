@@ -142,6 +142,8 @@
   <ItemGroup>
     <Compile Include="ExtendItemAddin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ExtendItemBusinessRegisterService.cs" />
+    <Compile Include="Services\ExtendItemAttendanceEmpRankChangeService.cs" />
     <Compile Include="Services\ExtendItemAttendanceLeaveService.cs" />
     <Compile Include="Services\ExtendItemAttendanceService.cs" />
     <Compile Include="Services\ExtendItemCCService.cs" />

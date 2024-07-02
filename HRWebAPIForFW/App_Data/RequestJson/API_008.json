@@ -1,0 +1,12 @@
+{
+  "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
+  "Method": "SaveForBusinessRegisterForEss",
+  "Parameters": [
+    {
+      "name": "businessRegisters",
+      "type": "Dcms.HR.DataEntities.BusinessRegister[]",
+      "value": null
+    }
+  ],
+  "_comment": "保存出差登记"
+}

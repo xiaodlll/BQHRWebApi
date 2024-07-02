@@ -75,6 +75,9 @@
     <Reference Include="Dcms.HR.Business.AttendanceCollect">
       <HintPath>..\HRServer\Dcms.HR.Business.AttendanceCollect.dll</HintPath>
     </Reference>
+    <Reference Include="Dcms.HR.Business.AttendanceEmployeeRank">
+      <HintPath>HRDll\Dcms.HR.Business.AttendanceEmployeeRank.dll</HintPath>
+    </Reference>
     <Reference Include="Dcms.HR.Business.AttendanceLeave">
       <HintPath>HRDll\Dcms.HR.Business.AttendanceLeave.dll</HintPath>
     </Reference>

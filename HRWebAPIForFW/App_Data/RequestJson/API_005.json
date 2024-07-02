@@ -1,0 +1,12 @@
+{
+  "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
+  "Method": "CheckForAttendanceRankChangeForEss",
+  "Parameters": [
+    {
+      "name": "attendanceRankChanges",
+      "type": "Dcms.HR.DataEntities.AttendanceEmployeeRank[]",
+      "value": null
+    }
+  ],
+  "_comment": "检查班次变更"
+}

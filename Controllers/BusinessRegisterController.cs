@@ -3,17 +3,16 @@ using BQHRWebApi.Common;
 using BQHRWebApi.Service;
 using Dcms.HR.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
 
 namespace BQHRWebApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
 
-    public class AttendanceOverTimePlanController
+    public class BusinessRegisterController
     {
         [HttpPost("checkbeforesaveforapi")]
-        public async Task<ApiResponse> CheckBeforeSaveForAPI(List<AttendanceOverTimePlanForAPI> input)
+        public async Task<ApiResponse> CheckBeforeSaveForAPI(List<BusinessRegisterForAPI> input)
         {
             try
             {
@@ -26,7 +25,7 @@ namespace BQHRWebApi.Controllers
 
             try
             {
-                AttendanceOverTimePlanService service = new AttendanceOverTimePlanService();
+                BusinessRegisterService service = new BusinessRegisterService();
                 service.CheckForESS(input.ToArray());
 
                 return ApiResponse.Success("Success");
@@ -38,7 +37,7 @@ namespace BQHRWebApi.Controllers
         }
 
         [HttpPost("saveforapi")]
-        public async Task<ApiResponse> SaveForAPI(List<AttendanceOverTimePlanForAPI> input)
+        public async Task<ApiResponse> SaveForAPI(List<BusinessRegisterForAPI> input)
         {
             try
             {
@@ -51,7 +50,7 @@ namespace BQHRWebApi.Controllers
 
             try
             {
-                AttendanceOverTimePlanService service = new AttendanceOverTimePlanService();
+                BusinessRegisterService service = new BusinessRegisterService();
                 service.Save(input.ToArray());
 
                 return ApiResponse.Success("Success");
