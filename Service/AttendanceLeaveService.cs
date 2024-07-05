@@ -4786,6 +4786,14 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
             {
                 throw new ArgumentNullException("formNumber");
             }
+            EmployeeService empser = new EmployeeService();
+
+            string empId = empser.GetEmpIdByCode(auditEmployeeCode);
+            if (empId.CheckNullOrEmpty())
+            {
+                throw new BusinessRuleException("审核人" + auditEmployeeCode + "在HR中不存在！");
+            }
+
             string ids = "'" + Guid.Empty.ToString() + "'";
             for (int i = 0; i < attendanceLeaveInfoIds.Length; i++)
             {
@@ -4859,7 +4867,7 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
 
         #endregion
 
-        #region 批量公休
+        #region 批量
 
         public async Task<Dictionary<int, string>> MultiCheckForAPI(AttendanceLeaveForAPI[] formEntities)
         {
