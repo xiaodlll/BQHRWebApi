@@ -13,6 +13,16 @@
       "value": ""
     },
     {
+      "name": "auditEmployeeCode",
+      "type": "System.String",
+      "value": ""
+    },
+    {
+      "name": "auditResult",
+      "type": "System.Boolean",
+      "value": ""
+    },
+    {
       "name": "attendanceLeaveInfoIds",
       "type": "System.String[]",
       "value": ""

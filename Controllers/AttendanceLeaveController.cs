@@ -313,7 +313,7 @@ namespace BQHRWebApi.Controllers
         }
 
         [HttpPost("saverevokeforapi")]
-        public async Task<ApiResponse> SaveRevokeForAPI(string formNumber,string[] attendanceLeaveInfoIds, string attendanceTypeId)
+        public async Task<ApiResponse> SaveRevokeForAPI(string formNumber, string auditEmployeeCode, bool auditResult, string[] attendanceLeaveInfoIds, string attendanceTypeId)
         {
             try
             {
@@ -327,7 +327,7 @@ namespace BQHRWebApi.Controllers
             try
             {
                 AttendanceLeaveService service = new AttendanceLeaveService();
-                string messg = await service.SaveRevokeForAPI(formNumber, attendanceLeaveInfoIds, attendanceTypeId);
+                string messg = await service.SaveRevokeForAPI(formNumber, auditEmployeeCode,auditResult, attendanceLeaveInfoIds, attendanceTypeId);
                 if (messg.CheckNullOrEmpty() || messg == "success")
                 {
                     return ApiResponse.Success("Success");

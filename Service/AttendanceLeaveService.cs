@@ -4772,7 +4772,7 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
             return "success";
         }
 
-        public async Task<String> SaveRevokeForAPI(string formNumber, string[] attendanceLeaveInfoIds, string attendanceTypeId)
+        public async Task<String> SaveRevokeForAPI(string formNumber, string auditEmployeeCode, bool auditResult, string[] attendanceLeaveInfoIds, string attendanceTypeId)
         {
             if (attendanceLeaveInfoIds == null || attendanceLeaveInfoIds.Length == 0)
             {
@@ -4831,7 +4831,16 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
             parameter3.Name = "formType";
             parameter3.Value = "ATQJ";
 
-            callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter, parameter1, parameter2, parameter3 };
+
+            APIRequestParameter parameter4 = new APIRequestParameter();
+            parameter4.Name = "auditEmployeeCode";
+            parameter4.Value = auditEmployeeCode;
+
+            APIRequestParameter parameter5 = new APIRequestParameter();
+            parameter5.Name = "auditResult";
+            parameter5.Value = auditResult;
+
+            callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter, parameter1, parameter2, parameter3,parameter4,parameter5 };
 
             string json = JsonConvert.SerializeObject(callServiceBindingModel);
             response = await HttpPostJsonHelper.PostJsonAsync(json);
@@ -5201,6 +5210,7 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
                 APIRequestParameter parameter = new APIRequestParameter();
                 parameter.Name = "formEntities";
                 parameter.Value = JsonConvert.SerializeObject(list.ToArray());
+             
                 callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
                 json = JsonConvert.SerializeObject(callServiceBindingModel);
                 response = await HttpPostJsonHelper.PostJsonAsync(json);
@@ -5230,6 +5240,7 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
                 APIRequestParameter parameter = new APIRequestParameter();
                 parameter.Name = "formEntities";
                 parameter.Value = JsonConvert.SerializeObject(list.ToArray());
+             
 
                 callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
 
@@ -5277,6 +5288,7 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
                 parameter.Name = "formEntities";
                 parameter.Value = JsonConvert.SerializeObject(list.ToArray());
 
+
                 callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
 
                 json = JsonConvert.SerializeObject(callServiceBindingModel);
@@ -5300,9 +5312,17 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
                 APIRequestParameter parameter = new APIRequestParameter();
                 parameter.Name = "formEntities";
                 parameter.Value = JsonConvert.SerializeObject(list);
+                APIRequestParameter parameter1 = new APIRequestParameter();
+                parameter1.Name = "auditEmployeeCode";
+                parameter1.Value = auditEmployeeCode;
 
-                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+                APIRequestParameter parameter2 = new APIRequestParameter();
+                parameter2.Name = "auditResult";
+                parameter2.Value = auditResult;
 
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter, parameter1, parameter2 };
+
+               
                 json = JsonConvert.SerializeObject(callServiceBindingModel);
                 response = await HttpPostJsonHelper.PostJsonAsync(json);
             }
@@ -5314,8 +5334,17 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
                 APIRequestParameter parameter = new APIRequestParameter();
                 parameter.Name = "formEntities";
                 parameter.Value = JsonConvert.SerializeObject(list);
+                APIRequestParameter parameter1 = new APIRequestParameter();
+                parameter1.Name = "auditEmployeeCode";
+                parameter1.Value = auditEmployeeCode;
 
-                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+                APIRequestParameter parameter2 = new APIRequestParameter();
+                parameter2.Name = "auditResult";
+                parameter2.Value = auditResult;
+
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter, parameter1, parameter2 };
+
+               // callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
                 json = JsonConvert.SerializeObject(callServiceBindingModel);
                 response = await HttpPostJsonHelper.PostJsonAsync(json);
             }
@@ -5329,7 +5358,15 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
                 parameter.Name = "formEntities";
                 parameter.Value = JsonConvert.SerializeObject(list);
 
-                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+                APIRequestParameter parameter1 = new APIRequestParameter();
+                parameter1.Name = "auditEmployeeCode";
+                parameter1.Value = auditEmployeeCode;
+
+                APIRequestParameter parameter2 = new APIRequestParameter();
+                parameter2.Name = "auditResult";
+                parameter2.Value = auditResult;
+
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter, parameter1, parameter2 };
 
                 json = JsonConvert.SerializeObject(callServiceBindingModel);
                 response = await HttpPostJsonHelper.PostJsonAsync(json);
