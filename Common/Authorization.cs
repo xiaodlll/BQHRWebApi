@@ -7,7 +7,7 @@ namespace BQHRWebApi.Common
     {
         public static void CheckAuthorization()
         {
-            return;
+           // return;
 
             string licensePath = AppDomain.CurrentDomain.BaseDirectory + @"\License.ini";
 

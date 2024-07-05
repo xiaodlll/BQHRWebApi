@@ -98,7 +98,14 @@ namespace BQHRWebApi.Business
         public string FoundEmpCode { get; set; }
 
         public Guid? FoundEmployeeId { get; set; }
-
+        /// <summary>
+        /// ESS单别
+        /// </summary>
+        public string? EssType { get; set; }
+        /// <summary>
+        /// ESS单号
+        /// </summary>
+        public string EssNo { get; set; }
 
         public Guid? BusinessApplyId { get; set; }
 

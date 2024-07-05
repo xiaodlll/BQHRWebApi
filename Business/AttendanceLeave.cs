@@ -12,8 +12,16 @@
         public string? Remark { get; set; }//备注
         public decimal TotalHours { get; set; }//请假时数
         public string? Unit { get; set; }//请假单位
-
+        /// <summary>
+        /// ESS单别
+        /// </summary>
+        public string? EssType { get; set; }
         //public Guid? FiscalYearId { get; set; }
+        /// <summary>
+        /// ESS单号
+        /// </summary>
+        public string EssNo { get; set; }
+
         public Guid? AttendanceLeaveId { get; set; }
 
 

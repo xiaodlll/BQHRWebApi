@@ -210,63 +210,6 @@ namespace BQHRWebApi.Controllers
         //    }
         //}
 
-        [HttpPost("checkrevokeforapi")]
-        public async Task<ApiResponse> CheckRevokeForAPI(string[] attendanceLeaveInfoIds, string attendanceTypeId)
-        {
-            try
-            {
-                Authorization.CheckAuthorization();
-            }
-            catch (AuthorizationException aEx)
-            {
-                return ApiResponse.Fail("授权:" + aEx.Message);
-            }
-
-            try
-            {
-                AttendanceLeaveService service = new AttendanceLeaveService();
-                string messg = await service.CheckRevokeForAPI(attendanceLeaveInfoIds, attendanceTypeId);
-                if (messg.CheckNullOrEmpty() || messg == "success")
-                {
-                    return ApiResponse.Success("Success");
-                }
-                return ApiResponse.Fail(messg);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
-            }
-        }
-
-        [HttpPost("saverevokeforapi")]
-        public async Task<ApiResponse> SaveRevokeForAPI(string formNumber, string[] attendanceLeaveInfoIds, string attendanceTypeId)
-        {
-            try
-            {
-                Authorization.CheckAuthorization();
-            }
-            catch (AuthorizationException aEx)
-            {
-                return ApiResponse.Fail("授权:" + aEx.Message);
-            }
-
-            try
-            {
-                AttendanceLeaveService service = new AttendanceLeaveService();
-                string messg = await service.SaveRevokeForAPI(formNumber, attendanceLeaveInfoIds, attendanceTypeId);
-                if (messg.CheckNullOrEmpty() || messg == "success")
-                {
-                    return ApiResponse.Success("Success");
-                }
-                return ApiResponse.Fail(messg);
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
-            }
-        }
-
 
 
         [HttpPost("batchcheckleaves")]
@@ -309,7 +252,7 @@ namespace BQHRWebApi.Controllers
 
 
         [HttpPost("batchsaveleaves")]
-        public async Task<ApiResponse> MultiSaveLeaves(string formNumber, AttendanceLeaveForAPI[] input)
+        public async Task<ApiResponse> MultiSaveLeaves(string auditEmployeeCode, bool auditResult, AttendanceLeaveForAPI[] input)
         {
             try
             {
@@ -325,7 +268,7 @@ namespace BQHRWebApi.Controllers
                 if (input != null && input.Length > 0)
                 {
                     AttendanceLeaveService service = new AttendanceLeaveService();
-                    string s = await service.MultiSaveForAPI(formNumber, input);
+                    string s = await service.MultiSaveForAPI(auditEmployeeCode,auditResult, input);
                     return ApiResponse.Success("Success", s);
                 }
                 else
@@ -339,5 +282,64 @@ namespace BQHRWebApi.Controllers
             }
             return ApiResponse.Success();
         }
+
+
+        [HttpPost("checkrevokeforapi")]
+        public async Task<ApiResponse> CheckRevokeForAPI(string[] attendanceLeaveInfoIds, string attendanceTypeId)
+        {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                AttendanceLeaveService service = new AttendanceLeaveService();
+                string messg = await service.CheckRevokeForAPI(attendanceLeaveInfoIds, attendanceTypeId);
+                if (messg.CheckNullOrEmpty() || messg == "success")
+                {
+                    return ApiResponse.Success("Success");
+                }
+                return ApiResponse.Fail(messg);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+        }
+
+        [HttpPost("saverevokeforapi")]
+        public async Task<ApiResponse> SaveRevokeForAPI(string formNumber,string[] attendanceLeaveInfoIds, string attendanceTypeId)
+        {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                AttendanceLeaveService service = new AttendanceLeaveService();
+                string messg = await service.SaveRevokeForAPI(formNumber, attendanceLeaveInfoIds, attendanceTypeId);
+                if (messg.CheckNullOrEmpty() || messg == "success")
+                {
+                    return ApiResponse.Success("Success");
+                }
+                return ApiResponse.Fail(messg);
+
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+        }
+
     }
 }

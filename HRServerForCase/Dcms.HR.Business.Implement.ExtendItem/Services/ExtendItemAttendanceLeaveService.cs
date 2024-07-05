@@ -287,7 +287,7 @@ namespace Dcms.HR.Services
             dt.Columns.Add("Hours");
             dt.Columns.Add("Unit");
             decimal hours = Factory.GetService<IAttendanceOverTimeRestService>().GetHoursForESS(formEntity);
-            dt.Rows.Add(hours.ToString("#.##"), "小時");
+            dt.Rows.Add(hours.ToString("#.##"), "AttendanceUnit_002");
             return dt;
         }
         #endregion
@@ -598,10 +598,13 @@ namespace Dcms.HR.Services
                 {
                     auditEmployeeCode = Factory.GetService<IEmployeeServiceEx>().GetEmployeeCodeById(employeeId);
                 }
-                AuditRevokeForAPI(formType, formNumber, auditEmployeeCode, true, attendanceTypeId, "API销假自动审核");
+
+                string s= AuditRevokeForAPI(formType, formNumber, auditEmployeeCode, true, attendanceTypeId, "Agree");
+                return s;
+
+
                 #endregion
 
-                return string.Empty;
             }
             catch (Exception ex)
             {
@@ -619,7 +622,6 @@ namespace Dcms.HR.Services
         /// <param name="attendanceTypeId">假勤類型ID</param>
         /// <param name="remark">銷假備註</param>
         /// <returns>錯誤訊息</returns>
-       // [ExternalSystem("API"), APICode("AT_XJ_003")]
         public virtual string AuditRevokeForAPI(string formType, string formNumber, string auditEmployeeCode, bool auditResult, string attendanceTypeId, string remark)
         {
             try
@@ -658,8 +660,10 @@ namespace Dcms.HR.Services
 
 
                     this.UpdateEssRevokeStatus(formType, formNumber, _sb.ToString(), attendanceTypeId, "Agree");
+                  
+                   // if (!auditEmployeeCode.CheckNullOrEmpty()) { }
                     string auditEmpId = Factory.GetService<IEmployeeServiceEx>().GetEmployeeIdByCode(auditEmployeeCode);
-                    string auditEmpCnName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(auditEmpId);
+                    string auditEmpCnName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(auditEmpId); 
                     List<string> listInfo = new List<string>();
                     sb.Append("'" + Guid.Empty.ToString() + "'");
                     foreach (string s in attendanceLeaveInfoIds)
@@ -810,7 +814,7 @@ namespace Dcms.HR.Services
             }
             catch (Exception ex)
             {
-                return ex.Message;
+                throw new Exception(ex.Message.ToString());
             }
         }
 
@@ -863,6 +867,9 @@ namespace Dcms.HR.Services
                 ids.Add(str);
             }
             sb = sb.Remove(0, 1);
+
+            this.UpdateEssRevokeStatus(formType, formNumber, sb.ToString(), attendanceTypeId, "Create");
+
             if (attendanceTypeId == "401")
             {
 
@@ -1161,16 +1168,17 @@ namespace Dcms.HR.Services
                 #endregion
             }
 
-            using (ITransactionService tran = Factory.GetService<ITransactionService>())
-            {
-                using (IConnectionService conService = Factory.GetService<IConnectionService>())
-                {
-                    IDbCommand cmd = conService.CreateDbCommand();
-                    cmd.CommandText = strSql;
-                    cmd.ExecuteNonQuery();
-                }
-                tran.Complete();
-            }
+            //using (ITransactionService tran = Factory.GetService<ITransactionService>())
+            //{
+            //    using (IConnectionService conService = Factory.GetService<IConnectionService>())
+            //    {
+            //        IDbCommand cmd = conService.CreateDbCommand();
+            //        cmd.CommandText = strSql;
+            //        cmd.ExecuteNonQuery();
+            //    }
+            //    tran.Complete();
+            //}
+            HRHelper.ExecuteNonQuery(strSql);
         }
 
 

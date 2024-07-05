@@ -4813,7 +4813,7 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
             string response = "";
 
             CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
-            callServiceBindingModel.RequestCode = "AT_XJ_03";
+            callServiceBindingModel.RequestCode = "AT_XJ_02";
 
             APIRequestParameter parameter = new APIRequestParameter();
             parameter.Name = "attendanceLeaveInfoIds";
@@ -5007,46 +5007,65 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
             if (listQJ.Count > 0)
             {
                 List<AttendanceLeave> list = ChangeToLeaveEntity(listQJ.ToArray(), true, string.Empty, string.Empty);
-                int j = 0;
-                foreach (AttendanceLeave leave in list)
-                {
-                    j++;
-                    string[] tmpMsg = null;
-                    string msgInfo = this.GetSalaryTimes(leave);
-                    if (msgInfo.IndexOf("false") > -1)
-                    {
-                        tmpMsg = msgInfo.Split(',');
-                        if (dicCheck == null) dicCheck = new Dictionary<int, string>();
-                        dicCheck.Add(j, (string.Format("工号为 {0} 的员工当前请假总时数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1])));
-                    }
-                }
-                if (dicCheck != null && dicCheck.Keys.Count > 0)
-                {
-                    return dicCheck;
-                }
+                //int j = 0;
+                //foreach (AttendanceLeave leave in list)
+                //{
+                //    j++;
+                //    string[] tmpMsg = null;
+                //    string msgInfo = this.GetSalaryTimes(leave);
+                //    if (msgInfo.IndexOf("false") > -1)
+                //    {
+                //        tmpMsg = msgInfo.Split(',');
+                //        if (dicCheck == null) dicCheck = new Dictionary<int, string>();
+                //        dicCheck.Add(j, (string.Format("工号为 {0} 的员工当前请假总时数为 {1}，已超过最大值 {2}", tmpMsg[0], tmpMsg[2], tmpMsg[1])));
+                //    }
+                //}
+                //if (dicCheck != null && dicCheck.Keys.Count > 0)
+                //{
+                //    return dicCheck;
+                //}
 
-                j = 0;
-                foreach (AttendanceLeave leave in list)
+                //j = 0;
+                //foreach (AttendanceLeave leave in list)
+                //{
+                //    j++;
+                //    msg = "";
+                //    try
+                //    {
+                //        this.CheckForESS(leave);
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        msg = ex.Message;
+                //    }
+                //    if (!msg.CheckNullOrEmpty())
+                //    {
+                //        if (dicCheck == null) dicCheck = new Dictionary<int, string>();
+                //        dicCheck.Add(j, msg);
+                //    }
+                //}
+                //if (dicCheck != null && dicCheck.Keys.Count > 0)
+                //{
+                //    return dicCheck;
+                //}
+                callServiceBindingModel.RequestCode = "API_AT_011";
+
+                APIRequestParameter parameter = new APIRequestParameter();
+                parameter.Name = "formEntities";
+                parameter.Value = JsonConvert.SerializeObject(list.ToArray());
+
+                callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
+
+                string json = JsonConvert.SerializeObject(callServiceBindingModel);
+                response = await HttpPostJsonHelper.PostJsonAsync(json);
+                Dcms.HR.DataEntities.APIExResponse apiExResponse = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
+                if (apiExResponse.State == "-1")
                 {
-                    j++;
-                    msg = "";
-                    try
-                    {
-                        this.CheckForESS(leave);
-                    }
-                    catch (Exception ex)
-                    {
-                        msg = ex.Message;
-                    }
-                    if (!msg.CheckNullOrEmpty())
-                    {
-                        if (dicCheck == null) dicCheck = new Dictionary<int, string>();
-                        dicCheck.Add(j, msg);
-                    }
+                    throw new BusinessException(apiExResponse.Msg);
                 }
-                if (dicCheck != null && dicCheck.Keys.Count > 0)
+                else if (apiExResponse.State == "0" && !apiExResponse.ResultValue.CheckNullOrEmpty())
                 {
-                    return dicCheck;
+                    throw new BusinessException(apiExResponse.ResultValue.ToString());
                 }
             }
 
@@ -5055,8 +5074,15 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
 
 
 
-        public async Task<string> MultiSaveForAPI(string formNumber, AttendanceLeaveForAPI[] formEntities)
+        public async Task<string> MultiSaveForAPI(string auditEmployeeCode, bool auditResult, AttendanceLeaveForAPI[] formEntities)
         {
+            EmployeeService empser = new EmployeeService();
+
+            string empId = empser.GetEmpIdByCode(auditEmployeeCode);
+            if (empId.CheckNullOrEmpty()) {
+                throw new BusinessRuleException("审核人"+auditEmployeeCode+"在HR中不存在！");
+            }
+
             string formType = "ATQJ";
             StringBuilder sbError = new StringBuilder();
             string msg = string.Empty; string json = string.Empty;
@@ -5069,7 +5095,7 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
                 i++;
                 EmployeeService employeeService = new EmployeeService();
 
-                string empId = employeeService.GetEmpIdByCode(enty.EmpCode);
+                 empId = employeeService.GetEmpIdByCode(enty.EmpCode);
                 if (empId.CheckNullOrEmpty())
                 {
                     if (dicCheck == null) dicCheck = new Dictionary<int, string>();
@@ -5151,8 +5177,8 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
                     aR.Flag = true;
                     aR.IsEss = true;
                     aR.IsFromEss = true;
-                    aR.EssType = "ATQJ";
-                    aR.EssNo = formNumber;
+                    //aR.EssType = "ATQJ";
+                    //aR.EssNo = formNumber;
                     if (!aR.EmployeeId.CheckNullOrEmpty())
                     {
                         EmployeeService empSer = new EmployeeService();
@@ -5196,8 +5222,8 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
                 {
                     enty.IsEss = true;
                     enty.IsFromEss = true;
-                    enty.EssType = "ATQJ";
-                    enty.EssNo = formNumber;
+                    //enty.EssType = "ATQJ";
+                    //enty.EssNo = formNumber;
                 }
                 callServiceBindingModel.RequestCode = "API_AT_013";
 
@@ -5243,10 +5269,7 @@ and AttendanceLeaveInfoId in ({1})", attendanceTypeId, ids));
                 {
                     enty.IsEss = true;
                     enty.IsFromEss = true;
-                    enty.EssType = "ATQJ";
                     enty.AttendanceLeaveId = Guid.NewGuid();
-
-                    enty.EssNo = formNumber;
                 }
                 callServiceBindingModel.RequestCode = "API_AT_011";
 

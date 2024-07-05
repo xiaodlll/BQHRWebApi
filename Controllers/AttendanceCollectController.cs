@@ -20,7 +20,7 @@ namespace BQHRWebApi.Controllers
         }
 
         [HttpPost("BatchAdd")]
-        public ApiResponse AddAttendanceCollect(List<AttendanceCollectForAPI> input)
+        public ApiResponse AddAttendanceCollect(AttendanceCollectForAPI[] input)
         {
             try
             {
@@ -34,10 +34,10 @@ namespace BQHRWebApi.Controllers
 
             try
             {
-                if (input != null && input.Count > 0)
+                if (input != null && input.Length > 0)
                 {
                     AttendanceCollectService service = new AttendanceCollectService();
-                    service.Save(input.ToArray());
+                    service.SaveCollects(input);
                 }
                 else
                 {

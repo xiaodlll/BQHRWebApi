@@ -9,13 +9,13 @@
 
         /// <summary>
         /// 刷卡机Code
-        /// </summary>
-        public string? MachineCode { get; set; }
+        ///// </summary>
+        //public string? MachineCode { get; set; }
 
-        /// <summary>
-        /// 卡号
-        /// </summary>
-        public string? CardCode { get; set; }
+        ///// <summary>
+        ///// 卡号
+        ///// </summary>
+        //public string? CardCode { get; set; }
 
         /// <summary>
         /// 刷卡时间

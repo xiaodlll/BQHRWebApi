@@ -3,6 +3,16 @@
   "Method": "BatchSaveAT401ForAPI",
   "Parameters": [
     {
+      "name": "auditEmployeeCode",
+      "type": "System.String",
+      "value": ""
+    },
+    {
+      "name": "auditResult",
+      "type": "System.Boolean",
+      "value": ""
+    },
+    {
       "name": "formEntities",
       "type": "Dcms.HR.DataEntities.AnnualLeaveRegister[]",
       "value": null
