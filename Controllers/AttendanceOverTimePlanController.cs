@@ -27,7 +27,7 @@ namespace BQHRWebApi.Controllers
             try
             {
                 AttendanceOverTimePlanService service = new AttendanceOverTimePlanService();
-                service.CheckForESS(input.ToArray());
+                await service.CheckForESS(input.ToArray());
 
                 return ApiResponse.Success("Success");
             }
@@ -52,7 +52,7 @@ namespace BQHRWebApi.Controllers
             try
             {
                 AttendanceOverTimePlanService service = new AttendanceOverTimePlanService();
-                service.Save(input.ToArray());
+                await service.BatchSave(input.ToArray());
 
                 return ApiResponse.Success("Success");
 

@@ -33,20 +33,24 @@ namespace Dcms.HR.Services
                             attendanceCollectId = dt1.Rows[0][0].ToString();
                         }
 
-                        IAuditObject auditObject = new AttendanceOverTimePlan();
-                        auditObject.ApproveEmployeeId = item.ApproveEmployeeId;
-                        auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(item.ApproveEmployeeId.GetString());
-                        auditObject.ApproveDate = DateTime.Now.Date;
-                        auditObject.ApproveOperationDate = DateTime.Now;
-                        auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
-                        auditObject.ApproveResultId = auditObject.ApproveResultId;
-                        auditObject.ApproveRemark = "API自动审核同意";
-                        auditObject.StateId = Constants.PS03;
-                        service.Audit(new object[] { attendanceCollectId }, auditObject);
+                        if (!(item.ApproveEmployeeId.CheckNullOrEmpty()))
+                        {
+                            IAuditObject auditObject = new AttendanceOverTimePlan();
+                            auditObject.ApproveEmployeeId = item.ApproveEmployeeId;
+                            auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(item.ApproveEmployeeId.GetString());
+                            auditObject.ApproveDate = DateTime.Now.Date;
+                            auditObject.ApproveOperationDate = DateTime.Now;
+                            auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
+                            auditObject.ApproveResultId = auditObject.ApproveResultId;
+                            auditObject.ApproveRemark = "API自动审核同意";
+                            auditObject.StateId = Constants.PS03;
+                            service.Audit(new object[] { attendanceCollectId }, auditObject);
+                        }
 
                         jObject["EssNo"] = item.EssNo;
                         jObject["Success"] = true;
                         jObject["Msg"] = string.Empty;
+                        jArrayResult.Add(jObject);
                     }
                     catch (Exception ex)
                     {
@@ -54,11 +58,11 @@ namespace Dcms.HR.Services
                         jObject["Success"] = false;
                         jObject["Msg"] = ex.Message;
                         hasError = true;
+                        jArrayResult.Add(jObject);
                         scope.Dispose();
                         continue;
                     }
                     scope.Complete();
-                    jArrayResult.Add(jObject);
                 }
             }
             if (hasError)
@@ -77,26 +81,52 @@ namespace Dcms.HR.Services
 
         public void SaveForAttendanceOverTimePlanForEss(AttendanceOverTimePlan[] attendanceOverTimePlans)
         {
+            bool hasError = false;
+            JArray jArrayResult = new JArray();
             foreach (var item in attendanceOverTimePlans)
             {
-                IAttendanceOverTimePlanService service = Factory.GetService<IAttendanceOverTimePlanService>();
-                service.SaveForESS(item);
-
-                IAuditObject auditObject = new AttendanceOverTimePlan();
-                IUserService services = Factory.GetService<IUserService>();
-                string employeeId = services.GetEmployeeIdOfUser();
-                if (!employeeId.CheckNullOrEmpty())
+                using (TransactionScope scope = new TransactionScope())
                 {
-                    auditObject.ApproveEmployeeId = employeeId.GetGuid();
-                    auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(employeeId);
+                    JObject jObject = new JObject();
+                    try
+                    {
+                        string attendanceCollectId = item.AttendanceOverTimePlanId.GetString();
+                        IAttendanceOverTimePlanService service = Factory.GetService<IAttendanceOverTimePlanService>();
+                        service.SaveForESS(item);
+                        if (!(item.ApproveEmployeeId.CheckNullOrEmpty()))
+                        {
+                            IAuditObject auditObject = new AttendanceOverTimePlan();
+                            auditObject.ApproveEmployeeId = item.ApproveEmployeeId;
+                            auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(item.ApproveEmployeeId.GetString());
+                            auditObject.ApproveDate = DateTime.Now.Date;
+                            auditObject.ApproveOperationDate = DateTime.Now;
+                            auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
+                            auditObject.ApproveResultId = auditObject.ApproveResultId;
+                            auditObject.ApproveRemark = "API自动审核同意";
+                            auditObject.StateId = Constants.PS03;
+                            service.Audit(new object[] { attendanceCollectId }, auditObject);
+                        }
+                        jObject["EssNo"] = item.EssNo;
+                        jObject["Success"] = true;
+                        jObject["Msg"] = string.Empty;
+                        jArrayResult.Add(jObject);
+                    }
+                    catch (Exception ex)
+                    {
+                        jObject["EssNo"] = item.EssNo;
+                        jObject["Success"] = false;
+                        jObject["Msg"] = ex.Message;
+                        hasError = true;
+                        jArrayResult.Add(jObject);
+                        scope.Dispose();
+                        continue;
+                    }
+                    scope.Complete();
                 }
-                auditObject.ApproveDate = DateTime.Now.Date;
-                auditObject.ApproveOperationDate = DateTime.Now;
-                auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
-                auditObject.ApproveResultId = Constants.AuditAgree;
-                auditObject.ApproveRemark = "API自动审核同意";
-                auditObject.StateId = Constants.PS03;
-                service.Audit(new object[] { item.AttendanceOverTimePlanId }, auditObject);
+            }
+            if (hasError)
+            {
+                throw new Exception(jArrayResult.ToString());
             }
         }
     }
