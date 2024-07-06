@@ -53,7 +53,7 @@ namespace BQHRWebApi.Controllers
         //    }
         //}
 
-        [HttpPost("GetHoursForAPI")]
+        [HttpPost("gethoursforapi")]
         public async Task<ApiResponse> GetHoursForAPI(AttendanceLeaveForAPI input)
         {
             try
@@ -74,6 +74,40 @@ namespace BQHRWebApi.Controllers
                 return ApiResponse.Success("Success", dynamicObjects);
 
 
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+            }
+        }
+
+        [HttpPost("batchgethoursforapi")]
+        public async Task<ApiResponse> BatchGetHoursForAPI(AttendanceLeaveForAPI[] input)
+        {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                if (input != null && input.Length > 0)
+                {
+                    AttendanceLeaveService service = new AttendanceLeaveService();
+                    Dictionary<int, DataTable> messg = await service.MultiGetLeaveHours(input);
+
+                    var dynamicObjects = HRHelper.ConvertToExpandoObjects(messg);
+                    return ApiResponse.Success("Success", dynamicObjects);
+
+                }
+                else
+                {
+                    return ApiResponse.Fail("数据传入格式不正确!");
+                }
             }
             catch (Exception ex)
             {
@@ -252,7 +286,7 @@ namespace BQHRWebApi.Controllers
 
 
         [HttpPost("batchsaveleaves")]
-        public async Task<ApiResponse> MultiSaveLeaves(string auditEmployeeCode, bool auditResult, AttendanceLeaveForAPI[] input)
+        public async Task<ApiResponse> MultiSaveLeaves(AttendanceLeaveForAPI[] input)
         {
             try
             {
@@ -268,7 +302,7 @@ namespace BQHRWebApi.Controllers
                 if (input != null && input.Length > 0)
                 {
                     AttendanceLeaveService service = new AttendanceLeaveService();
-                    string s = await service.MultiSaveForAPI(auditEmployeeCode,auditResult, input);
+                    string s = await service.MultiSaveForAPI(input);
                     return ApiResponse.Success("Success", s);
                 }
                 else
@@ -285,7 +319,7 @@ namespace BQHRWebApi.Controllers
 
 
         [HttpPost("checkrevokeforapi")]
-        public async Task<ApiResponse> CheckRevokeForAPI(string[] attendanceLeaveInfoIds, string attendanceTypeId)
+        public async Task<ApiResponse> CheckRevokeForAPI(RevokeLeaveForAPI revokeEnty)
         {
             try
             {
@@ -299,7 +333,7 @@ namespace BQHRWebApi.Controllers
             try
             {
                 AttendanceLeaveService service = new AttendanceLeaveService();
-                string messg = await service.CheckRevokeForAPI(attendanceLeaveInfoIds, attendanceTypeId);
+                string messg = await service.CheckRevokeForAPI(revokeEnty);
                 if (messg.CheckNullOrEmpty() || messg == "success")
                 {
                     return ApiResponse.Success("Success");
@@ -313,7 +347,7 @@ namespace BQHRWebApi.Controllers
         }
 
         [HttpPost("saverevokeforapi")]
-        public async Task<ApiResponse> SaveRevokeForAPI(string formNumber, string auditEmployeeCode, bool auditResult, string[] attendanceLeaveInfoIds, string attendanceTypeId)
+        public async Task<ApiResponse> SaveRevokeForAPI(RevokeLeaveForAPI revokeEnty)
         {
             try
             {
@@ -327,7 +361,7 @@ namespace BQHRWebApi.Controllers
             try
             {
                 AttendanceLeaveService service = new AttendanceLeaveService();
-                string messg = await service.SaveRevokeForAPI(formNumber, auditEmployeeCode,auditResult, attendanceLeaveInfoIds, attendanceTypeId);
+                string messg = await service.SaveRevokeForAPI(revokeEnty);
                 if (messg.CheckNullOrEmpty() || messg == "success")
                 {
                     return ApiResponse.Success("Success");

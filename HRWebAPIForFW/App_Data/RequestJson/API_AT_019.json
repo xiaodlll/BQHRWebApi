@@ -1,13 +1,12 @@
 {
   "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
-  "Method": "BatchSaveAT401ForAPI",
+  "Method": "BatchGetLeaveHours",
   "Parameters": [
-   
     {
       "name": "formEntities",
-      "type": "Dcms.HR.DataEntities.AnnualLeaveRegister[]",
+      "type": "Dcms.HR.DataEntities.AttendanceLeave[]",
       "value": null
     }
   ],
-  "_comment": "保存请假数据"
+  "_comment": "获取调休请假时数"
 }

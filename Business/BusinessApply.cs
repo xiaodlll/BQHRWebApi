@@ -23,7 +23,6 @@ namespace BQHRWebApi.Business
 
             Schedules = new List<BusinessApplyScheduleForAPI>();
 
-            //Attendances = new List<BusinessApplyAttendanceForAPI>();
         }
         /// <summary>
         /// 返回/設置 所屬公司ID

@@ -36,7 +36,6 @@ namespace Dcms.HR.Services
                         IAuditObject auditObject = new AttendanceOverTimePlan();
                         auditObject.ApproveEmployeeId = item.ApproveEmployeeId;
                         auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(item.ApproveEmployeeId.GetString());
-
                         auditObject.ApproveDate = DateTime.Now.Date;
                         auditObject.ApproveOperationDate = DateTime.Now;
                         auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();

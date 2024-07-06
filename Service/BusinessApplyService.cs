@@ -52,20 +52,6 @@ namespace BQHRWebApi.Service
                         }
                     }
                 }
-
-                //foreach (BusinessApplyAttendanceForAPI person in enty.Attendances)
-                //{
-                //    DataTable dtEmp = GetEmpInfoByCode(person.EmployeeCode);
-
-                //    if (dtEmp == null && dtEmp.Rows.Count > 0)
-                //    {
-                //        person.EmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
-                //    }
-                //    else
-                //    {
-                //        throw new BusinessRuleException("找不到对应的员工:" + person.EmployeeCode);
-                //    }
-                //}
             }
             BusinessApply[] entys = HRHelper.WebAPIEntitysToDataEntitys<BusinessApply>(entities).ToArray();
 
@@ -80,7 +66,7 @@ namespace BQHRWebApi.Service
             callServiceBindingModel.RequestCode = "API_CC_02";
 
             APIRequestParameter parameter = new APIRequestParameter();
-            parameter.Name = "attendanceCollects";
+            parameter.Name = "formEntities";
             parameter.Value = JsonConvert.SerializeObject(entities);
 
             callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter };
@@ -106,8 +92,6 @@ namespace BQHRWebApi.Service
                 throw new Exception(response);
             }
         }
-
-
 
 
         private string CheckData(BusinessApplyForAPI enty)
@@ -251,9 +235,6 @@ namespace BQHRWebApi.Service
                         msg.AppendLine(errSameMsg);
                     }
                     #endregion
-                    //if (!allErrMsg.ToString().CheckNullOrEmpty()) {
-                    //    throw new BusinessRuleException(allErrMsg.ToString());
-                    //}
                 }
             }
 

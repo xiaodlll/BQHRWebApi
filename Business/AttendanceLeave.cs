@@ -20,13 +20,42 @@
         /// <summary>
         /// ESS单号
         /// </summary>
-        public string EssNo { get; set; }
+        public string? EssNo { get; set; }
 
         public Guid? AttendanceLeaveId { get; set; }
 
+        public string? AuditEmployeeCode { get; set; }
+
+        public bool? AuditResult { get; set; }
+
+        public Guid? ApproveEmployeeId { get; set; }
+        public string? ApproveResultId { get; set; }
 
     }
 
+
+    public class RevokeLeaveForAPI : DataEntity
+    {
+        public string AttendanceTypeId { get; set; }//请假类型
+        /// <summary>
+        /// ESS单别
+        /// </summary>
+        public string? EssType { get; set; }
+        /// <summary>
+        /// ESS单号
+        /// </summary>
+        public string? EssNo { get; set; }
+
+        public string? AuditEmployeeCode { get; set; }
+
+        public bool? AuditResult { get; set; }
+
+        public Guid? ApproveEmployeeId { get; set; }
+        public string? ApproveResultId { get; set; }
+
+        public string[] AttendanceLeaveInfoIds { get; set; }
+
+    }
 
 
 }

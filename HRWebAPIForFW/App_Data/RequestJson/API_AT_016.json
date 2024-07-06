@@ -3,16 +3,6 @@
   "Method": "BatchSaveATQJForAPI",
   "Parameters": [
     {
-      "name": "auditEmployeeCode",
-      "type": "System.String",
-      "value": ""
-    },
-    {
-      "name": "auditResult",
-      "type": "System.Boolean",
-      "value": ""
-    },
-    {
       "name": "formEntities",
       "type": "Dcms.HR.DataEntities.AttendanceLeave[]",
       "value": null

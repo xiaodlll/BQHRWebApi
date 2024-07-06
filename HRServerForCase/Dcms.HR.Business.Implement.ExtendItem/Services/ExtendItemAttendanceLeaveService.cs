@@ -1,13 +1,17 @@
 ﻿using Dcms.Common;
 using Dcms.Common.Core;
+using Dcms.Common.DataEntities;
 using Dcms.Common.Services;
 using Dcms.HR.Business.Implement.Properties;
 using Dcms.HR.DataEntities;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Transactions;
+using System.Xml.Linq;
 
 namespace Dcms.HR.Services
 {
@@ -125,29 +129,30 @@ namespace Dcms.HR.Services
             return sb.ToString();
         }
 
-        public void BatchSaveAT401ForAPI(string auditEmployeeCode, bool auditResult, AnnualLeaveRegister[] formEntities)
+        public void BatchSaveAT401ForAPI(AnnualLeaveRegister[] formEntities)
         {
             IAnnualLeaveRegisterService service = Factory.GetService<IAnnualLeaveRegisterService>();
             IDocumentService<AnnualLeaveRegister> docSer = service;
             IAuditObject auditObject = new AnnualLeaveRegister();
             //  IUserService services = Factory.GetService<IUserService>();
-            string employeeId = GetEmpIdByCode(auditEmployeeCode);// Factory.GetService<IEmployeeServiceEx>().GetEmployeeIdByCode(auditEmployeeCode);
-            if (!employeeId.CheckNullOrEmpty())
-            {
-                auditObject.ApproveEmployeeId = employeeId.GetGuid();
-                auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(employeeId);
-            }
-            auditObject.ApproveDate = DateTime.Now.Date;
-            auditObject.ApproveOperationDate = DateTime.Now;
-            auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
-            auditObject.ApproveResultId =auditResult==true? Constants.AuditAgree:Constants.AuditRefuse;
-            auditObject.StateId = Constants.PS03;
-            auditObject.ApproveRemark = "API自动审核同意";
+
             foreach (AnnualLeaveRegister enty in formEntities)
             {
                 enty.IsEss = true;
                 enty.IsFromEss = true;
                 enty.Flag = true;
+                //string employeeId = GetEmpIdByCode(auditEmployeeCode);// Factory.GetService<IEmployeeServiceEx>().GetEmployeeIdByCode(auditEmployeeCode);
+                //if (!employeeId.CheckNullOrEmpty())
+                //{
+                auditObject.ApproveEmployeeId = enty.ApproveEmployeeId;
+                auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(enty.ApproveEmployeeId.GetString());
+                //}
+                auditObject.ApproveDate = DateTime.Now.Date;
+                auditObject.ApproveOperationDate = DateTime.Now;
+                auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
+                auditObject.ApproveResultId = enty.ApproveResultId;
+                auditObject.StateId = Constants.PS03;
+                auditObject.ApproveRemark = "API自动审核同意";
                 Factory.GetService<IAnnualLeaveRegisterService>().CheckForESS(enty);
             }
             foreach (AnnualLeaveRegister enty in formEntities)
@@ -183,7 +188,7 @@ namespace Dcms.HR.Services
             return sb.ToString();
         }
 
-        public void BatchSaveAT406ForAPI(string auditEmployeeCode, bool auditResult, AttendanceOverTimeRest[] formEntities)
+        public void BatchSaveAT406ForAPI(AttendanceOverTimeRest[] formEntities)
         {
             foreach (AttendanceOverTimeRest enty in formEntities)
             {
@@ -196,22 +201,25 @@ namespace Dcms.HR.Services
             IDocumentService<AttendanceOverTimeRest> docSer = service;
 
             IAuditObject auditObject = new AnnualLeaveRegister();
-          //  IUserService services = Factory.GetService<IUserService>();
-            string employeeId = GetEmpIdByCode(auditEmployeeCode);//  Factory.GetService<IEmployeeServiceEx>().GetEmployeeIdByCode(auditEmployeeCode);
-            if (!employeeId.CheckNullOrEmpty())
-            {
-                auditObject.ApproveEmployeeId = employeeId.GetGuid();
-                auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(employeeId);
-            }
+            //  IUserService services = Factory.GetService<IUserService>();
+            //string employeeId = GetEmpIdByCode(auditEmployeeCode);//  Factory.GetService<IEmployeeServiceEx>().GetEmployeeIdByCode(auditEmployeeCode);
+            //if (!employeeId.CheckNullOrEmpty())
+            //{
+            //    auditObject.ApproveEmployeeId = employeeId.GetGuid();
+            //    auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(employeeId);
+            //}
             auditObject.ApproveDate = DateTime.Now.Date;
             auditObject.ApproveOperationDate = DateTime.Now;
             auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
-            auditObject.ApproveResultId =auditResult==true? Constants.AuditAgree:Constants.AuditRefuse;
+            //  auditObject.ApproveResultId =auditResult==true? Constants.AuditAgree:Constants.AuditRefuse;
             auditObject.StateId = Constants.PS03;
             auditObject.ApproveRemark = "API自动审核同意";
 
             foreach (AttendanceOverTimeRest enty in formEntities)
             {
+                auditObject.ApproveResultId = enty.ApproveResultId;
+                auditObject.ApproveEmployeeId = enty.ApproveEmployeeId;
+                auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(enty.ApproveEmployeeId.GetString());
                 service.SaveForESS(enty);
                 AttendanceOverTimeRest entyNew = docSer.Read(enty.AttendanceOverTimeRestId);
                 service.Audit(new object[] { entyNew.AttendanceOverTimeRestId }, auditObject);
@@ -242,38 +250,86 @@ namespace Dcms.HR.Services
             return sb.ToString();
         }
 
-        public void BatchSaveATQJForAPI(string auditEmployeeCode, bool auditResult, AttendanceLeave[] formEntities)
+        public void BatchSaveATQJForAPI(AttendanceLeave[] formEntities)
         {
+            List<string> saveIds = new List<string>();
+            StringBuilder msgStr = new StringBuilder();
             IAttendanceLeaveService service = Factory.GetService<IAttendanceLeaveService>();
             IDocumentService<AttendanceLeave> docSer = service.GetServiceNoPower();
             IEmployeeServiceEx empSer = Factory.GetService<IEmployeeServiceEx>();
             IAuditObject auditObject = new AttendanceLeave();
-          // IUserService services = Factory.GetService<IUserService>();
-            string employeeId = GetEmpIdByCode(auditEmployeeCode);//  empSer.GetEmployeeIdByCode(auditEmployeeCode);
-            if (!employeeId.CheckNullOrEmpty())
-            {
-                auditObject.ApproveEmployeeId = employeeId.GetGuid();
-                auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(employeeId);
-            }
             auditObject.ApproveDate = DateTime.Now.Date;
             auditObject.ApproveOperationDate = DateTime.Now;
             auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
-            auditObject.ApproveResultId =auditResult==true? Constants.AuditAgree:Constants.AuditRefuse;
+            // auditObject.ApproveResultId = auditResult == true ? Constants.AuditAgree : Constants.AuditRefuse;
             auditObject.ApproveRemark = "API自动审核同意";
 
+            bool hasError = false;
+            JArray jArrayResult = new JArray();
+
+            //try
+            //{
             foreach (AttendanceLeave entity in formEntities)
             {
-                entity.AttendanceLeaveId = Guid.NewGuid();
-                service.SaveForESS(entity);
-                AttendanceLeave entyNew = docSer.Read(entity.AttendanceLeaveId);
-                service.Audit(new object[] { entyNew.AttendanceLeaveId }, auditObject);
+                //using (TransactionScope scope = new TransactionScope())
+                //{
+                //    JObject jObject = new JObject();
+                try
+                {
+                    auditObject.ApproveEmployeeId = entity.ApproveEmployeeId;
+                    auditObject.ApproveEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(entity.ApproveEmployeeId.GetString());
+                    auditObject.ApproveResultId = entity.ApproveResultId;
+                    entity.AttendanceLeaveId = Guid.NewGuid();
+                    service.SaveForESS(entity);
+                    saveIds.Add(entity.AttendanceLeaveId.GetString());
+                    AttendanceLeave entyNew = docSer.Read(entity.AttendanceLeaveId);
+                    service.Audit(new object[] { entyNew.AttendanceLeaveId }, auditObject);
+
+                    //jObject["EssNo"] = entity.EssNo;
+                    //jObject["Success"] = true;
+                    //jObject["Msg"] = string.Empty;
+                }
+                catch (Exception ex)
+                {
+                    //jObject["EssNo"] = entity.EssNo;
+                    //jObject["Success"] = false;
+                    //jObject["Msg"] = ex.Message;
+                    //hasError = true;
+                    //scope.Dispose();
+                    msgStr.AppendFormat("ESSNo:{0} error：{1}", entity.EssNo, ex.Message.ToString());
+                    continue;
+                }
+
+                //scope.Complete();
+                //jArrayResult.Add(jObject);
             }
+
+            if (msgStr.Length > 0)
+            {
+                throw new Exception(msgStr.ToString());
+            }
+
         }
+        //if (hasError)
+        //{
+        //    throw new Exception(jArrayResult.ToString());
+        //}
+        //}
+        //catch (Exception ex) {
+        //    if (saveIds.Count > 0)
+        //    {
+        //        foreach (string sid in saveIds)
+        //        {
+        //            docSer.Delete(sid);
+        //        }
+        //    }
+        //    throw new BusinessRuleException(ex.Message.ToString());
+        //}
+        //}
 
 
         public DataTable GetLeaveHoursForAPI(AttendanceLeave attendanceLeave)
         {
-            //DataTable GetLeaveHoursForGP(string pEmployeeId, DateTime pBeginDate, string pBeginTime, DateTime pEndDate, string pEndTime, string pAttendanceTypeId)
             DataTable dt = Factory.GetService<IAttendanceLeaveService>().GetLeaveHoursForGP(attendanceLeave.EmployeeId.GetString(),
                 attendanceLeave.BeginDate,
                 attendanceLeave.BeginTime,
@@ -287,14 +343,37 @@ namespace Dcms.HR.Services
             dt.Columns.Add("Hours");
             dt.Columns.Add("Unit");
             decimal hours = Factory.GetService<IAttendanceOverTimeRestService>().GetHoursForESS(formEntity);
-            dt.Rows.Add(hours.ToString("#.##"), "AttendanceUnit_002");
+            dt.Rows.Add(hours.ToString("#.##"), "小时");
             return dt;
         }
+
+
+        public Dictionary<int, DataTable> BatchGetLeaveHours(AttendanceLeave[] formEntities)
+        {
+            IAttendanceLeaveService leaveSer = Factory.GetService<IAttendanceLeaveService>();
+            Dictionary<int, DataTable> dicHours = new Dictionary<int, DataTable>();
+            foreach (AttendanceLeave apiEntity in formEntities)
+            {
+                int number = Array.IndexOf(formEntities, apiEntity);
+                dicHours.Add(number, GetLeaveHoursForAPI(apiEntity));
+            }
+            return dicHours;
+        }
+
+        public Dictionary<int, DataTable> BatchGetRestHours(AttendanceOverTimeRest[] formEntities)
+        {
+            Dictionary<int, DataTable> dicHours = new Dictionary<int, DataTable>();
+            foreach (AttendanceOverTimeRest apiEntity in formEntities)
+            {
+                int number = Array.IndexOf(formEntities, apiEntity);
+                dicHours.Add(number, GetRestHoursForAPI(apiEntity));
+            }
+            return dicHours;
+        }
+
         #endregion
 
         #region 销假
-
-
 
         public virtual DataTable GetAttLeaveInfoByIdsForAPI(string[] attendanceLeaveInfoIds, string attendanceTypeId)
         {
@@ -542,74 +621,89 @@ namespace Dcms.HR.Services
        // [ExternalSystem("API"), APICode("AT_XJ_002")]
         public virtual string SaveRevokeForAPI(string formType, string formNumber, string auditEmployeeCode, bool auditResult, string[] attendanceLeaveInfoIds, string attendanceTypeId)
         {
-            try
+            bool hasError = false;
+            JArray jArrayResult = new JArray();
+            using (TransactionScope scope = new TransactionScope())
             {
-                if (attendanceLeaveInfoIds == null || attendanceLeaveInfoIds.Length == 0)
+                JObject jObject = new JObject();
+                try
                 {
-                    throw new Exception("請假明細不能為空");
-                }
-                if (formType.CheckNullOrEmpty())
-                {
-                    throw new ArgumentNullException("formType");
-                }
-                if (formNumber.CheckNullOrEmpty())
-                {
-                    throw new ArgumentNullException("formNumber");
-                }
-                if (attendanceTypeId.CheckNullOrEmpty())
-                {
-                    throw new ArgumentNullException("attendanceTypeId");
-                }
-
-                DataTable dt = this.GetAttLeaveInfoByIdsForAPI(attendanceLeaveInfoIds, attendanceTypeId);
-                StringBuilder error = new StringBuilder();
-                int mainCount = dt.AsEnumerable().Select(t => t["AttendanceLeaveId"].ToString()).Distinct().Count();
-                if (mainCount > 1)
-                {
-                    error.AppendLine("明細Id須來自同一張主表申請單");
-                }
-                if (dt.Rows.Count != attendanceLeaveInfoIds.Count())
-                {
-                    var notFindId = attendanceLeaveInfoIds.Except(dt.AsEnumerable().Select(t => t["AttendanceLeaveInfoId"].ToString()));
-                    foreach (string id in notFindId)
+                    if (attendanceLeaveInfoIds == null || attendanceLeaveInfoIds.Length == 0)
                     {
-                        error.AppendLine(string.Format("找不到明細Id:{0}的資料", id));
+                        throw new Exception("請假明細不能為空");
                     }
+                    if (formType.CheckNullOrEmpty())
+                    {
+                        throw new ArgumentNullException("formType");
+                    }
+                    if (formNumber.CheckNullOrEmpty())
+                    {
+                        throw new ArgumentNullException("formNumber");
+                    }
+                    if (attendanceTypeId.CheckNullOrEmpty())
+                    {
+                        throw new ArgumentNullException("attendanceTypeId");
+                    }
+
+                    DataTable dt = this.GetAttLeaveInfoByIdsForAPI(attendanceLeaveInfoIds, attendanceTypeId);
+                    StringBuilder error = new StringBuilder();
+                    int mainCount = dt.AsEnumerable().Select(t => t["AttendanceLeaveId"].ToString()).Distinct().Count();
+                    if (mainCount > 1)
+                    {
+                        error.AppendLine("明細Id須來自同一張主表申請單");
+                    }
+                    if (dt.Rows.Count != attendanceLeaveInfoIds.Count())
+                    {
+                        var notFindId = attendanceLeaveInfoIds.Except(dt.AsEnumerable().Select(t => t["AttendanceLeaveInfoId"].ToString()));
+                        foreach (string id in notFindId)
+                        {
+                            error.AppendLine(string.Format("找不到明細Id:{0}的資料", id));
+                        }
+                    }
+                    if (!error.ToString().CheckNullOrEmpty())
+                    {
+                        throw new BusinessRuleException(error.ToString());
+                    }
+
+                    StringBuilder sb = new StringBuilder();
+                    foreach (string str in attendanceLeaveInfoIds)
+                    {
+                        sb.AppendFormat("|{0}", str);
+                    }
+                    sb = sb.Remove(0, 1);
+                    this.UpdateEssRevokeStatus(formType, formNumber, sb.ToString(), attendanceTypeId, "Create");
+
+
+                    #region 保存之后就审核
+                    string s = AuditRevokeForAPI(formType, formNumber, auditEmployeeCode, auditResult, attendanceTypeId, "Agree");
+                    if (!s.CheckNullOrEmpty())
+                    {
+                        throw new BusinessRuleException(s.ToString());
+                    }
+
+                    #endregion
+
+                    jObject["EssNo"] = formNumber;
+                    jObject["Success"] = true;
+                    jObject["Msg"] = string.Empty;
                 }
-                if (!error.ToString().CheckNullOrEmpty())
+                catch (Exception ex)
                 {
-                    throw new BusinessRuleException(error.ToString());
+                    jObject["EssNo"] = formNumber;
+                    jObject["Success"] = false;
+                    jObject["Msg"] = ex.Message;
+                    hasError = true;
+                    scope.Dispose();
+                    // throw new BusinessRuleException(ex.ToString());
                 }
-
-                StringBuilder sb = new StringBuilder();
-                foreach (string str in attendanceLeaveInfoIds)
-                {
-                    sb.AppendFormat("|{0}", str);
-                }
-                sb = sb.Remove(0, 1);
-                this.UpdateEssRevokeStatus(formType, formNumber, sb.ToString(), attendanceTypeId, "Create");
-
-
-                #region 保存之后就审核
-                //IUserService services = Factory.GetService<IUserService>();
-                //string employeeId = services.GetEmployeeIdOfUser();
-                //string auditEmployeeCode = "";
-                //if (!employeeId.CheckNullOrEmpty())
-                //{
-                //    auditEmployeeCode = Factory.GetService<IEmployeeServiceEx>().GetEmployeeCodeById(employeeId);
-                //}
-
-                string s= AuditRevokeForAPI(formType, formNumber, auditEmployeeCode, auditResult, attendanceTypeId, "Agree");
-                return s;
-
-
-                #endregion
-
+                scope.Complete();
+                jArrayResult.Add(jObject);
             }
-            catch (Exception ex)
+            if (hasError)
             {
-                throw new BusinessRuleException(ex.ToString());
+                throw new Exception(jArrayResult.ToString());
             }
+            return "sucess";
         }
 
         /// <summary>
@@ -626,7 +720,6 @@ namespace Dcms.HR.Services
         {
             try
             {
-
                 string[] attendanceLeaveInfoIds = GetLeaveInfoId(formType, formNumber, attendanceTypeId);
 
                 StringBuilder _sb = new StringBuilder();
@@ -660,10 +753,10 @@ namespace Dcms.HR.Services
 
 
                     this.UpdateEssRevokeStatus(formType, formNumber, _sb.ToString(), attendanceTypeId, "Agree");
-                  
-                   // if (!auditEmployeeCode.CheckNullOrEmpty()) { }
+
+                    // if (!auditEmployeeCode.CheckNullOrEmpty()) { }
                     string auditEmpId = GetEmpIdByCode(auditEmployeeCode);//  Factory.GetService<IEmployeeServiceEx>().GetEmployeeIdByCode(auditEmployeeCode);
-                    string auditEmpCnName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(auditEmpId); 
+                    string auditEmpCnName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(auditEmpId);
                     List<string> listInfo = new List<string>();
                     sb.Append("'" + Guid.Empty.ToString() + "'");
                     foreach (string s in attendanceLeaveInfoIds)
@@ -820,7 +913,6 @@ namespace Dcms.HR.Services
 
 
         public virtual void SaveForRevoke(string formType, string formNumber, string auditEmployeeCode, bool auditResult, string[] attendanceLeaveInfoIds, string attendanceTypeId)
-
         {
             if (attendanceLeaveInfoIds == null || attendanceLeaveInfoIds.Length == 0)
             {
@@ -868,76 +960,100 @@ namespace Dcms.HR.Services
             }
             sb = sb.Remove(0, 1);
 
-            this.UpdateEssRevokeStatus(formType, formNumber, sb.ToString(), attendanceTypeId, "Create");
-
-            if (attendanceTypeId == "401")
+            bool hasError = false;
+            JArray jArrayResult = new JArray();
+            using (TransactionScope scope = new TransactionScope())
             {
-
-                IDocumentService<AnnualLeaveRegister> docnj = Factory.GetService<IAnnualLeaveRegisterService>().GetServiceNoPower();
-                IAnnualLeaveRegisterService njSer = Factory.GetService<IAnnualLeaveRegisterService>();
-                DataTable dtMain = HRHelper.ExecuteDataTable(string.Format("select AnnualLeaveRegisterId from AnnualLeaveRegisterInfo where AnnualLeaveRegisterInfo='{0}'", attendanceLeaveInfoIds[0]));
-                maiId = dtMain.Rows[0][0].ToString();
-                AnnualLeaveRegister rnty = docnj.Read(maiId);
-                njSer.Revoke(rnty, ids);
-            }
-            else if (attendanceTypeId == "406")
-            {
-                IDocumentService<AttendanceOverTimeRest> docnj = Factory.GetService<IAttendanceOverTimeRestService>().GetServiceNoPower();
-                IAttendanceOverTimeRestService njSer = Factory.GetService<IAttendanceOverTimeRestService>();
-                DataTable dtMain = HRHelper.ExecuteDataTable(string.Format("select AttendanceOTRestDaily.AttendanceOverTimeRestId from AttendanceOTRestDaily where AttendanceLeaveInfoId='{0}'", attendanceLeaveInfoIds[0]));
-                maiId = dtMain.Rows[0][0].ToString();
-                AttendanceOverTimeRest rnty = docnj.Read(maiId);
-                njSer.SaveForRevoke(rnty, attendanceLeaveInfoIds);
-            }
-            else
-            {
-                IDocumentService<AttendanceLeave> docnj = Factory.GetService<IAttendanceLeaveService>().GetServiceNoPower();
-                IAttendanceLeaveService njSer = Factory.GetService<IAttendanceLeaveService>();
-                DataTable dtMain = HRHelper.ExecuteDataTable(string.Format("select AttendanceLeaveId from AttendanceLeaveInfo where AttendanceLeaveInfoId='{0}'", attendanceLeaveInfoIds[0]));
-                maiId = dtMain.Rows[0][0].ToString();
-                AttendanceLeave rnty = docnj.Read(maiId);
-                // IAuditObject auditObject = new AttendanceLeave();
-                //  IUserService services = Factory.GetService<IUserService>();
-                // string employeeId = services.GetEmployeeIdOfUser();
-                string employeeId = GetEmpIdByCode(auditEmployeeCode);// Factory.GetService<IEmployeeServiceEx>().GetEmployeeIdByCode(auditEmployeeCode);
-          
-                bool isClose = false;
-                foreach (AttendanceLeaveInfo var in rnty.Infos)
+                JObject jObject = new JObject();
+                try
                 {
-                    if (attendanceLeaveInfoIds.Contains(var.AttendanceLeaveInfoId.GetString()))
+                    this.UpdateEssRevokeStatus(formType, formNumber, sb.ToString(), attendanceTypeId, "Create");
+
+                    if (attendanceTypeId == "401")
                     {
-                        if (var.Date != DateTime.MinValue)
+
+                        IDocumentService<AnnualLeaveRegister> docnj = Factory.GetService<IAnnualLeaveRegisterService>().GetServiceNoPower();
+                        IAnnualLeaveRegisterService njSer = Factory.GetService<IAnnualLeaveRegisterService>();
+                        DataTable dtMain = HRHelper.ExecuteDataTable(string.Format("select AnnualLeaveRegisterId from AnnualLeaveRegisterInfo where AnnualLeaveRegisterInfo='{0}'", attendanceLeaveInfoIds[0]));
+                        maiId = dtMain.Rows[0][0].ToString();
+                        AnnualLeaveRegister rnty = docnj.Read(maiId);
+                        njSer.Revoke(rnty, ids);
+                    }
+                    else if (attendanceTypeId == "406")
+                    {
+                        IDocumentService<AttendanceOverTimeRest> docnj = Factory.GetService<IAttendanceOverTimeRestService>().GetServiceNoPower();
+                        IAttendanceOverTimeRestService njSer = Factory.GetService<IAttendanceOverTimeRestService>();
+                        DataTable dtMain = HRHelper.ExecuteDataTable(string.Format("select AttendanceOTRestDaily.AttendanceOverTimeRestId from AttendanceOTRestDaily where AttendanceLeaveInfoId='{0}'", attendanceLeaveInfoIds[0]));
+                        maiId = dtMain.Rows[0][0].ToString();
+                        AttendanceOverTimeRest rnty = docnj.Read(maiId);
+                        njSer.SaveForRevoke(rnty, attendanceLeaveInfoIds);
+                    }
+                    else
+                    {
+                        IDocumentService<AttendanceLeave> docnj = Factory.GetService<IAttendanceLeaveService>().GetServiceNoPower();
+                        IAttendanceLeaveService njSer = Factory.GetService<IAttendanceLeaveService>();
+                        DataTable dtMain = HRHelper.ExecuteDataTable(string.Format("select AttendanceLeaveId from AttendanceLeaveInfo where AttendanceLeaveInfoId='{0}'", attendanceLeaveInfoIds[0]));
+                        maiId = dtMain.Rows[0][0].ToString();
+                        AttendanceLeave rnty = docnj.Read(maiId);
+                        string employeeId = GetEmpIdByCode(auditEmployeeCode);// Factory.GetService<IEmployeeServiceEx>().GetEmployeeIdByCode(auditEmployeeCode);
+
+                        bool isClose = false;
+                        foreach (AttendanceLeaveInfo var in rnty.Infos)
                         {
-                            isClose = Factory.GetService<IAttendanceSumLogService>().CheckATorPAClosebyEmpAndDate(rnty.EmployeeId.GetString(), var.Date);
+                            if (attendanceLeaveInfoIds.Contains(var.AttendanceLeaveInfoId.GetString()))
+                            {
+                                if (var.Date != DateTime.MinValue)
+                                {
+                                    isClose = Factory.GetService<IAttendanceSumLogService>().CheckATorPAClosebyEmpAndDate(rnty.EmployeeId.GetString(), var.Date);
+                                }
+
+                                if (isClose)
+                                {
+                                    throw new BusinessRuleException(string.Format(Resources.ErrorMsg_SalaryOrAttendanceSumIsClose, Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(rnty.EmployeeId.GetString()), var.Date.ToDateFormatString()));
+                                }
+                                var.RevokeEmployeeId = employeeId.GetGuid();
+                                var.RevokeEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(employeeId); ;
+                                var.RevokeDate = DateTime.Now;
+
+                                var.RevokeRemark = "API销假自动审核同意";
+
+
+                                var.RevokeUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid(); //操作人
+                                var.RevokeOperationDate = System.DateTime.Now;
+                                var.IsRevoke = true;
+                            }
+                            njSer.SaveForRevoke(rnty, attendanceLeaveInfoIds);
+                            string isg = "'" + Guid.Empty.ToString() + "'";
+                            for (int i = 0; i < attendanceLeaveInfoIds.Length; i++)
+                            {
+                                isg += ",'" + attendanceLeaveInfoIds[i] + "'";
+                            }
+                            HRHelper.ExecuteNonQuery(string.Format("update AttendanceLeaveInfo set IsRevoke='1' where  AttendanceLeaveInfoId in ({0}) ", isg));
                         }
 
-                        if (isClose)
-                        {
-                            throw new BusinessRuleException(string.Format(Resources.ErrorMsg_SalaryOrAttendanceSumIsClose, Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(rnty.EmployeeId.GetString()), var.Date.ToDateFormatString()));
-                        }
-                        var.RevokeEmployeeId = employeeId.GetGuid();
-                        var.RevokeEmployeeName = Factory.GetService<IEmployeeServiceEx>().GetEmployeeNameById(employeeId); ;
-                        var.RevokeDate = DateTime.Now;
-
-                        var.RevokeRemark = "API销假自动审核同意";
-
-
-                        var.RevokeUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid(); //操作人
-                        var.RevokeOperationDate = System.DateTime.Now;
-                        var.IsRevoke = true;
                     }
-                    njSer.SaveForRevoke(rnty, attendanceLeaveInfoIds);
-                    string isg = "'" + Guid.Empty.ToString() + "'";
-                    for (int i = 0; i < attendanceLeaveInfoIds.Length; i++)
-                    {
-                        isg += ",'" + attendanceLeaveInfoIds[i] + "'";
-                    }
-                    HRHelper.ExecuteNonQuery(string.Format("update AttendanceLeaveInfo set IsRevoke='1' where  AttendanceLeaveInfoId in ({0}) ", isg));
+                    jObject["EssNo"] = formNumber;
+                    jObject["Success"] = true;
+                    jObject["Msg"] = string.Empty;
                 }
-
+                catch (Exception ex)
+                {
+                    jObject["EssNo"] = formNumber;
+                    jObject["Success"] = false;
+                    jObject["Msg"] = ex.Message;
+                    hasError = true;
+                    scope.Dispose();
+                }
+                scope.Complete();
+                jArrayResult.Add(jObject);
             }
-        }
 
+            if (hasError)
+            {
+                throw new Exception(jArrayResult.ToString());
+            }
+
+        }
 
 
         /// <summary>

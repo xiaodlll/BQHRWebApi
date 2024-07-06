@@ -2,16 +2,7 @@
   "ServiceType": "Dcms.HR.Services.IExtendItemService,Dcms.HR.Business.ExtendItem",
   "Method": "BatchSaveAT406ForAPI",
   "Parameters": [
-    {
-      "name": "auditEmployeeCode",
-      "type": "System.String",
-      "value": ""
-    },
-    {
-      "name": "auditResult",
-      "type": "System.Boolean",
-      "value": ""
-    },
+  
     {
       "name": "formEntities",
       "type": "Dcms.HR.DataEntities.AttendanceOverTimeRest[]",
