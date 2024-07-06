@@ -50,8 +50,8 @@
 
         public bool? AuditResult { get; set; }
 
-        public Guid? ApproveEmployeeId { get; set; }
-        public string? ApproveResultId { get; set; }
+        //public Guid? ApproveEmployeeId { get; set; }
+        //public string? ApproveResultId { get; set; }
 
         public string[] AttendanceLeaveInfoIds { get; set; }
 

@@ -1,6 +1,7 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using BQHRWebApi.Service;
+using Dcms.Common;
 using Dcms.HR.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -68,7 +69,7 @@ namespace BQHRWebApi.Controllers
             {
                 BusinessApplyService service = new BusinessApplyService();
                 string s = await service.CheckForCCSQ(input.ToArray());
-                if (s != "")
+                if (!s.CheckNullOrEmpty()&&!s.Equals("Success"))
                 {
                     return ApiResponse.Fail(s);
                 }
@@ -82,7 +83,7 @@ namespace BQHRWebApi.Controllers
         }
 
         [HttpPost("batchsaveforccsq")]
-        public async Task<ApiResponse> SaveCCSQForAPI(string formNumber, BusinessApplyForAPI[] input)
+        public async Task<ApiResponse> SaveCCSQForAPI( BusinessApplyForAPI[] input)
         {
             try
             {
@@ -96,8 +97,14 @@ namespace BQHRWebApi.Controllers
             try
             {
                 BusinessApplyService service = new BusinessApplyService();
-                service.SaveForCCSQ(formNumber, input);
-                return ApiResponse.Success("Success");
+                string s = await service.SaveForCCSQ(input);
+                if (s.CheckNullOrEmpty() || s.Equals("Success"))
+                {
+                    return ApiResponse.Success("Success");
+                }
+                else {
+                    return ApiResponse.Fail(s);
+                }
 
             }
             catch (Exception ex)

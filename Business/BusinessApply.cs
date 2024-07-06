@@ -104,9 +104,16 @@ namespace BQHRWebApi.Business
         /// <summary>
         /// ESS单号
         /// </summary>
-        public string EssNo { get; set; }
+        public string? EssNo { get; set; }
 
         public Guid? BusinessApplyId { get; set; }
+
+        public bool? AuditResult { get; set; }
+
+
+        public Guid? ApproveEmployeeId { get; set; }
+        public string? ApproveResultId { get; set; }
+
 
         #region Collection properties
         /// <summary>

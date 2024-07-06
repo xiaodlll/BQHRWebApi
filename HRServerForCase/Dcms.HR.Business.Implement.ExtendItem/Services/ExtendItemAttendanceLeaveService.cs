@@ -621,11 +621,11 @@ namespace Dcms.HR.Services
        // [ExternalSystem("API"), APICode("AT_XJ_002")]
         public virtual string SaveRevokeForAPI(string formType, string formNumber, string auditEmployeeCode, bool auditResult, string[] attendanceLeaveInfoIds, string attendanceTypeId)
         {
-            bool hasError = false;
-            JArray jArrayResult = new JArray();
-            using (TransactionScope scope = new TransactionScope())
-            {
-                JObject jObject = new JObject();
+            //bool hasError = false;
+            //JArray jArrayResult = new JArray();
+            //using (TransactionScope scope = new TransactionScope())
+            //{
+            //    JObject jObject = new JObject();
                 try
                 {
                     if (attendanceLeaveInfoIds == null || attendanceLeaveInfoIds.Length == 0)
@@ -683,26 +683,26 @@ namespace Dcms.HR.Services
 
                     #endregion
 
-                    jObject["EssNo"] = formNumber;
-                    jObject["Success"] = true;
-                    jObject["Msg"] = string.Empty;
+                    //jObject["EssNo"] = formNumber;
+                    //jObject["Success"] = true;
+                    //jObject["Msg"] = string.Empty;
                 }
                 catch (Exception ex)
                 {
-                    jObject["EssNo"] = formNumber;
-                    jObject["Success"] = false;
-                    jObject["Msg"] = ex.Message;
-                    hasError = true;
-                    scope.Dispose();
-                    // throw new BusinessRuleException(ex.ToString());
+                    //jObject["EssNo"] = formNumber;
+                    //jObject["Success"] = false;
+                    //jObject["Msg"] = ex.Message;
+                    //hasError = true;
+                    //scope.Dispose();
+                     throw new BusinessRuleException(ex.ToString());
                 }
-                scope.Complete();
-                jArrayResult.Add(jObject);
-            }
-            if (hasError)
-            {
-                throw new Exception(jArrayResult.ToString());
-            }
+                //scope.Complete();
+                //jArrayResult.Add(jObject);
+            //}
+            //if (hasError)
+            //{
+            //    throw new Exception(jArrayResult.ToString());
+            //}
             return "sucess";
         }
 
@@ -912,6 +912,7 @@ namespace Dcms.HR.Services
         }
 
 
+        // [ExternalSystem("API"), APICode("AT_XJ_03")]
         public virtual void SaveForRevoke(string formType, string formNumber, string auditEmployeeCode, bool auditResult, string[] attendanceLeaveInfoIds, string attendanceTypeId)
         {
             if (attendanceLeaveInfoIds == null || attendanceLeaveInfoIds.Length == 0)

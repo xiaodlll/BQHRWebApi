@@ -13,20 +13,14 @@ namespace Dcms.HR.Services
 {
     public partial class ExtendItemService
     {
+        //AT_CC_01
         public string CheckBusinessApplyForAPI(BusinessApply[] formEntities)
         {
             StringBuilder msgStr = new StringBuilder();
             int i = 0;
-            return "加4234";
             foreach (BusinessApply businessApply in formEntities)
             {
                 i++;
-                //string s= CheckForESS(businessApply);
-
-                //if (!s.CheckNullOrEmpty()) {
-                //   // dicMsg.Add(i, s);
-                //    msgStr.Append(string.Format("{0}:{1}",i,s));
-                //}
                 ExceptionCollection ec = SaveBeforeCheck(businessApply, true);
                 if (ec.Count > 0)
                 {
@@ -41,7 +35,7 @@ namespace Dcms.HR.Services
             return msgStr.ToString();
         }
 
-
+        //AT_CC_02
         public void SaveBusinessApplyForAPI(BusinessApply[] formEntities)
         {
             IBusinessApplyService service = Factory.GetService<IBusinessApplyService>();
@@ -53,7 +47,6 @@ namespace Dcms.HR.Services
                 foreach (BusinessApplyPerson person in businessApply.Persons)
                 {
                     person.BusinessApplyPersonId = Guid.NewGuid();
-                    // person.DeputyEmployeeId= Guid.NewGuid();
                 }
                 foreach (BusinessApplySchedule sch in businessApply.Schedules)
                 {
@@ -65,7 +58,7 @@ namespace Dcms.HR.Services
                 //   BusinessApply entyNew = docSer.Read(businessApply.BusinessApplyId);
                 IAuditObject auditObject = new AttendanceLeave();
                 IUserService services = Factory.GetService<IUserService>();
-                string employeeId = services.GetEmployeeIdOfUser();
+                string employeeId = businessApply.FoundEmployeeId.GetString();
                 if (!employeeId.CheckNullOrEmpty())
                 {
                     auditObject.ApproveEmployeeId = employeeId.GetGuid();
@@ -74,7 +67,7 @@ namespace Dcms.HR.Services
                 auditObject.ApproveDate = DateTime.Now.Date;
                 auditObject.ApproveOperationDate = DateTime.Now;
                 auditObject.ApproveUserId = (Factory.GetService<ILoginService>()).CurrentUser.UserId.GetGuid();
-                auditObject.ApproveResultId = Constants.AuditAgree;
+                auditObject.ApproveResultId = businessApply.ApproveResultId ;
                 auditObject.ApproveRemark = "API自动审核同意";
                 auditObject.StateId = Constants.PS03;
                 service.Audit(new object[] { businessApply.BusinessApplyId }, auditObject);

@@ -313,7 +313,7 @@ namespace BQHRWebApi.Service
             }
             return ecMsg.ToString();
         }
-  public virtual string CheckHasRankChangeData(string[] pEmpIds, DateTime pBeginDate, DateTime pEndDate)
+       public virtual string CheckHasRankChangeData(string[] pEmpIds, DateTime pBeginDate, DateTime pEndDate)
         {
 
             string errorMessage = "";
@@ -1988,9 +1988,8 @@ and AttendanceLeaveInfoId in ({1})", enty.AttendanceTypeId, ids));
             if (!enty.AuditResult.CheckNullOrEmpty() && enty.AuditResult == false) {
                 isAgree = false;
             }
-            parameter5.Value = isAgree = false;
+            parameter5.Value = isAgree ;
             
-
             callServiceBindingModel.Parameters = new APIRequestParameter[] { parameter, parameter1, parameter2, parameter3,parameter4,parameter5 };
 
             string json = JsonConvert.SerializeObject(callServiceBindingModel);

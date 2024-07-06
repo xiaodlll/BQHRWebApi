@@ -106,8 +106,8 @@ namespace BQHRWebApi.Service
             {
                 msg.Append("找不到对应的公司:" + enty.CorpCode);
             }
-            DataTable dtEmp = GetEmpInfoByCode(enty.FoundEmpCode);
 
+            DataTable dtEmp = GetEmpInfoByCode(enty.FoundEmpCode);
             if (dtEmp != null && dtEmp.Rows.Count > 0)
             {
                 enty.FoundEmployeeId = dtEmp.Rows[0]["EmployeeId"].ToString().GetGuid();
@@ -340,7 +340,7 @@ pBusinessApplyId, pEmployeeId, pBDateTime.ToDateFormatString(), pEDateTime.ToDat
         }
 
 
-        public async void SaveForCCSQ(string formNumber, BusinessApplyForAPI[] entities)
+        public async Task<string> SaveForCCSQ(BusinessApplyForAPI[] entities)
         {
             StringBuilder msgs = new StringBuilder();
             int i = 0;
@@ -353,17 +353,27 @@ pBusinessApplyId, pEmployeeId, pBDateTime.ToDateFormatString(), pEDateTime.ToDat
                 {
                     msgs.Append(string.Format("{0} {1}", i, s.ToString()));
                 }
+                if (enty.EssNo.CheckNullOrEmpty()) {
+                    msgs.Append(string.Format("{0} 流程单号EssNo不能为空", i));
+                }
+               
+                bool isAgree = true;
+                if (!enty.AuditResult.CheckNullOrEmpty() && enty.AuditResult == false)
+                {
+                    isAgree = false;
+                }
+                enty.AuditResult = isAgree;
+                enty.ApproveResultId = isAgree ? Constants.AuditAgree:Constants.AuditRefuse;
+                enty.ApproveEmployeeId = enty.FoundEmployeeId;
             }
             if (msgs.Length > 0)
-                throw new BusinessRuleException(msgs.ToString());
+               return msgs.ToString();
 
             List<BusinessApply> entys = HRHelper.WebAPIEntitysToDataEntitys<BusinessApply>("", "", entities);
             foreach (BusinessApply business in entys)
             {
                 business.IsEss = true;
                 business.IsFromEss = true;
-                business.EssNo = formNumber;
-                business.EssType = "ATCC";
                 business.FoundDate = DateTime.Now.Date;
                 business.StateId = Constants.PS02;
                 business.BusinessApplyId = Guid.NewGuid();
@@ -400,6 +410,7 @@ pBusinessApplyId, pEmployeeId, pBDateTime.ToDateFormatString(), pEDateTime.ToDat
                 {
                     throw new BusinessException(aPIExResponse.ResultValue.ToString());
                 }
+                return "Success";
             }
             else
             {
