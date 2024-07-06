@@ -10,7 +10,7 @@ namespace BQHRWebApi.Service
 {
     public class AttendanceOverTimePlanService : HRService
     {
-        public async void CheckForESS(DataEntity[] entities)
+        public async Task CheckForESS(DataEntity[] entities)
         {
 
             List<AttendanceOverTimePlan> attendanceCollects = GetHREntiteies(entities);
@@ -44,7 +44,7 @@ namespace BQHRWebApi.Service
             }
         }
 
-        public override async void Save(DataEntity[] entities)
+        public async Task BatchSave(DataEntity[] entities)
         {
             List<AttendanceOverTimePlan> attendanceCollects = GetHREntiteies(entities);
 
@@ -108,6 +108,28 @@ namespace BQHRWebApi.Service
 
                     attendanceOTPlan.IsEss = true;
                     attendanceOTPlan.Flag = true;
+                    attendanceOTPlan.IsFromEss = true;
+                    attendanceOTPlan.StateId = "PlanState_002";
+                    if (!(enty.AuditEmployeeCode.CheckNullOrEmpty()))
+                    {
+                        DataTable dtEmp1 = GetEmpInfoByCode(enty.AuditEmployeeCode);
+                        if (dtEmp1 != null && dtEmp1.Rows.Count > 0)
+                        {
+                            attendanceOTPlan.ApproveEmployeeId = dtEmp1.Rows[0]["EmployeeId"].ToString().GetGuid();
+                        }
+                        else
+                        {
+                            throw new BusinessRuleException("找不到对应的员工:" + enty.AuditEmployeeCode);
+                        }
+                    }
+                    if (enty.AuditResult != null && enty.AuditResult == true)
+                    {
+                        attendanceOTPlan.ApproveResultId = "OperatorResult_001";
+                    }
+                    else
+                    {
+                        attendanceOTPlan.ApproveResultId = "OperatorResult_002";
+                    }
                 }
                 else
                 {
