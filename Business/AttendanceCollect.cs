@@ -38,11 +38,21 @@
         public string? EssNo { get; set; }
 
         /// <summary>
+        /// 审核人
+        /// </summary>
+        public string? AuditEmployeeCode { get; set; }
+
+        /// <summary>
+        /// 审核结果
+        /// </summary>
+        public bool? AuditResult { get; set; }
+
+        /// <summary>
         /// 备注
         /// </summary>
         public string? Remark { get; set; }
 
-
-
+        
+        
     }
 }

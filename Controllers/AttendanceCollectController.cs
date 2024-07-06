@@ -20,7 +20,7 @@ namespace BQHRWebApi.Controllers
         }
 
         [HttpPost("BatchAdd")]
-        public ApiResponse AddAttendanceCollect(AttendanceCollectForAPI[] input)
+        public async Task<ApiResponse> AddAttendanceCollect(AttendanceCollectForAPI[] input)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace BQHRWebApi.Controllers
                 if (input != null && input.Length > 0)
                 {
                     AttendanceCollectService service = new AttendanceCollectService();
-                    service.SaveCollects(input);
+                    await service.SaveCollects(input);
                 }
                 else
                 {
