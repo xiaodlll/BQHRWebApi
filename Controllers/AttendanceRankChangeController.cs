@@ -51,7 +51,7 @@ namespace BQHRWebApi.Controllers
             try
             {
                 AttendanceRankChangeService service = new AttendanceRankChangeService();
-                service.Save(input.ToArray());
+                await service.BatchSave(input.ToArray());
 
                 return ApiResponse.Success("Success");
 

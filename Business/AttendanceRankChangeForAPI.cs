@@ -21,5 +21,10 @@
         /// 节假日类型
         /// </summary>
         public string AttendanceHolidayTypeId { get; set; }
+
+        /// <summary>
+        /// 备注
+        /// </summary>
+        public string? Remark { get; set; }
     }
 }

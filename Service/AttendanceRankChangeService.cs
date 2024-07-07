@@ -10,7 +10,7 @@ namespace BQHRWebApi.Service
 {
     public class AttendanceRankChangeService : HRService
     {
-        public async void CheckForESS(DataEntity[] entities)
+        public async Task CheckForESS(DataEntity[] entities)
         {
             List<AttendanceEmployeeRank> attendanceEmployeeRanks = GetHREntiteies(entities);
 
@@ -41,7 +41,7 @@ namespace BQHRWebApi.Service
             }
         }
 
-        public override async void Save(DataEntity[] entities)
+        public async Task BatchSave(DataEntity[] entities)
         {
             List<AttendanceEmployeeRank> attendanceEmployeeRanks = GetHREntiteies(entities);
 
@@ -76,7 +76,7 @@ namespace BQHRWebApi.Service
         private List<AttendanceEmployeeRank> GetHREntiteies(DataEntity[] entities)
         {
             List<AttendanceEmployeeRank> attendanceEmployeeRanks = new List<AttendanceEmployeeRank>();
-            foreach (AttendanceOverTimePlanForAPI enty in entities)
+            foreach (AttendanceRankChangeForAPI enty in entities)
             {
                 var attendanceEmployeeRank = HRHelper.WebAPIEntitysToDataEntity<AttendanceEmployeeRank>(enty);
                 DataTable dtEmp = GetEmpInfoByCode(enty.EmployeeCode);
@@ -88,6 +88,7 @@ namespace BQHRWebApi.Service
                 {
                     throw new BusinessRuleException("找不到对应的员工:" + enty.EmployeeCode);
                 }
+                attendanceEmployeeRanks.Add(attendanceEmployeeRank);
             }
 
             return attendanceEmployeeRanks;

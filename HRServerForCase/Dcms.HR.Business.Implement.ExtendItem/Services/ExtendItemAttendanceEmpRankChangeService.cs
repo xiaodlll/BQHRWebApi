@@ -34,11 +34,12 @@ namespace Dcms.HR.Services
                 {
                     throw new BusinessRuleException(string.Format("找不到员工{0} 在{1}现有的班次。", Factory.GetService<IEmployeeServiceEx>().GetEmployeeCodeById(item.EmployeeId.GetString()), item.Date.ToString("yyyy-MM-dd")));
                 }
-                AttendanceEmployeeRank attendanceEmployeeRank = docService.Read(id);
-                attendanceEmployeeRank.AttendanceRankId = item.AttendanceRankId;
-                attendanceEmployeeRank.AttendanceHolidayTypeId = item.AttendanceHolidayTypeId;
-                attendanceEmployeeRank.IsChange = true;
-                service.Save(attendanceEmployeeRank);
+                AttendanceEmployeeRank atEmpRank = docService.Read(id);
+                atEmpRank.AttendanceRankId = item.AttendanceRankId;
+                atEmpRank.AttendanceHolidayTypeId = item.AttendanceHolidayTypeId;
+                atEmpRank.IsChange = true;
+
+                service.CustomSaveRank(new string[] { atEmpRank.EmployeeId.GetString() }, atEmpRank.AttendanceRankId, atEmpRank.AttendanceSpellId.GetString(), atEmpRank.Date, atEmpRank.Date, true, true, atEmpRank.Remark, string.Empty);
             }
         }
 
