@@ -1,6 +1,8 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using BQHRWebApi.Service;
+using Dcms.Common;
+using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,13 +28,13 @@ namespace BQHRWebApi.Controllers
             try
             {
                 AttendanceRankChangeService service = new AttendanceRankChangeService();
-                service.CheckForESS(input.ToArray());
+                APIExResponse aPIExResponse = await service.CheckForESS(input.ToArray());
 
-                return ApiResponse.Success("Success");
+                return ResponseAnalysis.ToApiResponse(aPIExResponse);
             }
             catch (Exception ex)
             {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+                return ApiResponse.Fail((ex is BusinessException || ex is BusinessRuleException) ? ex.Message : ex.ToString());
             }
         }
 
@@ -51,14 +53,13 @@ namespace BQHRWebApi.Controllers
             try
             {
                 AttendanceRankChangeService service = new AttendanceRankChangeService();
-                await service.BatchSave(input.ToArray());
+                APIExResponse aPIExResponse = await service.BatchSave(input.ToArray());
 
-                return ApiResponse.Success("Success");
-
+                return ResponseAnalysis.ToApiResponse(aPIExResponse);
             }
             catch (Exception ex)
             {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+                return ApiResponse.Fail((ex is BusinessException || ex is BusinessRuleException) ? ex.Message : ex.ToString());
             }
         }
 

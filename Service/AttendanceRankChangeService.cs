@@ -10,7 +10,7 @@ namespace BQHRWebApi.Service
 {
     public class AttendanceRankChangeService : HRService
     {
-        public async Task CheckForESS(DataEntity[] entities)
+        public async Task<APIExResponse> CheckForESS(DataEntity[] entities)
         {
             List<AttendanceEmployeeRank> attendanceEmployeeRanks = GetHREntiteies(entities);
 
@@ -30,10 +30,7 @@ namespace BQHRWebApi.Service
 
             if (aPIExResponse != null)
             {
-                if (aPIExResponse.State != "0")
-                {
-                    throw new BusinessException(aPIExResponse.Msg);
-                }
+                return aPIExResponse;
             }
             else
             {
@@ -41,7 +38,7 @@ namespace BQHRWebApi.Service
             }
         }
 
-        public async Task BatchSave(DataEntity[] entities)
+        public async Task<APIExResponse> BatchSave(DataEntity[] entities)
         {
             List<AttendanceEmployeeRank> attendanceEmployeeRanks = GetHREntiteies(entities);
 
@@ -61,10 +58,7 @@ namespace BQHRWebApi.Service
 
             if (aPIExResponse != null)
             {
-                if (aPIExResponse.State != "0")
-                {
-                    throw new BusinessException(aPIExResponse.Msg);
-                }
+                return aPIExResponse;
             }
             else
             {
@@ -87,6 +81,30 @@ namespace BQHRWebApi.Service
                 else
                 {
                     throw new BusinessRuleException("找不到对应的员工:" + enty.EmployeeCode);
+                }
+                attendanceEmployeeRank.IsEss = true;
+                attendanceEmployeeRank.Flag = true;
+                attendanceEmployeeRank.IsFromEss = true;
+                attendanceEmployeeRank.StateId = "PlanState_002";
+                if (!(enty.AuditEmployeeCode.CheckNullOrEmpty()))
+                {
+                    DataTable dtEmp1 = GetEmpInfoByCode(enty.AuditEmployeeCode);
+                    if (dtEmp1 != null && dtEmp1.Rows.Count > 0)
+                    {
+                        attendanceEmployeeRank.ApproveEmployeeId = dtEmp1.Rows[0]["EmployeeId"].ToString().GetGuid();
+                    }
+                    else
+                    {
+                        throw new BusinessRuleException("找不到对应的员工:" + enty.AuditEmployeeCode);
+                    }
+                }
+                if (enty.AuditResult != null && enty.AuditResult == true)
+                {
+                    attendanceEmployeeRank.ApproveResultId = "OperatorResult_001";
+                }
+                else
+                {
+                    attendanceEmployeeRank.ApproveResultId = "OperatorResult_002";
                 }
                 attendanceEmployeeRanks.Add(attendanceEmployeeRank);
             }

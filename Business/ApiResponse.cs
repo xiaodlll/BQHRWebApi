@@ -1,4 +1,6 @@
-﻿namespace BQHRWebApi.Business
+﻿using Newtonsoft.Json;
+
+namespace BQHRWebApi.Business
 {
     public class ApiResponse
     {
@@ -42,12 +44,13 @@
             get; set;
         }
 
-        public static ApiResponse Fail(string error, string des = "调用失败!")
+        public static ApiResponse Fail(string error, string des = "调用失败!", Object data = null)
         {
             ApiResponse apiResponse = new ApiResponse();
             apiResponse.result = -1;
             apiResponse.errorMsg = error;
             apiResponse.description = des;
+            apiResponse.data = data;
             return apiResponse;
         }
 

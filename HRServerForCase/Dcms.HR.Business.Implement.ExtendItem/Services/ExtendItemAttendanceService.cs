@@ -12,9 +12,8 @@ namespace Dcms.HR.Services
     public partial class ExtendItemService
     {
 
-        public void SaveForAttendanceCollectForEss(AttendanceCollect[] attendanceCollects)
+        public string SaveForAttendanceCollectForEss(AttendanceCollect[] attendanceCollects)
         {
-            bool hasError = false;
             JArray jArrayResult = new JArray();
             foreach (var item in attendanceCollects)
             {
@@ -57,7 +56,6 @@ namespace Dcms.HR.Services
                         jObject["EssNo"] = item.EssNo;
                         jObject["Success"] = false;
                         jObject["Msg"] = ex.Message;
-                        hasError = true;
                         jArrayResult.Add(jObject);
                         scope.Dispose();
                         continue;
@@ -65,23 +63,36 @@ namespace Dcms.HR.Services
                     scope.Complete();
                 }
             }
-            if (hasError)
-            {
-                throw new Exception(jArrayResult.ToString());
-            }
+            return jArrayResult.ToString();
         }
 
-        public void CheckForAttendanceOverTimePlanForEss(AttendanceOverTimePlan[] attendanceOverTimePlans)
+        public string CheckForAttendanceOverTimePlanForEss(AttendanceOverTimePlan[] attendanceOverTimePlans)
         {
+            JArray jArrayResult = new JArray();
             foreach (var item in attendanceOverTimePlans)
             {
-                Factory.GetService<IAttendanceOverTimePlanService>().CheckForESS(item);
+                JObject jObject = new JObject();
+                try
+                {
+                    Factory.GetService<IAttendanceOverTimePlanService>().CheckForESS(item);
+                    jObject["EssNo"] = item.EssNo;
+                    jObject["Success"] = true;
+                    jObject["Msg"] = string.Empty;
+                    jArrayResult.Add(jObject);
+                }
+                catch (Exception ex)
+                {
+                    jObject["EssNo"] = item.EssNo;
+                    jObject["Success"] = false;
+                    jObject["Msg"] = ex.Message;
+                    jArrayResult.Add(jObject);
+                }
             }
+            return jArrayResult.ToString();
         }
 
-        public void SaveForAttendanceOverTimePlanForEss(AttendanceOverTimePlan[] attendanceOverTimePlans)
+        public string SaveForAttendanceOverTimePlanForEss(AttendanceOverTimePlan[] attendanceOverTimePlans)
         {
-            bool hasError = false;
             JArray jArrayResult = new JArray();
             foreach (var item in attendanceOverTimePlans)
             {
@@ -116,7 +127,6 @@ namespace Dcms.HR.Services
                         jObject["EssNo"] = item.EssNo;
                         jObject["Success"] = false;
                         jObject["Msg"] = ex.Message;
-                        hasError = true;
                         jArrayResult.Add(jObject);
                         scope.Dispose();
                         continue;
@@ -124,10 +134,7 @@ namespace Dcms.HR.Services
                     scope.Complete();
                 }
             }
-            if (hasError)
-            {
-                throw new Exception(jArrayResult.ToString());
-            }
+            return jArrayResult.ToString();
         }
     }
 }

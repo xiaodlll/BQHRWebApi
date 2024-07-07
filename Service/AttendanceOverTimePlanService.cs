@@ -10,7 +10,7 @@ namespace BQHRWebApi.Service
 {
     public class AttendanceOverTimePlanService : HRService
     {
-        public async Task CheckForESS(DataEntity[] entities)
+        public async Task<APIExResponse> CheckForESS(DataEntity[] entities)
         {
 
             List<AttendanceOverTimePlan> attendanceCollects = GetHREntiteies(entities);
@@ -33,10 +33,7 @@ namespace BQHRWebApi.Service
 
             if (aPIExResponse != null)
             {
-                if (aPIExResponse.State != "0")
-                {
-                    throw new BusinessException(aPIExResponse.Msg);
-                }
+                return aPIExResponse;
             }
             else
             {
@@ -44,7 +41,7 @@ namespace BQHRWebApi.Service
             }
         }
 
-        public async Task BatchSave(DataEntity[] entities)
+        public async Task<APIExResponse> BatchSave(DataEntity[] entities)
         {
             List<AttendanceOverTimePlan> attendanceCollects = GetHREntiteies(entities);
 
@@ -61,13 +58,9 @@ namespace BQHRWebApi.Service
             string response = await HttpPostJsonHelper.PostJsonAsync(json);
 
             APIExResponse aPIExResponse = JsonConvert.DeserializeObject<APIExResponse>(response);
-
             if (aPIExResponse != null)
             {
-                if (aPIExResponse.State != "0")
-                {
-                    throw new BusinessException(aPIExResponse.Msg);
-                }
+                return aPIExResponse;
             }
             else
             {

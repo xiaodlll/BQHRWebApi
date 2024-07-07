@@ -1,6 +1,8 @@
 ﻿using BQHRWebApi.Business;
 using BQHRWebApi.Common;
 using BQHRWebApi.Service;
+using Dcms.Common;
+using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,7 +39,9 @@ namespace BQHRWebApi.Controllers
                 if (input != null && input.Length > 0)
                 {
                     AttendanceCollectService service = new AttendanceCollectService();
-                    await service.SaveCollects(input);
+                    APIExResponse aPIExResponse = await service.SaveCollects(input);
+
+                    return ResponseAnalysis.ToApiResponse(aPIExResponse);
                 }
                 else
                 {
@@ -46,9 +50,8 @@ namespace BQHRWebApi.Controllers
             }
             catch (Exception ex)
             {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+                return ApiResponse.Fail((ex is BusinessException || ex is BusinessRuleException) ? ex.Message : ex.ToString());
             }
-            return ApiResponse.Success();
         }
 
 
