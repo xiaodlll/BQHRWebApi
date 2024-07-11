@@ -1,5 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Dcms.HR;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections;
+using System.Data;
 
 namespace BQHRWebApi.Common
 {
@@ -19,31 +22,34 @@ namespace BQHRWebApi.Common
                 {
                     if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string))
                     {
-                        JArray detailsArray = new JArray();
                         IEnumerable sourceCollection = (IEnumerable)property.GetValue(entity);
 
-
-                        foreach (var b in sourceCollection)
+                        if (sourceCollection.GetType() == typeof(PropertyCollection))
                         {
-                            JObject bObject = new JObject();
-                            var bProperties = b.GetType().GetProperties();
-
-                            foreach (var bProperty in bProperties)
+                            jo.Add(property.Name, JToken.FromObject(sourceCollection));
+                        }
+                        else
+                        {
+                            JArray detailsArray = new JArray();
+                            foreach (var b in sourceCollection)
                             {
-                                if (bProperty.Name != "Parent" && bProperty.Name != "ExtendedProperties")
+                                JObject bObject = new JObject();
+                                var bProperties = b.GetType().GetProperties();
+
+                                foreach (var bProperty in bProperties)
                                 {
-                                    var pValue = bProperty.GetValue(b);
-                                    if (pValue != null)
+                                    if (bProperty.Name != "Parent")
                                     {
-                                        bObject.Add(bProperty.Name, JToken.FromObject(pValue));
+                                        var pValue = bProperty.GetValue(b);
+                                        if (pValue != null)
+                                        {
+                                            bObject.Add(bProperty.Name, JToken.FromObject(pValue));
+                                        }
                                     }
                                 }
-                            }
 
-                            detailsArray.Add(bObject);
-                        }
-                        if (property.Name != "ExtendedProperties")
-                        {
+                                detailsArray.Add(bObject);
+                            }
                             jo.Add(property.Name, detailsArray);
                         }
                     }

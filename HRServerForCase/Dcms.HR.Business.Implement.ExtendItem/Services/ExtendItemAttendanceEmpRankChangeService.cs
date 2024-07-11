@@ -26,7 +26,8 @@ namespace Dcms.HR.Services
                 JObject jObject = new JObject();
                 try
                 {
-                    string id = GetAttendanceEmployeeRankId(item.EmployeeId.GetString(), item.Date);
+                    DateTime beginDate = DateTime.Parse(item.ExtendedProperties["BeginDate"].ToString()).Date;
+                    string id = GetAttendanceEmployeeRankId(item.EmployeeId.GetString(), beginDate);
                     if (string.IsNullOrEmpty(id))
                     {
                         throw new BusinessRuleException(string.Format("找不到员工{0} 在{1}现有的班次。", Factory.GetService<IEmployeeServiceEx>().GetEmployeeCodeById(item.EmployeeId.GetString()), item.Date.ToString("yyyy-MM-dd")));
@@ -59,7 +60,9 @@ namespace Dcms.HR.Services
                     {
                         IAttendanceEmployeeRankService service = Factory.GetService<IAttendanceEmployeeRankService>();
                         IDocumentService<AttendanceEmployeeRank> docService = service;
-                        string id = GetAttendanceEmployeeRankId(item.EmployeeId.GetString(), item.Date);
+                        DateTime beginDate = DateTime.Parse(item.ExtendedProperties["BeginDate"].ToString()).Date;
+                        DateTime endDate = DateTime.Parse(item.ExtendedProperties["EndDate"].ToString()).Date;
+                        string id = GetAttendanceEmployeeRankId(item.EmployeeId.GetString(), beginDate);
                         if (string.IsNullOrEmpty(id))
                         {
                             throw new BusinessRuleException(string.Format("找不到员工{0} 在{1}现有的班次。", Factory.GetService<IEmployeeServiceEx>().GetEmployeeCodeById(item.EmployeeId.GetString()), item.Date.ToString("yyyy-MM-dd")));
@@ -67,15 +70,30 @@ namespace Dcms.HR.Services
                         AttendanceEmployeeRank atEmpRank = docService.Read(id);
                         atEmpRank.AttendanceRankId = item.AttendanceRankId;
                         atEmpRank.AttendanceHolidayTypeId = item.AttendanceHolidayTypeId;
-                        atEmpRank.IsChange = true;
 
-                        service.CustomSaveRank(new string[] { atEmpRank.EmployeeId.GetString() }, atEmpRank.AttendanceRankId, atEmpRank.AttendanceSpellId.GetString(), atEmpRank.Date, atEmpRank.Date, true, true, atEmpRank.Remark, string.Empty);
+                        bool holidayType1 = true;
+                        if (item.ExtendedProperties["HolidayType1"]!=null)
+                        {
+                            bool.TryParse(item.ExtendedProperties["HolidayType1"].ToString(),out holidayType1);
+                        }
+                        bool holidayType2 = true;
+                        if (item.ExtendedProperties["HolidayType2"] != null)
+                        {
+                            bool.TryParse(item.ExtendedProperties["HolidayType2"].ToString(), out holidayType2);
+                        }
+                        string restId = string.Empty;
+                        if (item.ExtendedProperties["HolidayAttendanceRankId"] != null)
+                        {
+                            restId = item.ExtendedProperties["HolidayAttendanceRankId"].ToString();
+                        }
+
+                        service.CustomSaveRank(new string[] { atEmpRank.EmployeeId.GetString() }, atEmpRank.AttendanceRankId, atEmpRank.AttendanceSpellId.GetString(), beginDate, endDate, holidayType1, holidayType2, atEmpRank.Remark, restId);
 
                         //更新审核人
                         if (!(item.ApproveEmployeeId.CheckNullOrEmpty()))
                         {
                             string sqlUpdate = string.Format(@"update AttendanceRankChange set ApproveEmployeeId ='{0}',ApproveResultId='{1}' 
-where EmployeeId='{2}' and [Date]='{3}' and NewATRankId='{4}'", item.ApproveEmployeeId.GetString(), item.ApproveResultId, atEmpRank.EmployeeId.GetString(), atEmpRank.Date.ToString("yyyy-MM-dd"), item.AttendanceRankId);
+where EmployeeId='{2}' and [Date]>='{3}' and [Date]<='{4}' and NewATRankId='{5}'", item.ApproveEmployeeId.GetString(), item.ApproveResultId, atEmpRank.EmployeeId.GetString(), beginDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"), item.AttendanceRankId);
                             HRHelper.ExecuteNonQuery(sqlUpdate);
                         }
                         jObject["EssNo"] = item.EssNo;

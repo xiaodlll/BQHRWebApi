@@ -19,10 +19,15 @@
         public string EmployeeCode { get; set; }
 
         /// <summary>
-        /// 工作日期
+        /// 开始日期
         /// </summary>
-        public DateTime Date { get; set; }
-        
+        public DateTime BeginDate { get; set; }
+
+        /// <summary>
+        /// 截止日期
+        /// </summary>
+        public DateTime EndDate { get; set; }
+
         /// <summary>
         /// 员工班次
         /// </summary>
@@ -32,6 +37,21 @@
         /// 节假日类型
         /// </summary>
         public string AttendanceHolidayTypeId { get; set; }
+
+        /// <summary>
+        /// 跳过法定节日
+        /// </summary>
+        public bool? HolidayType1 { get; set; }
+
+        /// <summary>
+        /// 跳过假日
+        /// </summary>
+        public bool? HolidayType2 { get; set; }
+
+        /// <summary>
+        /// 跳过时班次
+        /// </summary>
+        public string? HolidayAttendanceRankId { get; set; }
 
         /// <summary>
         /// 审核人
