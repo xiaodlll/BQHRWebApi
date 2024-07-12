@@ -25,12 +25,12 @@
         /// <summary>
         /// 计划编码
         /// </summary>
-        public string? Code { get; set; }
+        public string Code { get; set; }
 
         /// <summary>
         /// 计划名称
         /// </summary>
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// 制定日期
@@ -75,16 +75,6 @@
         /// 员工编码
         /// </summary>
         public string EmployeeCode { get; set; }
-
-        /// <summary>
-        /// 班次ID
-        /// </summary>
-        public string? AttendanceRankId { get; set; }
-
-        /// <summary>
-        /// 加班类型ID
-        /// </summary>
-        public string? AttendanceTypeId { get; set; }
 
         /// <summary>
         /// 加班原因

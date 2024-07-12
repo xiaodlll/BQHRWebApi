@@ -106,6 +106,11 @@ namespace BQHRWebApi.Service
                 {
                     attendanceEmployeeRank.ApproveResultId = "OperatorResult_002";
                 }
+                attendanceEmployeeRank.ExtendedProperties.Add("BeginDate", enty.BeginDate);
+                attendanceEmployeeRank.ExtendedProperties.Add("EndDate", enty.EndDate);
+                attendanceEmployeeRank.ExtendedProperties.Add("HolidayType1", enty.HolidayType1);
+                attendanceEmployeeRank.ExtendedProperties.Add("HolidayType2", enty.HolidayType2);
+                attendanceEmployeeRank.ExtendedProperties.Add("HolidayAttendanceRankId", enty.HolidayAttendanceRankId);
                 attendanceEmployeeRanks.Add(attendanceEmployeeRank);
             }
 
