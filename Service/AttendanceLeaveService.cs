@@ -35,10 +35,10 @@ namespace BQHRWebApi.Service
         {
             EmployeeService employeeService = new EmployeeService();// Factory.GetService<EmployeeService>();
             string response = "";
-            string empId = employeeService.GetEmpIdByCode(enty.EmpCode);
+            string empId = employeeService.GetEmpIdByCode(enty.EmployeeCode);
             if (empId.CheckNullOrEmpty())
             {
-                throw new BusinessRuleException("EmpCode 找不到对应的员工");
+                throw new BusinessRuleException("EmployeeCode 找不到对应的员工");
             }
             enty.EmployeeId = empId.GetGuid();
             enty.AttendanceLeaveId = Guid.NewGuid();
@@ -116,7 +116,7 @@ namespace BQHRWebApi.Service
 
 
 
-        public async Task<Dictionary<int, DataTable>> MultiGetLeaveHours(AttendanceLeaveForAPI[] entities)
+        public async Task<Dictionary<string, DataTable>> MultiGetLeaveHours(AttendanceLeaveForAPI[] entities)
         {
             EmployeeService employeeService = new EmployeeService();// Factory.GetService<EmployeeService>();
             string response = "";
@@ -126,17 +126,21 @@ namespace BQHRWebApi.Service
 
             foreach (AttendanceLeaveForAPI enty in entities)
             {
-                string empId = employeeService.GetEmpIdByCode(enty.EmpCode);
+                string empId = employeeService.GetEmpIdByCode(enty.EmployeeCode);
                 if (empId.CheckNullOrEmpty())
                 {
-                    throw new BusinessRuleException("EmpCode 找不到对应的员工");
+                    throw new BusinessException(string.Format("{0}: EmployeeCode {1}  找不到对应的员工", enty.EssNo,enty.EmployeeCode) );
+                }
+                if (enty.EssNo.CheckNullOrEmpty() )
+                {
+                    throw new BusinessException("批量获取请假时数时，请记录ESSNo作为数据编号");
                 }
                 enty.EmployeeId = empId.GetGuid();
                 enty.AttendanceLeaveId = Guid.NewGuid();
                 string s = CheckValue(enty);
                 if (!s.CheckNullOrEmpty())
                 {
-                    throw new BusinessRuleException(s);
+                    throw new BusinessException(s);
                 }
                 else
                 {
@@ -195,7 +199,7 @@ namespace BQHRWebApi.Service
                     {
                         if (!aPIExResponse.ResultValue.CheckNullOrEmpty())
                         {
-                            var dic = (Dictionary<int, DataTable>)JsonConvert.DeserializeObject(aPIExResponse.ResultValue.ToString(), typeof(Dictionary<int,DataTable>));
+                            var dic = (Dictionary<string, DataTable>)JsonConvert.DeserializeObject(aPIExResponse.ResultValue.ToString(), typeof(Dictionary<string,DataTable>));
 
                             return dic;
 
@@ -842,9 +846,9 @@ namespace BQHRWebApi.Service
         /// <param name="formEntities">實體陣列</param>
         /// <returns>無錯誤返回null，有錯誤則返回字典類型(陣列第幾筆, 錯誤訊息)</returns>
         /// <remarks>提示訊息：請假時間與出差申請時間重疊，是否繼續提交表單？</remarks>
-        public virtual Dictionary<int, string> CheckBusinessApplyTime(AttendanceLeaveForAPI[] formEntities)
+        public virtual Dictionary<string, string> CheckBusinessApplyTime(AttendanceLeaveForAPI[] formEntities)
         {
-            Dictionary<int, string> dic = new Dictionary<int, string>();
+            Dictionary<string, string> dic = new Dictionary<string, string>();
             CheckEntityType entityType = new CheckEntityType();
             bool isUltimate = true;
 
@@ -872,7 +876,7 @@ namespace BQHRWebApi.Service
                 string msg = this.CheckBusinessApplyTime(apiEntity.EmployeeId.ToString(), apiEntity.BeginDate, apiEntity.BeginTime, apiEntity.EndDate, apiEntity.EndTime, entityType, string.Empty, true);
                 if (!msg.CheckNullOrEmpty())
                 {
-                    dic.Add(Array.IndexOf(formEntities, apiEntity), "提示訊息：請假時間與出差申請時間重疊，是否繼續提交表單？");
+                    dic.Add(apiEntity.EssNo, "提示訊息：請假時間與出差申請時間重疊，是否繼續提交表單？");
                 }
             }
             if (dic.Count > 0)
@@ -1052,7 +1056,7 @@ namespace BQHRWebApi.Service
                     entity.IsCheckAtType = true;
                     entity.StateId = Constants.PS02;
                     entity.OwnerId = entity.EmployeeId.ToString();
-                    entity.EssNo = pFormNumber;
+                   // entity.EssNo = pFormNumber;
                     if (!entity.EmployeeId.CheckNullOrEmpty())
                     {
                         string employeeId = entity.EmployeeId.ToString();
@@ -1907,7 +1911,7 @@ and AttendanceLeaveInfoId in ({1})", enty.AttendanceTypeId, ids));
             return "success";
         }
 
-        public async Task<String> SaveRevokeForAPI(RevokeLeaveForAPI enty)
+        public async Task<APIExResponse> SaveRevokeForAPI(RevokeLeaveForAPI enty)
         {
             if (enty.AttendanceLeaveInfoIds == null || enty.AttendanceLeaveInfoIds.Length == 0)
             {
@@ -1921,6 +1925,10 @@ and AttendanceLeaveInfoId in ({1})", enty.AttendanceTypeId, ids));
             {
                 throw new ArgumentNullException("EssNo");
             }
+            //if (enty.EssType.CheckNullOrEmpty())
+            //{
+            //    throw new ArgumentNullException("EssType");
+            //}
             EmployeeService empser = new EmployeeService();
             if (enty.AuditEmployeeCode.CheckNullOrEmpty()) {
 
@@ -1937,6 +1945,10 @@ and AttendanceLeaveInfoId in ({1})", enty.AttendanceTypeId, ids));
             {
                 ids += ",'" + enty.AttendanceLeaveInfoIds[i] + "'";
             }
+            if (enty.EssType.CheckNullOrEmpty()) {
+                enty.EssType = "ATXJ";
+            }
+
             DataTable dt = new DataTable();
             if (enty.AttendanceTypeId == "401")
             {
@@ -1994,16 +2006,25 @@ and AttendanceLeaveInfoId in ({1})", enty.AttendanceTypeId, ids));
 
             string json = JsonConvert.SerializeObject(callServiceBindingModel);
             response = await HttpPostJsonHelper.PostJsonAsync(json);
-            Dcms.HR.DataEntities.APIExResponse apiExResponse = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
-            if (apiExResponse.State == "0" && !apiExResponse.Msg.CheckNullOrEmpty())
+            //Dcms.HR.DataEntities.APIExResponse apiExResponse = JsonConvert.DeserializeObject<Dcms.HR.DataEntities.APIExResponse>(response);
+            //if (apiExResponse.State == "0" && !apiExResponse.Msg.CheckNullOrEmpty())
+            //{
+            //    return apiExResponse.Msg;
+            //}
+            //if (apiExResponse.State == "-1")
+            //{
+            //    throw new BusinessException(apiExResponse.Msg);
+            //}
+            //return "success";
+            APIExResponse aPIExResponse = JsonConvert.DeserializeObject<APIExResponse>(response);
+            if (aPIExResponse != null)
             {
-                return apiExResponse.Msg;
+                return aPIExResponse;
             }
-            if (apiExResponse.State == "-1")
+            else
             {
-                throw new BusinessException(apiExResponse.Msg);
+                throw new Exception(response);
             }
-            return "success";
         }
 
 
@@ -2011,30 +2032,58 @@ and AttendanceLeaveInfoId in ({1})", enty.AttendanceTypeId, ids));
 
         #region 批量
 
-        public async Task<Dictionary<int, string>> MultiCheckForAPI(AttendanceLeaveForAPI[] formEntities)
+        public async Task<Dictionary<string, string>> MultiCheckForAPI(AttendanceLeaveForAPI[] formEntities)
         {
             StringBuilder sbError = new StringBuilder();
             string msg = string.Empty;
-            Dictionary<int, string> dicCheck = new Dictionary<int, string>();
+            Dictionary<string, string> dicCheck = new Dictionary<string, string>();
             int i = 0;
+            List<string> liNo = new List<string>();
+            foreach (AttendanceLeaveForAPI enty in formEntities)
+            {
+                i++;
+                if (enty.EssNo.CheckNullOrEmpty())
+                {
+                    if (dicCheck == null) dicCheck = new Dictionary<string, string>();
+                    dicCheck.Add(i.ToString(), ("EssNo 不能为空"));
+                }
+                else {
+                    if (!liNo.Contains(enty.EssNo))
+                    {
+                        liNo.Add(enty.EssNo);
+                    }
+                    else {
+                        dicCheck.Add(i.ToString(), ("EssNo "+enty.EssNo+" 编号必须唯一"));
+                    }
+                }
+                if (dicCheck != null && dicCheck.Keys.Count > 0)
+                {
+                    continue;
+                }
+            }
+            if (dicCheck != null && dicCheck.Count > 0)
+            {
+                return dicCheck;
+            }
+            i = 0;
             foreach (AttendanceLeaveForAPI enty in formEntities)
             {
                 i++;
                 EmployeeService employeeService = new EmployeeService();
 
-                string empId = employeeService.GetEmpIdByCode(enty.EmpCode);
+                string empId = employeeService.GetEmpIdByCode(enty.EmployeeCode);
                 if (empId.CheckNullOrEmpty())
                 {
-                    if (dicCheck == null) dicCheck = new Dictionary<int, string>();
-                    dicCheck.Add(i, ("EmpCode 找不到对应的员工"));
+                    if (dicCheck == null) dicCheck = new Dictionary<string, string>();
+                    dicCheck.Add(enty.EssNo, ("EmpCode 找不到对应的员工"));
                 }
                 enty.EmployeeId = empId.GetGuid();
                 enty.AttendanceLeaveId = Guid.NewGuid();
                 string str = this.CheckValue(enty);
                 if (!str.CheckNullOrEmpty())
                 {
-                    if (dicCheck == null) dicCheck = new Dictionary<int, string>();
-                    dicCheck.Add(i, str);
+                    if (dicCheck == null) dicCheck = new Dictionary<string, string>();
+                    dicCheck.Add(i.ToString(), str);
                 }
 
                 if (dicCheck != null && dicCheck.Keys.Count > 0)
@@ -2237,39 +2286,73 @@ and AttendanceLeaveInfoId in ({1})", enty.AttendanceTypeId, ids));
         {
             EmployeeService empser = new EmployeeService();
             string empId = "";
-            foreach (AttendanceLeaveForAPI enty in formEntities)
-            {
-               
-            }
 
             string formType = "ATQJ";
             StringBuilder sbError = new StringBuilder();
             string msg = string.Empty; string json = string.Empty;
-            Dictionary<int, string> dicCheck = new Dictionary<int, string>();
-            int i = 0; string response = "";
+            Dictionary<string, string> dicCheck = new Dictionary<string, string>();
+            string response = "";
             CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
+           // Dictionary<string, string> dicCheck = new Dictionary<string, string>();
+            int i = 0;
+            List<string> liNo = new List<string>();
+            foreach (AttendanceLeaveForAPI enty in formEntities)
+            {
+                i++;
+                if (enty.EssNo.CheckNullOrEmpty())
+                {
+                    if (dicCheck == null) dicCheck = new Dictionary<string, string>();
+                    dicCheck.Add(i.ToString(), ("EssNo 不能为空"));
+                }
+                else
+                {
+                    if (!liNo.Contains(enty.EssNo))
+                    {
+                        liNo.Add(enty.EssNo);
+                    }
+                    else
+                    {
+                        dicCheck.Add(i.ToString(), ("EssNo " + enty.EssNo + " 编号必须唯一"));
+                    }
+                }
+                if (dicCheck != null && dicCheck.Keys.Count > 0)
+                {
+                    continue;
+                }
+            }
+            StringBuilder errors = new StringBuilder();
+            if (dicCheck != null && dicCheck.Keys.Count > 0)
+            {
+                foreach (string key in dicCheck.Keys)
+                {
+                    errors.Append(string.Format("{0}:{1}", key.ToString(), dicCheck[key].ToString()));
+                }
+                throw new BusinessRuleException(errors.ToString());
 
+            }
+            i = 0;
             foreach (AttendanceLeaveForAPI enty in formEntities)
             {
                 i++;
                 EmployeeService employeeService = new EmployeeService();
 
-                 empId = employeeService.GetEmpIdByCode(enty.EmpCode);
-                if (dicCheck == null) dicCheck = new Dictionary<int, string>();
+                 empId = employeeService.GetEmpIdByCode(enty.EmployeeCode);
+                if (dicCheck == null) dicCheck = new Dictionary<string, string>();
                 if (empId.CheckNullOrEmpty())
                 {
-                    dicCheck.Add(i, ("EmpCode 找不到对应的员工"));
+                    dicCheck.Add(enty.EssNo, ("EmployeeCode " + enty.EmployeeCode + " 找不到对应的员工"));
                     continue;
                 }
+                enty.EmployeeId = empId.GetGuid();
                 if (enty.AuditEmployeeCode.CheckNullOrEmpty())
                 {
-                    dicCheck.Add(i, ("AuditEmployeeCode 审核人工号不能为空！"));
+                    dicCheck.Add(enty.EssNo, ("AuditEmployeeCode 审核人工号不能为空！"));
                     continue;
                 }
                 empId = empser.GetEmpIdByCode(enty.AuditEmployeeCode);
                 if (empId.CheckNullOrEmpty())
                 {
-                    dicCheck.Add(i, "审核人" + enty.AuditEmployeeCode + "在HR中不存在！");
+                    dicCheck.Add(enty.EssNo, "审核人" + enty.AuditEmployeeCode + "在HR中不存在！");
                     continue;
                 }
                 else
@@ -2284,23 +2367,18 @@ and AttendanceLeaveInfoId in ({1})", enty.AttendanceTypeId, ids));
                 {
                     enty.ApproveResultId = Constants.AuditAgree;
                 }
-                if (enty.EssNo.CheckNullOrEmpty()) {
-                    dicCheck.Add(i, ("EssNo 流程单号不能为空！"));
-                    continue;
-                }
                 if (enty.EssType.CheckNullOrEmpty()) {
                     enty.EssType = formType;
                 }
-                enty.EmployeeId = empId.GetGuid();
                 enty.AttendanceLeaveId = Guid.NewGuid();
                 string str = this.CheckValue(enty);
                 if (!str.CheckNullOrEmpty())
                 {
                     if (dicCheck == null)
                     {
-                        dicCheck = new Dictionary<int, string>();
+                        dicCheck = new Dictionary<string, string>();
                     }
-                    dicCheck.Add(i, str);
+                    dicCheck.Add(enty.EssNo, str);
                     continue;
                 }
 
@@ -2312,10 +2390,10 @@ and AttendanceLeaveInfoId in ({1})", enty.AttendanceTypeId, ids));
                     continue;
                 }
             }
-            StringBuilder errors = new StringBuilder();
+          
             if (dicCheck != null && dicCheck.Keys.Count > 0)
             {
-                foreach (int key in dicCheck.Keys)
+                foreach (string key in dicCheck.Keys)
                 {
                     errors.Append(string.Format("{0}:{1}", key.ToString(), dicCheck[key].ToString()));
                 }

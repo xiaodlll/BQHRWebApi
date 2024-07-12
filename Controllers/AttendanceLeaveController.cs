@@ -2,6 +2,7 @@
 using BQHRWebApi.Common;
 using BQHRWebApi.Service;
 using Dcms.Common;
+using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
@@ -77,7 +78,7 @@ namespace BQHRWebApi.Controllers
             }
             catch (Exception ex)
             {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+                return ApiResponse.Fail((ex is BusinessException || ex is BusinessRuleException) ? ex.Message : ex.ToString());
             }
         }
 
@@ -98,9 +99,9 @@ namespace BQHRWebApi.Controllers
                 if (input != null && input.Length > 0)
                 {
                     AttendanceLeaveService service = new AttendanceLeaveService();
-                    Dictionary<int, DataTable> messg = await service.MultiGetLeaveHours(input);
+                    Dictionary<string, DataTable> messg = await service.MultiGetLeaveHours(input);
 
-                    var dynamicObjects = HRHelper.ConvertToExpandoObjects(messg);
+                    var dynamicObjects = HRHelper.ConvertDicToExpandoObjects(messg);
                     return ApiResponse.Success("Success", dynamicObjects);
 
                 }
@@ -111,7 +112,7 @@ namespace BQHRWebApi.Controllers
             }
             catch (Exception ex)
             {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+                return ApiResponse.Fail((ex is BusinessException || ex is BusinessRuleException) ? ex.Message : ex.ToString());
             }
         }
 
@@ -263,7 +264,7 @@ namespace BQHRWebApi.Controllers
                 if (input != null && input.Length > 0)
                 {
                     AttendanceLeaveService service = new AttendanceLeaveService();
-                    Dictionary<int, string> reT = await service.MultiCheckForAPI(input.ToArray());
+                    Dictionary<string, string> reT = await service.MultiCheckForAPI(input.ToArray());
                     StringBuilder s = new StringBuilder();
                     if (reT != null && reT.Keys.Count > 0)
                     {
@@ -279,7 +280,7 @@ namespace BQHRWebApi.Controllers
             }
             catch (Exception ex)
             {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+                return ApiResponse.Fail((ex is BusinessException || ex is BusinessRuleException) ? ex.Message : ex.ToString());
             }
             return ApiResponse.Success();
         }
@@ -312,7 +313,7 @@ namespace BQHRWebApi.Controllers
             }
             catch (Exception ex)
             {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+                return ApiResponse.Fail((ex is BusinessException || ex is BusinessRuleException) ? ex.Message : ex.ToString());
             }
             return ApiResponse.Success();
         }
@@ -342,7 +343,7 @@ namespace BQHRWebApi.Controllers
             }
             catch (Exception ex)
             {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+                return ApiResponse.Fail((ex is BusinessException || ex is BusinessRuleException) ? ex.Message : ex.ToString());
             }
         }
 
@@ -361,17 +362,18 @@ namespace BQHRWebApi.Controllers
             try
             {
                 AttendanceLeaveService service = new AttendanceLeaveService();
-                string messg = await service.SaveRevokeForAPI(revokeEnty);
-                if (messg.CheckNullOrEmpty() || messg == "success")
-                {
-                    return ApiResponse.Success("Success");
-                }
-                return ApiResponse.Fail(messg);
-
+              
+                APIExResponse aPIExResponse = await service.SaveRevokeForAPI(revokeEnty);
+                //if (messg.CheckNullOrEmpty() || messg == "success")
+                //{
+                //    return ApiResponse.Success("Success");
+                //}
+                //return ApiResponse.Fail(messg);
+                return ResponseAnalysis.ToApiResponse(aPIExResponse);
             }
             catch (Exception ex)
             {
-                return ApiResponse.Fail((ex is BusinessException) ? ex.Message : ex.ToString());
+                return ApiResponse.Fail((ex is BusinessException || ex is BusinessRuleException) ? ex.Message : ex.ToString());
             }
         }
 

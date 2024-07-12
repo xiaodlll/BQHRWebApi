@@ -2,7 +2,7 @@
 {
     public class AttendanceLeaveForAPI : DataEntity
     {
-        public string EmpCode { get; set; }
+        public string EmployeeCode { get; set; }
         public Guid? EmployeeId { get; set; }//员工Id
         public string? AttendanceTypeId { get; set; }//请假类型
         public DateTime BeginDate { get; set; }//开始日期

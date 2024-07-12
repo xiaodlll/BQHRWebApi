@@ -123,7 +123,7 @@ namespace Dcms.HR.Services
                 }
                 catch (Exception ex)
                 {
-                    sb.AppendLine(ex.Message);
+                    sb.AppendLine(string.Format("{0}:{1}", enty.EssNo, ex.Message));
                 }
             }
             return sb.ToString();
@@ -182,7 +182,7 @@ namespace Dcms.HR.Services
                 }
                 catch (Exception ex)
                 {
-                    sb.AppendLine(ex.Message);
+                    sb.AppendLine(string.Format("{0}:{1}", enty.EssNo, ex.Message));
                 }
             }
             return sb.ToString();
@@ -244,7 +244,7 @@ namespace Dcms.HR.Services
                 }
                 catch (Exception ex)
                 {
-                    sb.AppendLine(ex.Message);
+                    sb.AppendLine(string.Format("{0}:{1}", enty.EssNo,ex.Message));
                 }
             }
             return sb.ToString();
@@ -310,23 +310,7 @@ namespace Dcms.HR.Services
             }
 
         }
-        //if (hasError)
-        //{
-        //    throw new Exception(jArrayResult.ToString());
-        //}
-        //}
-        //catch (Exception ex) {
-        //    if (saveIds.Count > 0)
-        //    {
-        //        foreach (string sid in saveIds)
-        //        {
-        //            docSer.Delete(sid);
-        //        }
-        //    }
-        //    throw new BusinessRuleException(ex.Message.ToString());
-        //}
-        //}
-
+    
 
         public DataTable GetLeaveHoursForAPI(AttendanceLeave attendanceLeave)
         {
@@ -348,25 +332,31 @@ namespace Dcms.HR.Services
         }
 
 
-        public Dictionary<int, DataTable> BatchGetLeaveHours(AttendanceLeave[] formEntities)
+        public Dictionary<string, DataTable> BatchGetLeaveHours(AttendanceLeave[] formEntities)
         {
             IAttendanceLeaveService leaveSer = Factory.GetService<IAttendanceLeaveService>();
-            Dictionary<int, DataTable> dicHours = new Dictionary<int, DataTable>();
+            Dictionary<string, DataTable> dicHours = new Dictionary<string, DataTable>();
             foreach (AttendanceLeave apiEntity in formEntities)
             {
-                int number = Array.IndexOf(formEntities, apiEntity);
-                dicHours.Add(number, GetLeaveHoursForAPI(apiEntity));
+                string number = apiEntity.EssNo;// Array.IndexOf(formEntities, apiEntity);
+                if (!dicHours.ContainsKey(number))
+                {
+                    dicHours.Add(number, GetLeaveHoursForAPI(apiEntity));
+                }
             }
             return dicHours;
         }
 
-        public Dictionary<int, DataTable> BatchGetRestHours(AttendanceOverTimeRest[] formEntities)
+        public Dictionary<string, DataTable> BatchGetRestHours(AttendanceOverTimeRest[] formEntities)
         {
-            Dictionary<int, DataTable> dicHours = new Dictionary<int, DataTable>();
+            Dictionary<string, DataTable> dicHours = new Dictionary<string, DataTable>();
             foreach (AttendanceOverTimeRest apiEntity in formEntities)
             {
-                int number = Array.IndexOf(formEntities, apiEntity);
-                dicHours.Add(number, GetRestHoursForAPI(apiEntity));
+                string number = apiEntity.EssNo;// Array.IndexOf(formEntities, apiEntity);
+                if (!dicHours.ContainsKey(number))
+                {
+                    dicHours.Add(number, GetRestHoursForAPI(apiEntity));
+                }
             }
             return dicHours;
         }
@@ -621,11 +611,11 @@ namespace Dcms.HR.Services
        // [ExternalSystem("API"), APICode("AT_XJ_002")]
         public virtual string SaveRevokeForAPI(string formType, string formNumber, string auditEmployeeCode, bool auditResult, string[] attendanceLeaveInfoIds, string attendanceTypeId)
         {
-            //bool hasError = false;
-            //JArray jArrayResult = new JArray();
-            //using (TransactionScope scope = new TransactionScope())
-            //{
-            //    JObject jObject = new JObject();
+
+            JArray jArrayResult = new JArray();
+            using (TransactionScope scope = new TransactionScope())
+            {
+                JObject jObject = new JObject();
                 try
                 {
                     if (attendanceLeaveInfoIds == null || attendanceLeaveInfoIds.Length == 0)
@@ -683,27 +673,23 @@ namespace Dcms.HR.Services
 
                     #endregion
 
-                    //jObject["EssNo"] = formNumber;
-                    //jObject["Success"] = true;
-                    //jObject["Msg"] = string.Empty;
+                    jObject["EssNo"] = formNumber;
+                    jObject["Success"] = true;
+                    jObject["Msg"] = string.Empty;
+                    jArrayResult.Add(jObject);
+                    scope.Complete();
                 }
                 catch (Exception ex)
                 {
-                    //jObject["EssNo"] = formNumber;
-                    //jObject["Success"] = false;
-                    //jObject["Msg"] = ex.Message;
-                    //hasError = true;
-                    //scope.Dispose();
-                     throw new BusinessRuleException(ex.ToString());
+                    jObject["EssNo"] = formNumber;
+                    jObject["Success"] = false;
+                    jObject["Msg"] = ex.Message;
+                    jArrayResult.Add(jObject);
+                    scope.Dispose();
                 }
-                //scope.Complete();
-                //jArrayResult.Add(jObject);
-            //}
-            //if (hasError)
-            //{
-            //    throw new Exception(jArrayResult.ToString());
-            //}
-            return "sucess";
+            }
+
+            return jArrayResult.ToString();
         }
 
         /// <summary>

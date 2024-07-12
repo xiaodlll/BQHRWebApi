@@ -311,10 +311,10 @@ namespace Dcms.HR.Services
             return list;
         }
 
-        public static List<ExpandoObject> ConvertToExpandoObjects(Dictionary<int, string> dic)
+        public static List<ExpandoObject> ConvertToExpandoObjects(Dictionary<string, string> dic)
         {
             var list = new List<ExpandoObject>();
-            foreach (int i in dic.Keys)
+            foreach (string i in dic.Keys)
             {
                 dynamic expando = new ExpandoObject();
                 var dict = (IDictionary<string, object>)expando;
@@ -331,6 +331,32 @@ namespace Dcms.HR.Services
         {
             var res = new Dictionary<int, List<ExpandoObject>>();
             foreach (int i in dic.Keys)
+            {
+                var list = new List<ExpandoObject>();
+                DataTable dt = dic[i];
+                foreach (DataRow row in dt.Rows)
+                {
+                    dynamic expando = new ExpandoObject();
+                    var dict = (IDictionary<string, object>)expando;
+
+                    foreach (DataColumn column in dt.Columns)
+                    {
+                        dict[column.ColumnName] = row[column];
+                    }
+
+                    list.Add(expando);
+                }
+                res.Add(i, list);
+            }
+            return res;
+        }
+
+
+
+        public static Dictionary<string, List<ExpandoObject>> ConvertDicToExpandoObjects(Dictionary<string, DataTable> dic)
+        {
+            var res = new Dictionary<string, List<ExpandoObject>>();
+            foreach (string i in dic.Keys)
             {
                 var list = new List<ExpandoObject>();
                 DataTable dt = dic[i];
