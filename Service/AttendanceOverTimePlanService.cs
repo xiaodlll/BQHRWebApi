@@ -4,6 +4,7 @@ using Dcms.Common;
 using Dcms.HR.DataEntities;
 using Dcms.HR.Services;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Data;
 
 namespace BQHRWebApi.Service
@@ -65,6 +66,84 @@ namespace BQHRWebApi.Service
             else
             {
                 throw new Exception(response);
+            }
+        }
+
+        public async Task<APIExResponse> GetHours(AttendanceOTHourForAPI[] oTHourForAPIs)
+        {
+            string error = string.Empty;
+            JArray jData = new JArray();
+            foreach (var oTHourForAPI in oTHourForAPIs)
+            {
+                string employeeId = string.Empty;
+                DataTable dtEmp = GetEmpInfoByCode(oTHourForAPI.EmployeeCode);
+                if (dtEmp != null && dtEmp.Rows.Count > 0)
+                {
+                    employeeId = dtEmp.Rows[0]["EmployeeId"].ToString();
+                }
+                else
+                {
+                    throw new BusinessRuleException("找不到对应的员工:" + oTHourForAPI.EmployeeCode);
+                }
+
+                CallServiceBindingModel callServiceBindingModel = new CallServiceBindingModel();
+                callServiceBindingModel.RequestCode = "API_009";
+
+                List<APIRequestParameter> listPara = new List<APIRequestParameter>();
+                APIRequestParameter parameter = new APIRequestParameter();
+                parameter.Name = "pEmplyeeId";
+                parameter.Value = employeeId;
+                listPara.Add(parameter);
+
+                parameter = new APIRequestParameter();
+                parameter.Name = "pOTDate";
+                parameter.Value = oTHourForAPI.OTDate.Date;
+                listPara.Add(parameter);
+
+                parameter = new APIRequestParameter();
+                parameter.Name = "pDate";
+                parameter.Value = oTHourForAPI.Date.Date;
+                listPara.Add(parameter);
+
+                parameter = new APIRequestParameter();
+                parameter.Name = "pBeginTime";
+                parameter.Value = oTHourForAPI.BeginTime;
+                listPara.Add(parameter);
+
+                parameter = new APIRequestParameter();
+                parameter.Name = "pEndTime";
+                parameter.Value = oTHourForAPI.EndTime;
+                listPara.Add(parameter);
+
+                parameter = new APIRequestParameter();
+                parameter.Name = "IsRemoveDinner";
+                parameter.Value = (oTHourForAPI.IsRemoveDinner == null ? 0 : oTHourForAPI.IsRemoveDinner);
+                listPara.Add(parameter);
+
+                callServiceBindingModel.Parameters = listPara.ToArray();
+
+                string json = JsonConvert.SerializeObject(callServiceBindingModel);
+                string response = await HttpPostJsonHelper.PostJsonAsync(json);
+
+                APIExResponse aPIExResponse0 = JsonConvert.DeserializeObject<APIExResponse>(response);
+
+                JObject jObj = new JObject();
+                jObj["essNo"] = oTHourForAPI.EssNo;
+                jObj["hours"] = decimal.Parse(aPIExResponse0.ResultValue.ToString());
+                jObj["Success"] = true;
+                jData.Add(jObj);
+            }
+            APIExResponse aPIExResponse = new APIExResponse();
+            aPIExResponse.State = "0";
+            aPIExResponse.Msg = "Success";
+            aPIExResponse.ResultValue = jData;
+            if (string.IsNullOrEmpty(error))
+            {
+                return aPIExResponse;
+            }
+            else
+            {
+                throw new Exception(error);
             }
         }
 

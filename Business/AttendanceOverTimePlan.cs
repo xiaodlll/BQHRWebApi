@@ -116,4 +116,43 @@
         /// </summary>
         public string? Remark { get; set; }
     }
+
+    public class AttendanceOTHourForAPI
+    {
+        /// <summary>
+        /// ESS单号
+        /// </summary>
+        public string EssNo { get; set; }
+
+        /// <summary>
+        /// 员工编码
+        /// </summary>
+        public string EmployeeCode { get; set; }
+
+        /// <summary>
+        /// 加班日期
+        /// </summary>
+        public DateTime OTDate { get; set; }
+
+        /// <summary>
+        /// 开始时间
+        /// </summary>
+        public string BeginTime { get; set; }
+
+        /// <summary>
+        /// 结束时间
+        /// </summary>
+        public string EndTime { get; set; }
+
+        /// <summary>
+        /// 加班归属日期
+        /// </summary>
+        public DateTime Date { get; set; }
+
+        /// <summary>
+        /// 去掉用餐时间
+        /// </summary>
+        public int? IsRemoveDinner { get; set; }
+
+    }
 }

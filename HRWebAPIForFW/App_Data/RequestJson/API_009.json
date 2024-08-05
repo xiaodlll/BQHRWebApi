@@ -1,0 +1,37 @@
+{
+  "ServiceType": "Dcms.HR.Services.IAttendanceOverTimePlanService,Dcms.HR.Business.AttendanceOverTimePlan",
+  "Method": "GetHoursForESS",
+  "Parameters": [
+    {
+      "name": "pEmplyeeId",
+      "type": "System.String",
+      "value": null
+    },
+    {
+      "name": "pOTDate",
+      "type": "System.DateTime",
+      "value": null
+    },
+    {
+      "name": "pDate",
+      "type": "System.DateTime",
+      "value": null
+    },
+    {
+      "name": "pBeginTime",
+      "type": "System.String",
+      "value": null
+    },
+    {
+      "name": "pEndTime",
+      "type": "System.String",
+      "value": null
+    },
+    {
+      "name": "IsRemoveDinner",
+      "type": "System.Int32",
+      "value": null
+    }
+  ],
+  "_comment": "获取加班时数"
+}

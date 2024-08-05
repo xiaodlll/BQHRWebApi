@@ -63,5 +63,29 @@ namespace BQHRWebApi.Controllers
             }
         }
 
+        [HttpPost("gethours")]
+        public async Task<ApiResponse> GetHoursForAPI(List<AttendanceOTHourForAPI> input)
+        {
+            try
+            {
+                Authorization.CheckAuthorization();
+            }
+            catch (AuthorizationException aEx)
+            {
+                return ApiResponse.Fail("授权:" + aEx.Message);
+            }
+
+            try
+            {
+                AttendanceOverTimePlanService service = new AttendanceOverTimePlanService();
+                APIExResponse aPIExResponse = await service.GetHours(input.ToArray());
+
+                return ResponseAnalysis.ToApiResponse(aPIExResponse,true);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail((ex is BusinessException || ex is BusinessRuleException) ? ex.Message : ex.ToString());
+            }
+        }
     }
 }
