@@ -64,4 +64,24 @@ namespace BQHRWebApi.Business
             return apiResponse;
         }
     }
+
+    public class ApiOTHoursResponse
+    {
+        /// <summary>
+        /// essNo
+        /// </summary>
+        public string essNo
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 结果
+        /// </summary>
+        public decimal hours
+        {
+            get; set;
+        }
+
+    }
 }

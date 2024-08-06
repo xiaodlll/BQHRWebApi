@@ -7,7 +7,7 @@ namespace BQHRWebApi.Common
 {
     public class ResponseAnalysis
     {
-        public static ApiResponse ToApiResponse(APIExResponse aPIExResponse)
+        public static ApiResponse ToApiResponse(APIExResponse aPIExResponse, bool showSuccessData = false)
         {
             if (aPIExResponse.State == "0")
             {
@@ -35,7 +35,23 @@ namespace BQHRWebApi.Common
 
                 if (allSuccess)
                 {
-                    return ApiResponse.Success("Success");
+                    if (showSuccessData)
+                    {
+                        JArray jArray = aPIExResponse.ResultValue as JArray;
+                        List<ApiOTHoursResponse> list = new List<ApiOTHoursResponse>();
+                        foreach (var item in jArray)
+                        {
+                            ApiOTHoursResponse apiOTHoursResponse = new ApiOTHoursResponse();
+                            apiOTHoursResponse.essNo = item["essNo"].ToString();
+                            apiOTHoursResponse.hours = decimal.Parse(item["hours"].ToString());
+                            list.Add(apiOTHoursResponse);
+                        }
+                        return ApiResponse.Success("Success", list);
+                    }
+                    else
+                    {
+                        return ApiResponse.Success("Success");
+                    }
                 }
                 else
                 {
