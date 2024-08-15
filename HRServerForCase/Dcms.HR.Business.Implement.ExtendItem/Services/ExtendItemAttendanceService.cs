@@ -148,7 +148,7 @@ namespace Dcms.HR.Services
         {
 
             //获取attendanceTypeId和attendanceRankId
-            DataTable dtEmpAttRank = rankService.GetEmpsDailyInfo(new string[] { detail.EmployeeId.ToString() }, detail.BeginDate.Date.AddDays(-1.0), detail.EndDate.Date.AddDays(1.0));
+            DataTable dtEmpAttRank = rankService.GetEmpsDailyInfo(new string[] { detail.EmployeeId.ToString() }, detail.Date, detail.Date.AddDays(1.0));
             if (dtEmpAttRank != null && dtEmpAttRank.Rows.Count > 0)
             {
 
@@ -158,17 +158,17 @@ namespace Dcms.HR.Services
             {
                 throw new BusinessRuleException("找不到对应的员工的班次。");
             }
-            DataTable dtEmpAttType = rankService.GetEmpRankCalendar(new string[] { detail.EmployeeId.ToString() }, detail.BeginDate.Date.AddDays(-1.0), detail.EndDate.Date.AddDays(1.0));
+            DataTable dtEmpAttType = rankService.GetEmpRankCalendar(new string[] { detail.EmployeeId.ToString() }, detail.Date, detail.Date.AddDays(1.0));
             if (dtEmpAttType != null && dtEmpAttType.Rows.Count > 0)
             {
                 string holidayTypeId = dtEmpAttType.Rows[0]["HolidayTypeId"].ToString();
                 if (holidayTypeId == "HolidayKind_003")
                 {
-                    detail.AttendanceTypeId = "502";
+                    detail.AttendanceTypeId = "502";//假日加班
                 }
                 else if (holidayTypeId == "HolidayKind_001")
                 {
-                    detail.AttendanceTypeId = "501";
+                    detail.AttendanceTypeId = "501";//平日加班
                 }
                 else if (holidayTypeId == "HolidayKind_004")
                 {
@@ -176,7 +176,7 @@ namespace Dcms.HR.Services
                 }
                 else
                 {
-                    detail.AttendanceTypeId = "503";
+                    detail.AttendanceTypeId = "503";//节日加班
                 }
             }
             else
